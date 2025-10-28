@@ -49,7 +49,7 @@ BITMASK_RESERVED_BIT_6: Final[int] = 0x40  # Hex for Bitmask 01 00 00 00
 BITMASK_IMMUTABLE: Final[int] = 0x80  # Hex for Bitmask 10 00 00 00
 
 # Pagination
-# TODO: use ABI type size_of() instead of hardcoding 13
+# TODO: The hardcoded value 13 represents the size (in bytes) of the ABI type `(bool,uint64,byte[])`. Replace with ABI type size_of() when the type is defined.
 PAGE_SIZE: Final[int] = MAX_LOG_SIZE - ARC4_RETURN_PREFIX_SIZE - 13
 MAX_PAGES: Final[int] = 33
 assert MAX_PAGES == math.ceil(MAX_METADATA_SIZE / PAGE_SIZE) <= 256
