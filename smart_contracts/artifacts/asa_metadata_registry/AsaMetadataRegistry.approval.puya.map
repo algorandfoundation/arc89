@@ -1,0 +1,133 @@
+{
+  "version": 3,
+  "sources": [
+    "../../asa_metadata_registry/contract.py"
+  ],
+  "mappings": "AAMA;;AAAA;AAAA;AAKK;;AAAA;AAAA;;AAAA;AAAA;AAAA;AAGU;;AAAc;AAAd;AAAP;AAHH;;AAAA",
+  "op_pc_offset": 1,
+  "pc_events": {
+    "0": {
+      "op": "txn NumAppArgs",
+      "defined_out": [
+        "tmp%0#1"
+      ],
+      "stack_out": [
+        "tmp%0#1"
+      ]
+    },
+    "2": {
+      "op": "!",
+      "defined_out": [
+        "not%tmp%0#1"
+      ],
+      "stack_out": [
+        "not%tmp%0#1"
+      ]
+    },
+    "3": {
+      "op": "assert",
+      "stack_out": []
+    },
+    "4": {
+      "op": "txn OnCompletion",
+      "defined_out": [
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0"
+      ]
+    },
+    "6": {
+      "op": "!",
+      "defined_out": [
+        "tmp%3#0"
+      ],
+      "stack_out": [
+        "tmp%3#0"
+      ]
+    },
+    "7": {
+      "op": "txn ApplicationID",
+      "defined_out": [
+        "tmp%3#0",
+        "tmp%4#0"
+      ],
+      "stack_out": [
+        "tmp%3#0",
+        "tmp%4#0"
+      ]
+    },
+    "9": {
+      "op": "!",
+      "defined_out": [
+        "tmp%3#0",
+        "tmp%5#0"
+      ],
+      "stack_out": [
+        "tmp%3#0",
+        "tmp%5#0"
+      ]
+    },
+    "10": {
+      "op": "&&",
+      "defined_out": [
+        "tmp%6#0"
+      ],
+      "stack_out": [
+        "tmp%6#0"
+      ]
+    },
+    "11": {
+      "error": "OnCompletion must be NoOp && can only call when creating",
+      "op": "assert // OnCompletion must be NoOp && can only call when creating",
+      "stack_out": []
+    },
+    "12": {
+      "op": "txn Sender",
+      "defined_out": [
+        "tmp%0#2"
+      ],
+      "stack_out": [
+        "tmp%0#2"
+      ]
+    },
+    "14": {
+      "op": "bytec_0 // TMPL_TRUSTED_DEPLOYER",
+      "defined_out": [
+        "TMPL_TRUSTED_DEPLOYER",
+        "tmp%0#2"
+      ],
+      "stack_out": [
+        "tmp%0#2",
+        "TMPL_TRUSTED_DEPLOYER"
+      ]
+    },
+    "15": {
+      "op": "==",
+      "defined_out": [
+        "tmp%1#1"
+      ],
+      "stack_out": [
+        "tmp%1#1"
+      ]
+    },
+    "16": {
+      "error": "The deployer address is not trusted",
+      "op": "assert // The deployer address is not trusted",
+      "stack_out": []
+    },
+    "17": {
+      "op": "pushint 1 // 1",
+      "defined_out": [
+        "1"
+      ],
+      "stack_out": [
+        "1"
+      ]
+    },
+    "19": {
+      "op": "return",
+      "stack_out": []
+    }
+  }
+}
