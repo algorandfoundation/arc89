@@ -1,2 +1,3 @@
-# arc89
-ASA Metadata Registry
+# ARC-89: ASA Metadata Registry
+
+Reference Implementation

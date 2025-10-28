@@ -1,0 +1,60 @@
+name: Validate arc89
+
+on:
+  workflow_call:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v5
+
+      - name: Install poetry
+        run: |
+          pipx install poetry
+          pipx inject poetry poetry-plugin-export
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "poetry"
+
+      - name: Install algokit
+        run: pipx install algokit
+
+      - name: Start LocalNet
+        run: algokit localnet start
+
+      - name: Bootstrap dependencies
+        run: algokit project bootstrap all 
+
+      - name: Configure git
+        shell: bash
+        run: |
+          # set git user and email as test invoke git
+          git config --global user.email "actions@github.com" && git config --global user.name "github-actions"
+
+      - name: Audit python dependencies
+        run: algokit project run audit 
+
+      - name: Lint and format python dependencies
+        run: algokit project run lint 
+
+      - name: Run tests
+        shell: bash
+        run: |
+          set -o pipefail
+          algokit project run test 
+
+      - name: Build smart contracts
+        run: algokit project run build 
+
+      - name: Check output stability of the smart contracts
+        run: algokit project run ci-teal-diff
+
+      - if: ${{ github.actor != 'dependabot[bot]' }}
+        name: Run deployer against LocalNet
+        run: algokit project deploy localnet 
