@@ -2,6 +2,8 @@ import logging
 
 import algokit_utils
 
+from .template_vars import TRUSTED_DEPLOYER
+
 logger = logging.getLogger(__name__)
 
 
@@ -15,7 +17,11 @@ def deploy() -> None:
     deployer_ = algorand.account.from_environment("DEPLOYER")
 
     factory = algorand.client.get_typed_app_factory(
-        AsaMetadataRegistryFactory, default_sender=deployer_.address
+        AsaMetadataRegistryFactory,
+        compilation_params=algokit_utils.AppClientCompilationParams(
+            deploy_time_params={TRUSTED_DEPLOYER: deployer_.public_key}
+        ),
+        default_sender=deployer_.address,
     )
 
     app_client, result = factory.deploy(
