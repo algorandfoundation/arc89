@@ -5,8 +5,8 @@ from typing import Final
 MAX_BOX_SIZE: Final[int] = 32768
 MAX_LOG_SIZE: Final[int] = 1024
 ARC4_RETURN_PREFIX_SIZE: Final[int] = 4
-FLAT_MBR: Final[int] = 2500  # migroALGO
-BYTE_MBR: Final[int] = 400  # migroALGO
+FLAT_MBR: Final[int] = 2500  # microALGO
+BYTE_MBR: Final[int] = 400  # microALGO
 
 # Asset Metadata Box Header
 METADATA_IDENTIFIERS_SIZE: Final[int] = 1
