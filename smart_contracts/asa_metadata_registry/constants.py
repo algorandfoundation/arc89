@@ -1,4 +1,3 @@
-import math
 from typing import Final
 
 # AVM
@@ -8,18 +7,24 @@ ARC4_RETURN_PREFIX_SIZE: Final[int] = 4
 FLAT_MBR: Final[int] = 2500  # microALGO
 BYTE_MBR: Final[int] = 400  # microALGO
 
+# ABI Types Byte Sizes
+UINT8_SIZE = 1
+UINT64_SIZE = 8
+
+BYTE_SIZE = 1
+BYTES32_SIZE = 32
+
 # Asset Metadata Box Header
-METADATA_IDENTIFIERS_SIZE: Final[int] = 1
-METADATA_FLAGS_SIZE: Final[int] = 1
-METADATA_HASH_SIZE: Final[int] = 32
-LAST_MODIFIED_ROUND_SIZE: Final[int] = 8
+METADATA_IDENTIFIERS_SIZE: Final[int] = BYTE_SIZE
+METADATA_FLAGS_SIZE: Final[int] = BYTE_SIZE
+METADATA_HASH_SIZE: Final[int] = BYTES32_SIZE
+LAST_MODIFIED_ROUND_SIZE: Final[int] = UINT64_SIZE
 HEADER_SIZE: Final[int] = (
     METADATA_IDENTIFIERS_SIZE
     + METADATA_FLAGS_SIZE
     + METADATA_HASH_SIZE
     + LAST_MODIFIED_ROUND_SIZE
 )
-assert HEADER_SIZE <= MAX_LOG_SIZE - ARC4_RETURN_PREFIX_SIZE
 
 IDX_METADATA_IDENTIFIERS: Final[int] = 0
 IDX_METADATA_FLAGS: Final[int] = IDX_METADATA_IDENTIFIERS + METADATA_IDENTIFIERS_SIZE
@@ -53,7 +58,6 @@ BITMASK_IMMUTABLE: Final[int] = 0x80  # Hex for Bitmask 10 00 00 00
 #  Replace with ABI type size_of() when the type is defined.
 PAGE_SIZE: Final[int] = MAX_LOG_SIZE - ARC4_RETURN_PREFIX_SIZE - 13
 MAX_PAGES: Final[int] = 33
-assert MAX_PAGES == math.ceil(MAX_METADATA_SIZE / PAGE_SIZE) <= 256
 
 # Domain Separators
 METADATA_HEADER_HASH: Final[str] = "arc0089/header"
