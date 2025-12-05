@@ -1,4 +1,4 @@
-from algopy import Account, Asset, BoxMap, Bytes, Global, OnCompleteAction, TemplateVar, TransactionType, Txn, UInt64, arc4, gtxn, op, urange, subroutine, ensure_budget
+from algopy import Account, Asset, BoxMap, Bytes, Global, OnCompleteAction, TemplateVar, TransactionType, Txn, UInt64, arc4, itxn, gtxn, op, urange, subroutine, ensure_budget
 
 from . import abi_types as abi
 from . import bitmasks as masks
@@ -409,6 +409,71 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         )
 
         return abi.MbrDelta(sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount))
+
+    @arc4.abimethod
+    def arc89_replace_metadata(
+        self,
+        asset_id: Asset,
+        metadata_size: arc4.UInt16,
+        payload: arc4.DynamicBytes,
+    ) -> abi.MbrDelta:
+        """
+        Replace mutable Metadata with a smaller or equal size payload for an existing ASA,
+        restricted to the ASA Manager Address.
+
+        Args:
+            asset_id: The Asset ID to replace the Asset Metadata for
+            metadata_size: The new Metadata byte size
+            payload: The Metadata payload (without Header). WARNING: Payload larger than args capacity
+                    must be provided with arc89_extra_payload calls in the Group
+
+        Returns:
+            MBR Delta: tuple of (sign enum, amount in microALGO)
+        """
+        # Preconditions
+        assert self._asa_exists(asset_id), err.ASA_NOT_EXIST
+        assert self._metadata_exists(asset_id), err.ASSET_METADATA_EXIST
+        assert not self._is_immutable(asset_id), err.IMMUTABLE
+        assert self._is_asa_manager(asset_id), err.UNAUTHORIZED
+        assert self._is_valid_max_metadata_size(metadata_size.as_uint64()), err.EXCEEDS_MAX_METADATA_SIZE
+        assert metadata_size.as_uint64() <= self._get_metadata_size(asset_id), err.LARGER_METADATA_SIZE
+
+        # Update Metadata Header (without Metadata Hash, computed after payload upload)
+        self._identify_metadata(asset_id, metadata_size.as_uint64())
+        self._set_last_modified_round(asset_id, Global.round)
+
+        # Update Metadata Body
+        mbr_i = Global.current_application_address.min_balance
+        self.asset_metadata.box(asset_id).resize(new_size=UInt64(const.METADATA_HEADER_SIZE))
+        self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload.native)
+
+        # Postconditions
+        assert self._get_metadata_size(asset_id) == metadata_size.as_uint64(), err.METADATA_SIZE_MISMATCH
+        metadata_hash = self._compute_metadata_hash(asset_id)
+        self._set_metadata_hash(asset_id, metadata_hash)
+
+        mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
+        if mbr_delta_amount == 0:
+            sign = UInt64(enums.MBR_DELTA_NULL)
+        else:
+            sign = UInt64(enums.MBR_DELTA_NEG)
+            itxn.Payment(
+                receiver=asset_id.manager,
+                amount=mbr_delta_amount,
+            ).submit()
+
+        arc4.emit(
+            abi.Arc89MetadataUpdated(
+                asset_id=arc4.UInt64(asset_id.id),
+                round=arc4.UInt64(Global.round),
+                timestamp=arc4.UInt64(Global.latest_timestamp),
+                flags=arc4.Byte(op.btoi(self._get_metadata_flags(asset_id))),
+                is_short=arc4.Bool(self._is_short(asset_id)),
+                hash=abi.Hash.from_bytes(metadata_hash),
+            )
+        )
+
+        return abi.MbrDelta(sign=arc4.UInt8(sign), amount=arc4.UInt64(mbr_delta_amount))
 
     @arc4.abimethod
     def arc89_extra_payload(
