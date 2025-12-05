@@ -3,23 +3,44 @@ from typing import Final
 # AVM
 MAX_BOX_SIZE: Final[int] = 32768
 MAX_LOG_SIZE: Final[int] = 1024
-ARC4_RETURN_PREFIX_SIZE: Final[int] = 4
+MAX_ARG_SIZE: Final[int] = 2048
 FLAT_MBR: Final[int] = 2500  # microALGO
 BYTE_MBR: Final[int] = 400  # microALGO
+APP_CALL_OP_CODE_BUDGET: Final[int] = 700  # microALGO
 
 # ABI Types Byte Sizes
 UINT8_SIZE = 1
+UINT16_SIZE = 2
+UINT32_SIZE = 4
 UINT64_SIZE = 8
 
 BYTE_SIZE = 1
 BYTES32_SIZE = 32
+
+# ARC-4 ABI Overhead
+ARC4_METHOD_SELECTOR_SIZE: Final[int] = 4
+ARC4_RETURN_PREFIX_SIZE: Final[int] = 4
+ARC4_DYNAMIC_LENGTH_SIZE: Final[int] = 2
+
+# Method Signatures
+ARC89_CREATE_METADATA_FIXED_SIZE: Final[int] = ARC4_METHOD_SELECTOR_SIZE + UINT64_SIZE + BYTE_SIZE + UINT16_SIZE + ARC4_DYNAMIC_LENGTH_SIZE
+ARC89_EXTRA_PAYLOAD_FIXED_SIZE: Final[int] = ARC4_METHOD_SELECTOR_SIZE + UINT64_SIZE + ARC4_DYNAMIC_LENGTH_SIZE
+ARC89_EXTRA_PAYLOAD_ARG_PAYLOAD: Final[int] = 2
+
+# Pagination
+# TODO: The hardcoded value 13 represents the size (in bytes) of the ABI type `(bool,uint64,byte[])`.
+#  Replace with ABI type size_of() when the type is defined.
+FIRST_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC89_CREATE_METADATA_FIXED_SIZE
+EXTRA_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC89_EXTRA_PAYLOAD_FIXED_SIZE
+PAGE_SIZE: Final[int] = MAX_LOG_SIZE - ARC4_RETURN_PREFIX_SIZE - 13
+MAX_PAGES: Final[int] = 31
 
 # Asset Metadata Box Header
 METADATA_IDENTIFIERS_SIZE: Final[int] = BYTE_SIZE
 METADATA_FLAGS_SIZE: Final[int] = BYTE_SIZE
 METADATA_HASH_SIZE: Final[int] = BYTES32_SIZE
 LAST_MODIFIED_ROUND_SIZE: Final[int] = UINT64_SIZE
-HEADER_SIZE: Final[int] = (
+METADATA_HEADER_SIZE: Final[int] = (
     METADATA_IDENTIFIERS_SIZE
     + METADATA_FLAGS_SIZE
     + METADATA_HASH_SIZE
@@ -33,38 +54,14 @@ IDX_LAST_MODIFIED_ROUND: Final[int] = IDX_METADATA_HASH + METADATA_HASH_SIZE
 
 # Asset Metadata Box Body
 IDX_METADATA: Final[int] = IDX_LAST_MODIFIED_ROUND + LAST_MODIFIED_ROUND_SIZE
-MAX_METADATA_SIZE: Final[int] = MAX_BOX_SIZE - HEADER_SIZE
+MAX_METADATA_SIZE: Final[int] = FIRST_PAYLOAD_MAX_SIZE + 14 * EXTRA_PAYLOAD_MAX_SIZE
 SHORT_METADATA_SIZE: Final[int] = 4096
 
-# Metadata Identifiers Bitmask
-BITMASK_SHORT_METADATA: Final[int] = 0x01  # Hex for Bitmask 00 00 00 01
-BITMASK_ARC3: Final[int] = 0x10  # Hex for Bitmask 00 01 00 00
-BITMASK_ARC89: Final[int] = 0x80  # Hex for Bitmask 10 00 00 00
-
-# Metadata Flags Bitmask
-# Two-ways bits
-BITMASK_ARC20: Final[int] = 0x01  # Hex for Bitmask 00 00 00 01
-BITMASK_ARC62: Final[int] = 0x02  # Hex for Bitmask 00 00 00 10
-BITMASK_RESERVED_BIT_2: Final[int] = 0x04  # Hex for Bitmask 00 00 01 00
-BITMASK_RESERVED_BIT_3: Final[int] = 0x08  # Hex for Bitmask 00 00 10 00
-# One-way bits
-BITMASK_RESERVED_BIT_4: Final[int] = 0x10  # Hex for Bitmask 00 01 00 00
-BITMASK_RESERVED_BIT_5: Final[int] = 0x20  # Hex for Bitmask 00 10 00 00
-BITMASK_RESERVED_BIT_6: Final[int] = 0x40  # Hex for Bitmask 01 00 00 00
-BITMASK_IMMUTABLE: Final[int] = 0x80  # Hex for Bitmask 10 00 00 00
-
-# Pagination
-# TODO: The hardcoded value 13 represents the size (in bytes) of the ABI type `(bool,uint64,byte[])`.
-#  Replace with ABI type size_of() when the type is defined.
-PAGE_SIZE: Final[int] = MAX_LOG_SIZE - ARC4_RETURN_PREFIX_SIZE - 13
-MAX_PAGES: Final[int] = 33
-
 # Domain Separators
-METADATA_HEADER_HASH: Final[str] = "arc0089/header"
-METADATA_PAGE_HASH: Final[str] = "arc0089/page"
-METADATA_HASH: Final[str] = "arc0089/am"
+HASH_DOMAIN_HEADER: Final[bytes] = b"arc0089/header"
+HASH_DOMAIN_PAGE: Final[bytes] = b"arc0089/page"
+HASH_DOMAIN_METADATA: Final[bytes] = b"arc0089/am"
 
 # Asset Metadata URI
-URI_ARC_SEGMENT: Final[bytes] = b"#arc"
 URI_ARC_89_PREFIX: Final[bytes] = b"algorand://app/"
 URI_ARC_89_SUFFIX: Final[bytes] = b"?box="
