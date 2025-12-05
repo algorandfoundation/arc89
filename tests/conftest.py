@@ -1,4 +1,5 @@
 import pytest
+from typing import Final
 from algokit_utils import (
     AlgoAmount,
     AlgorandClient,
@@ -6,6 +7,8 @@ from algokit_utils import (
     OnSchemaBreak,
     OnUpdate,
     SigningAccount,
+    AssetCreateParams,
+    PaymentParams,
 )
 from algokit_utils.config import config
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
@@ -14,6 +17,11 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
 )
 
 from smart_contracts.asa_metadata_registry.template_vars import TRUSTED_DEPLOYER
+from smart_contracts.asa_metadata_registry import constants as const
+
+from .helpers.factories import AssetMetadata, create_arc3_metadata
+
+ACCOUNT_MBR: Final[int] = 100_000  # microALGO
 
 # Uncomment if you want to load network specific or generic .env file
 # @pytest.fixture(autouse=True, scope="session")
@@ -52,6 +60,15 @@ def untrusted_account(algorand_client: AlgorandClient) -> SigningAccount:
 
 
 @pytest.fixture(scope="session")
+def asset_manager(algorand_client: AlgorandClient) -> SigningAccount:
+    account = algorand_client.account.random()
+    algorand_client.account.ensure_funded_from_environment(
+        account_to_fund=account.address, min_spending_balance=AlgoAmount.from_algo(1_000)
+    )
+    return account
+
+
+@pytest.fixture(scope="session")
 def asa_metadata_registry_factory(
     algorand_client: AlgorandClient, deployer: SigningAccount
 ) -> AsaMetadataRegistryFactory:
@@ -66,10 +83,99 @@ def asa_metadata_registry_factory(
 
 @pytest.fixture(scope="function")
 def asa_metadata_registry_client(
-    asa_metadata_registry_factory: AsaMetadataRegistryFactory,
+    deployer: SigningAccount, asa_metadata_registry_factory: AsaMetadataRegistryFactory,
 ) -> AsaMetadataRegistryClient:
     client, _ = asa_metadata_registry_factory.deploy(
         on_schema_break=OnSchemaBreak.AppendApp,
         on_update=OnUpdate.AppendApp,
     )
+    asa_metadata_registry_factory.algorand.send.payment(
+        params=PaymentParams(
+            sender=deployer.address,
+            receiver=client.app_address,
+            amount=AlgoAmount(micro_algo=ACCOUNT_MBR),
+        )
+    )
     return client
+
+
+@pytest.fixture(scope="function")
+def arc_89_asa(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    asset_manager: SigningAccount) -> int:
+    arc89_uri = (
+        const.URI_ARC_89_PREFIX.decode()
+        + str(asa_metadata_registry_client.app_id) + const.URI_ARC_89_SUFFIX.decode()
+        + const.URI_ARC_89_SUFFIX.decode()
+    )
+    return asa_metadata_registry_client.algorand.send.asset_create(
+        params=AssetCreateParams(
+            sender=asset_manager.address,
+            total=42,
+            asset_name="ARC89 Mutable",
+            unit_name="ARC89",
+            url=arc89_uri,
+            decimals=0,
+            default_frozen=False,
+            manager = asset_manager.address,
+        )
+    ).asset_id
+
+
+# AssetMetadata factory fixtures
+@pytest.fixture(scope="function")
+def empty_metadata(arc_89_asa: int) -> AssetMetadata:
+    metadata = AssetMetadata.create(
+        asset_id=arc_89_asa,
+        metadata=b"",  # Empty body
+        arc89_native=True
+    )
+    assert metadata.size == 0
+    assert metadata.total_pages == 0
+    return metadata
+
+
+@pytest.fixture(scope="function")
+def short_metadata(arc_89_asa: int) -> AssetMetadata:
+    # Create small ARC-3 metadata
+    arc3_data = create_arc3_metadata(
+        name="Short Metadata Test",
+        description="This is small enough to fit in AVM stack",
+        image="ipfs://QmShort"
+    )
+
+    metadata = AssetMetadata.create(
+        asset_id=arc_89_asa,
+        metadata=arc3_data,
+        arc3_compliant=True,
+        arc89_native=True
+    )
+    assert metadata.size <= const.SHORT_METADATA_SIZE
+    assert metadata.is_short
+    return metadata
+
+
+@pytest.fixture(scope="function")
+def maxed_metadata(arc_89_asa: int) -> AssetMetadata:
+    max_size_content = "x" * const.MAX_METADATA_SIZE
+    metadata = AssetMetadata.create(
+        asset_id=arc_89_asa,
+        metadata=max_size_content,
+        arc89_native=True
+    )
+    assert metadata.size == const.MAX_METADATA_SIZE
+    assert metadata.validate_size()
+    assert not metadata.is_short
+    return metadata
+
+
+@pytest.fixture(scope="function")
+def oversized_metadata(arc_89_asa: int) -> AssetMetadata:
+    oversized_content = "x" * (const.MAX_METADATA_SIZE + 1)
+    metadata = AssetMetadata(
+        asset_id=arc_89_asa,
+        metadata_bytes=oversized_content.encode('utf-8')
+    )
+    assert metadata.size > const.MAX_METADATA_SIZE
+    assert not metadata.validate_size()
+    return metadata
