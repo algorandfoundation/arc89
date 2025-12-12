@@ -23,7 +23,7 @@ class MbrDelta:
     @property
     def signed_amount(self) -> int:
         """
-        Get the MBR delta as a signed integer.
+        Get the MBR delta (in microALGO) as a signed integer.
 
         Returns:
             Positive int for growth (POS)
@@ -334,7 +334,7 @@ class AssetMetadata:
         elif delta < 0:
             return MbrDelta(
                 sign=enums.MBR_DELTA_NEG,
-                amount=AlgoAmount(micro_algo=delta)  # Amount is always positive
+                amount=AlgoAmount(micro_algo=-delta)  # Amount is always positive
             )
         else:
             return MbrDelta(
@@ -383,8 +383,8 @@ class AssetMetadata:
         - First chunk: up to FIRST_PAYLOAD_MAX_SIZE.
         - Subsequent chunks: up to OTHER_PAYLOAD_MAX_SIZE.
         """
-        if not payload:
-            return []
+        if payload == b"":
+            return [b""]
 
         chunks: List[bytes] = []
         # First chunk
