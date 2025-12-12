@@ -159,12 +159,12 @@ def test_mbr_delta_calculation():
 
     # Test signed helper
     signed_delta = metadata.get_mbr_delta(old_size=new_size)
-    assert signed_delta.amount < 0  # Negative for shrinking
+    assert signed_delta.signed_amount < 0  # Negative for shrinking
 
     # Test MbrDelta.signed_amount property
     mbr_delta_shrink = metadata.get_mbr_delta(old_size=new_size)
     assert mbr_delta_shrink.signed_amount < 0
-    assert mbr_delta_shrink.signed_amount == -mbr_delta_shrink.amount
+    assert mbr_delta_shrink.signed_amount == -mbr_delta_shrink.amount.micro_algo
 
     # Test positive case
     metadata.set_metadata({"name": "Test", "description": "Growing again"})
@@ -232,15 +232,15 @@ def test_flag_toggling():
     assert not metadata.is_arc62
 
     # Turn on ARC-20
-    metadata.set_arc20(True)
+    metadata.set_arc20(value=True)
     assert metadata.is_arc20
 
     # Turn on ARC-62
-    metadata.set_arc62(True)
+    metadata.set_arc62(value=True)
     assert metadata.is_arc62
 
     # Turn off ARC-20
-    metadata.set_arc20(False)
+    metadata.set_arc20(value=False)
     assert not metadata.is_arc20
     assert metadata.is_arc62  # ARC-62 should still be on
 
@@ -266,10 +266,10 @@ def test_immutable_flag_one_way():
     assert not metadata.is_immutable
 
     # Set immutable
-    metadata.set_immutable(True)
+    metadata.set_immutable(value=True)
     assert metadata.is_immutable
 
     # Try to unset (this will work in the factory class,
     # but the smart contract would prevent it)
-    metadata.set_immutable(False)
+    metadata.set_immutable(value=False)
     assert not metadata.is_immutable
