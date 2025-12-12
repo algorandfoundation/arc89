@@ -22,7 +22,7 @@ def _append_extra_payload(
             ),
             params=CommonAppCallParams(
                 sender=asset_manager.address,
-                note=i.to_bytes(8, "big"),  # ensure fixed-length bytes
+                note=i.to_bytes(8, "big"),
                 static_fee=AlgoAmount(algo=0)
             ),
         )
@@ -87,6 +87,7 @@ def replace_metadata(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     asset_id: int,
     new_metadata: AssetMetadata,
+    extra_resources: int = 0,
 ) -> MbrDelta:
     """
     Replace metadata, splitting payload into chunks suitable for ARC-89 extra payload calls.
@@ -107,6 +108,14 @@ def replace_metadata(
         ),
     )
     _append_extra_payload(replace_metadata_composer, asset_manager, new_metadata)
+    for i in range(extra_resources):
+        replace_metadata_composer.extra_resources(
+            params=CommonAppCallParams(
+                sender=asset_manager.address,
+                note=i.to_bytes(8, "big"),
+                static_fee=AlgoAmount(micro_algo=min_fee)
+            ),
+        )
     asset_create_response = replace_metadata_composer.send(
         send_params=SendParams(cover_app_call_inner_transaction_fees=True)
     ).returns[0].value
