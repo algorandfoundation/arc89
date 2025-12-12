@@ -4,9 +4,9 @@ from smart_contracts.asa_metadata_registry import constants as const
 from tests.helpers.factories import AssetMetadata
 
 
-def test_empty_metadata_fixture(empty_metadata):
+def test_empty_metadata_fixture(arc_89_asa: int, empty_metadata: AssetMetadata) -> None:
     """Test the empty metadata fixture."""
-    assert empty_metadata.asset_id == 1
+    assert empty_metadata.asset_id == arc_89_asa
     assert empty_metadata.size == 0
     assert empty_metadata.total_pages == 0
     assert empty_metadata.is_short  # Empty is considered short
@@ -22,9 +22,9 @@ def test_empty_metadata_fixture(empty_metadata):
     print(f"✓ Empty metadata: {empty_metadata.size} bytes")
 
 
-def test_short_metadata_fixture(short_metadata):
+def test_short_metadata_fixture(arc_89_asa: int, short_metadata: AssetMetadata) -> None:
     """Test the short metadata fixture."""
-    assert short_metadata.asset_id == 2
+    assert short_metadata.asset_id == arc_89_asa
     assert short_metadata.size > 0
     assert short_metadata.size <= const.SHORT_METADATA_SIZE
     assert short_metadata.is_short
@@ -46,9 +46,9 @@ def test_short_metadata_fixture(short_metadata):
     )
 
 
-def test_maxed_metadata_fixture(maxed_metadata):
+def test_maxed_metadata_fixture(arc_89_asa: int, maxed_metadata: AssetMetadata) -> None:
     """Test the maximum size metadata fixture."""
-    assert maxed_metadata.asset_id == 3
+    assert maxed_metadata.asset_id == arc_89_asa
     assert maxed_metadata.size == const.MAX_METADATA_SIZE
     assert not maxed_metadata.is_short  # Too large to be short
     assert maxed_metadata.validate_size()
@@ -77,9 +77,9 @@ def test_maxed_metadata_fixture(maxed_metadata):
     print(f"  Pages: {maxed_metadata.total_pages}")
 
 
-def test_oversized_metadata_fixture(oversized_metadata):
+def test_oversized_metadata_fixture(arc_89_asa: int, oversized_metadata: AssetMetadata) -> None:
     """Test the oversized metadata fixture."""
-    assert oversized_metadata.asset_id == 4
+    assert oversized_metadata.asset_id == arc_89_asa
     assert oversized_metadata.size > const.MAX_METADATA_SIZE
     assert not oversized_metadata.is_short
     assert not oversized_metadata.validate_size()  # Should fail validation
@@ -101,7 +101,7 @@ def test_oversized_metadata_fixture(oversized_metadata):
     )
 
 
-def test_size_comparison():
+def test_size_comparison() -> None:
     """Test to show the size progression."""
     # Create metadata of various sizes
     sizes = [
@@ -127,8 +127,10 @@ def test_size_comparison():
 
 
 def test_fixtures_with_smart_contract_operations(
-    empty_metadata, short_metadata, maxed_metadata
-):
+    empty_metadata: AssetMetadata,
+    short_metadata: AssetMetadata,
+    maxed_metadata: AssetMetadata,
+) -> None:
     """
     Example test showing how to use fixtures in smart contract tests.
     This demonstrates the typical workflow for testing metadata creation.
@@ -160,8 +162,10 @@ def test_fixtures_with_smart_contract_operations(
 
 
 def test_mbr_calculations_for_different_sizes(
-    empty_metadata, short_metadata, maxed_metadata
-):
+    empty_metadata: AssetMetadata,
+    short_metadata: AssetMetadata,
+    maxed_metadata: AssetMetadata,
+) -> None:
     """Test MBR calculations for different metadata sizes."""
 
     # Calculate MBR for each size
@@ -179,7 +183,7 @@ def test_mbr_calculations_for_different_sizes(
         assert mbr_delta.amount > 0
 
         print(
-            f"{label:6s} metadata MBR: {mbr_delta.amount:8d} microALGO ({mbr_delta.amount/1_000_000:.6f} ALGO)"
+            f"{label:6s} metadata MBR: {mbr_delta.amount.micro_algo} microALGO ({mbr_delta.amount.algo} ALGO)"
         )
 
     # Maxed should require the most MBR
@@ -190,7 +194,11 @@ def test_mbr_calculations_for_different_sizes(
     assert empty_delta.amount < short_delta.amount < maxed_delta.amount
 
 
-def test_pagination_across_sizes(empty_metadata, short_metadata, maxed_metadata):
+def test_pagination_across_sizes(
+    empty_metadata: AssetMetadata,
+    short_metadata: AssetMetadata,
+    maxed_metadata: AssetMetadata,
+) -> None:
     """Test pagination behavior for different sizes."""
 
     # Empty: no pages
