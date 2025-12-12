@@ -332,6 +332,11 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert self._metadata_exists(asa), err.ASSET_METADATA_NOT_EXIST
         assert not self._is_immutable(asa), err.IMMUTABLE
 
+    @subroutine
+    def _check_existence_preconditions(self, asset_id: Asset) -> None:
+        assert self._asa_exists(asset_id), err.ASA_NOT_EXIST
+        assert self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST
+
     @arc4.baremethod(create="require")
     def arc89_deploy(self) -> None:
         """
@@ -556,6 +561,28 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert self._asa_exists(asset_id), err.ASA_NOT_EXIST
         assert self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST
         assert self._is_asa_manager(asset_id), err.UNAUTHORIZED
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_pagination(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.Pagination:
+        """Return the Asset Metadata pagination for an ASA.
+
+        Args:
+            asset_id: The Asset ID to get the Asset Metadata pagination for
+
+        Returns:
+            Tuple of (total metadata byte size, PAGE_SIZE, total number of pages)
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        return abi.Pagination(
+            metadata_size=arc4.UInt16(self._get_metadata_size(asset_id)),
+            page_size=arc4.UInt16(const.PAGE_SIZE),
+            total_pages=arc4.UInt8(self._get_total_pages(asset_id))
+        )
 
     @arc4.abimethod
     def extra_resources(self) -> None:
