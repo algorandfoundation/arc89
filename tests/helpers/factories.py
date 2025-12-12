@@ -151,7 +151,7 @@ class AssetMetadata:
 
         self._update_short_identifier()
 
-    def set_flag(self, flag_mask: int, value: bool) -> None:
+    def set_flag(self, *, flag_mask: int, value: bool) -> None:
         """
         Set a specific flag bit.
 
@@ -164,25 +164,25 @@ class AssetMetadata:
         else:
             self.flags &= ~flag_mask
 
-    def set_arc20(self, value: bool) -> None:
+    def set_arc20(self, *, value: bool) -> None:
         """Set the ARC-20 Smart ASA flag."""
-        self.set_flag(masks.FLG_ARC20, value)
+        self.set_flag(flag_mask=masks.FLG_ARC20, value=value)
 
-    def set_arc62(self, value: bool) -> None:
+    def set_arc62(self, *, value: bool) -> None:
         """Set the ARC-62 Circulating Supply flag."""
-        self.set_flag(masks.FLG_ARC62, value)
+        self.set_flag(flag_mask=masks.FLG_ARC62, value=value)
 
-    def set_arc3(self, value: bool) -> None:
+    def set_arc3(self, *, value: bool) -> None:
         """Set the ARC-3 compliant flag."""
-        self.set_flag(masks.FLG_ARC3, value)
+        self.set_flag(flag_mask=masks.FLG_ARC3, value=value)
 
-    def set_arc89_native(self, value: bool) -> None:
+    def set_arc89_native(self, *, value: bool) -> None:
         """Set the ARC-89 native ASA flag."""
-        self.set_flag(masks.FLG_ARC89_NATIVE, value)
+        self.set_flag(flag_mask=masks.FLG_ARC89_NATIVE, value=value)
 
-    def set_immutable(self, value: bool) -> None:
+    def set_immutable(self, *, value: bool) -> None:
         """Set the metadata immutability flag."""
-        self.set_flag(masks.FLG_IMMUTABLE, value)
+        self.set_flag(flag_mask=masks.FLG_IMMUTABLE, value=value)
 
     # ==================== HASH COMPUTATION ====================
 
@@ -450,6 +450,7 @@ class AssetMetadata:
     @classmethod
     def create(
         cls,
+        *,
         asset_id: int,
         metadata: bytes | str | dict,
         immutable: bool = False,
@@ -484,15 +485,15 @@ class AssetMetadata:
 
         # Set individual flags
         if immutable:
-            instance.set_immutable(True)
+            instance.set_immutable(value=True)
         if arc3_compliant:
-            instance.set_arc3(True)
+            instance.set_arc3(value=True)
         if arc89_native:
-            instance.set_arc89_native(True)
+            instance.set_arc89_native(value=True)
         if arc20:
-            instance.set_arc20(True)
+            instance.set_arc20(value=True)
         if arc62:
-            instance.set_arc62(True)
+            instance.set_arc62(value=True)
 
         # Compute and set the metadata hash
         instance.update_metadata_hash()
@@ -537,7 +538,7 @@ def create_arc3_metadata(
 
 
 def create_test_metadata(
-    asset_id: int, metadata_content: dict | None = None, **kwargs
+    asset_id: int, metadata_content: dict | None = None, **kwargs: Any
 ) -> AssetMetadata:
     """
     Convenience function to create test metadata with sensible defaults.
