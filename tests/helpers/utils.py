@@ -9,6 +9,7 @@ from algosdk.transaction import Transaction
 
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
     Arc89CreateMetadataArgs,
+    Arc89DeleteMetadataArgs,
     Arc89ExtraPayloadArgs,
     Arc89GetMetadataPaginationArgs,
     Arc89ReplaceMetadataArgs,
@@ -64,6 +65,15 @@ def create_metadata(
 ) -> MbrDelta:
     """
     Create metadata, splitting payload into chunks suitable for ARC-89 extra payload calls.
+
+    Args:
+        asset_manager: The Manager of the ASA to create metadata for
+        asa_metadata_registry_client: The ASA Metadata Registry Client
+        asset_id: The ASA ID to create metadata for
+        metadata: The metadata payload to set
+
+    Returns:
+        MBR Delta
     """
     creation_mbr_delta = metadata.get_mbr_delta(old_size=None)
     mbr_payment = get_mbr_delta_payment(
@@ -88,7 +98,7 @@ def create_metadata(
         ),
     )
     _append_extra_payload(create_metadata_composer, asset_manager, metadata)
-    asset_create_response = (
+    create_metadata_response = (
         create_metadata_composer.send(
             send_params=SendParams(cover_app_call_inner_transaction_fees=True)
         )
@@ -96,7 +106,7 @@ def create_metadata(
         .value
     )
 
-    return MbrDelta(sign=asset_create_response[0], amount=asset_create_response[1])
+    return MbrDelta(sign=create_metadata_response[0], amount=create_metadata_response[1])
 
 
 def replace_metadata(
@@ -109,6 +119,16 @@ def replace_metadata(
 ) -> MbrDelta:
     """
     Replace metadata, splitting payload into chunks suitable for ARC-89 extra payload calls.
+
+    Args:
+        asset_manager: The Manager of the ASA to replace metadata for
+        asa_metadata_registry_client: The ASA Metadata Registry Client
+        asset_id: The ASA ID to replace metadata for
+        new_metadata: The new metadata payload to set
+        extra_resources (Optional): Extra App Call for additional AVM resources
+
+    Returns:
+        MBR Delta
     """
     chunks = new_metadata.chunked_payload()
     min_fee = asa_metadata_registry_client.algorand.get_suggested_params().min_fee
@@ -158,7 +178,7 @@ def replace_metadata(
                 static_fee=AlgoAmount(micro_algo=min_fee),
             ),
         )
-    asset_create_response = (
+    replace_metadata_response = (
         replace_metadata_composer.send(
             send_params=SendParams(cover_app_call_inner_transaction_fees=True)
         )
@@ -166,4 +186,48 @@ def replace_metadata(
         .value
     )
 
-    return MbrDelta(sign=asset_create_response[0], amount=asset_create_response[1])
+    return MbrDelta(sign=replace_metadata_response[0], amount=replace_metadata_response[1])
+
+
+def delete_metadata(
+    *,
+    caller: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    asset_id: int,
+    extra_resources: int = 0,
+) -> MbrDelta:
+    """
+    Delete metadata for existing or non-existent ASA.
+
+    Args:
+        caller: Who deletes the metadata (must be the ASA Manager if ASA exists)
+        asa_metadata_registry_client: The ASA Metadata Registry Client
+        asset_id: The ASA ID to delete metadata for
+        extra_resources (Optional): Extra App Call for additional AVM resources
+
+    Returns:
+        MBR Delta
+    """
+    min_fee = asa_metadata_registry_client.algorand.get_suggested_params().min_fee
+    delete_metadata_composer = asa_metadata_registry_client.new_group()
+
+    delete_metadata_composer.arc89_delete_metadata(
+        args=Arc89DeleteMetadataArgs(asset_id=asset_id),
+        params=CommonAppCallParams(
+            sender=caller.address,
+            static_fee=AlgoAmount(micro_algo=2 * min_fee),
+        ),
+    ),
+    for i in range(extra_resources):
+        delete_metadata_composer.extra_resources(
+            params=CommonAppCallParams(
+                sender=caller.address,
+                note=i.to_bytes(8, "big"),
+                static_fee=AlgoAmount(micro_algo=min_fee),
+            ),
+        )
+    delete_metadata_response = delete_metadata_composer.send(
+        send_params=SendParams(cover_app_call_inner_transaction_fees=True)
+    ).returns[0].value
+
+    return MbrDelta(sign=delete_metadata_response[0], amount=delete_metadata_response[1])
