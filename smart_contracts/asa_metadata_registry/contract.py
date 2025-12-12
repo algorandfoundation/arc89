@@ -423,6 +423,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     @arc4.abimethod
     def arc89_replace_metadata(
         self,
+        *,
         asset_id: Asset,
         metadata_size: arc4.UInt16,
         payload: arc4.DynamicBytes,
@@ -458,7 +459,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         metadata_hash = self._compute_metadata_hash(asset_id)
         self._set_metadata_hash(asset_id, metadata_hash)
 
-        mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
+        mbr_delta_amount = mbr_i - Global.current_application_address.min_balance
         if mbr_delta_amount == 0:
             sign = UInt64(enums.MBR_DELTA_NULL)
         else:
@@ -484,6 +485,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     @arc4.abimethod
     def arc89_replace_metadata_larger(
         self,
+        *,
         asset_id: Asset,
         metadata_size: arc4.UInt16,
         payload: arc4.DynamicBytes,
