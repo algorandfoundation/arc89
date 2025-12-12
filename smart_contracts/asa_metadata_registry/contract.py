@@ -56,12 +56,12 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         return metadata_size <= const.SHORT_METADATA_SIZE
 
     @subroutine
-    def _has_bits(self, bits: UInt64, mask: UInt64) -> bool:
+    def _has_bits(self, *, bits: UInt64, mask: UInt64) -> bool:
         # AVM bitwise operations on UInt64 are more efficient than on Bytes
         return (bits & mask) != 0
 
     @subroutine
-    def _set_bits(self, bits: UInt64, mask: UInt64, value: bool) -> UInt64:
+    def _set_bits(self, *, bits: UInt64, mask: UInt64, value: bool) -> UInt64:
         # AVM bitwise operations on UInt64 are more efficient than on Bytes
         return (bits | mask) if value else (bits & ~mask)
 
@@ -126,37 +126,40 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     @subroutine
     def _is_short(self, asa: Asset) -> bool:
         return self._has_bits(
-            op.btoi(self._get_metadata_identifiers(asa)), UInt64(masks.ID_SHORT)
+            bits=op.btoi(self._get_metadata_identifiers(asa)),
+            mask=UInt64(masks.ID_SHORT),
         )
 
     @subroutine
     def _is_arc3(self, asa: Asset) -> bool:
         return self._has_bits(
-            op.btoi(self._get_metadata_flags(asa)), UInt64(masks.FLG_ARC3)
+            bits=op.btoi(self._get_metadata_flags(asa)), mask=UInt64(masks.FLG_ARC3)
         )
 
     @subroutine
     def _is_arc20(self, asa: Asset) -> bool:
         return self._has_bits(
-            op.btoi(self._get_metadata_flags(asa)), UInt64(masks.FLG_ARC20)
+            bits=op.btoi(self._get_metadata_flags(asa)), mask=UInt64(masks.FLG_ARC20)
         )
 
     @subroutine
     def _is_arc62(self, asa: Asset) -> bool:
         return self._has_bits(
-            op.btoi(self._get_metadata_flags(asa)), UInt64(masks.FLG_ARC62)
+            bits=op.btoi(self._get_metadata_flags(asa)), mask=UInt64(masks.FLG_ARC62)
         )
 
     @subroutine
     def _is_arc89(self, asa: Asset) -> bool:
         return self._has_bits(
-            op.btoi(self._get_metadata_flags(asa)), UInt64(masks.FLG_ARC89_NATIVE)
+            bits=op.btoi(self._get_metadata_flags(asa)),
+            mask=UInt64(masks.FLG_ARC89_NATIVE),
         )
 
     @subroutine
     def _is_immutable(self, asa: Asset) -> bool:
         return self._has_bits(
-            op.btoi(self._get_metadata_flags(asa)), UInt64(masks.FLG_IMMUTABLE)
+            bits=op.btoi(self._get_metadata_flags(asa)),
+            mask=UInt64(masks.FLG_IMMUTABLE),
         )
 
     @subroutine
@@ -272,9 +275,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     def _identify_metadata(self, asset_id: Asset, metadata_size: UInt64) -> None:
         identifiers = self._trimmed_itob(
             self._set_bits(
-                op.btoi(self._get_metadata_identifiers(asset_id)),
-                UInt64(masks.ID_SHORT),
-                self._is_short_metadata_size(metadata_size),
+                bits=op.btoi(self._get_metadata_identifiers(asset_id)),
+                mask=UInt64(masks.ID_SHORT),
+                value=self._is_short_metadata_size(metadata_size),
             ),
             size=UInt64(const.UINT8_SIZE),
         )
