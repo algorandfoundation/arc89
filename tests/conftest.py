@@ -20,6 +20,7 @@ from smart_contracts.asa_metadata_registry.template_vars import TRUSTED_DEPLOYER
 from smart_contracts.asa_metadata_registry import constants as const
 
 from .helpers.factories import AssetMetadata, create_arc3_metadata
+from .helpers.utils import create_metadata
 
 ACCOUNT_MBR: Final[int] = 100_000  # microALGO
 
@@ -181,3 +182,46 @@ def oversized_metadata(arc_89_asa: int) -> AssetMetadata:
     assert metadata.size > const.MAX_METADATA_SIZE
     assert not metadata.validate_size()
     return metadata
+
+
+# Uploaded AssetMetadata fixtures
+def uploaded_empty_metadata(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    empty_metadata: AssetMetadata,
+) -> AssetMetadata:
+    create_metadata(
+        asset_manager=asset_manager,
+        asa_metadata_registry_client=asa_metadata_registry_client,
+        asset_id=empty_metadata.asset_id,
+        metadata=empty_metadata,
+    )
+    return empty_metadata
+
+
+def uploaded_short_metadata(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    short_metadata: AssetMetadata,
+) -> AssetMetadata:
+    create_metadata(
+        asset_manager=asset_manager,
+        asa_metadata_registry_client=asa_metadata_registry_client,
+        asset_id=empty_metadata.asset_id,
+        metadata=short_metadata,
+    )
+    return short_metadata
+
+
+def uploaded_maxed_metadata(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    maxed_metadata: AssetMetadata,
+) -> AssetMetadata:
+    create_metadata(
+        asset_manager=asset_manager,
+        asa_metadata_registry_client=asa_metadata_registry_client,
+        asset_id=empty_metadata.asset_id,
+        metadata=maxed_metadata,
+    )
+    return maxed_metadata
