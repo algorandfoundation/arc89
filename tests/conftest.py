@@ -38,7 +38,9 @@ config.configure(
 
 @pytest.fixture(scope="session")
 def algorand_client() -> AlgorandClient:
-    return AlgorandClient.from_environment()
+    client = AlgorandClient.from_environment()
+    client.set_suggested_params_cache_timeout(0)
+    return client
 
 
 @pytest.fixture(scope="session")
