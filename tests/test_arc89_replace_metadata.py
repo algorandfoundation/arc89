@@ -31,7 +31,6 @@ def test_replace_with_empty_metadata(
     assert mbr_delta.amount == replace_mbr_delta.amount.micro_algo
     assert mbr_delta.sign == MBR_DELTA_NEG
 
-@pytest.mark.xfail(reason="Possible issue with resources autopopulation")
 def test_replace_with_smaller_metadata_size(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
@@ -50,6 +49,7 @@ def test_replace_with_smaller_metadata_size(
         asa_metadata_registry_client=asa_metadata_registry_client,
         asset_id=maxed_metadata.asset_id,
         new_metadata=short_metadata,
+        extra_resources=1,
     )
     assert -mbr_delta.amount == replace_mbr_delta.signed_amount
     assert mbr_delta.amount == replace_mbr_delta.amount.micro_algo
