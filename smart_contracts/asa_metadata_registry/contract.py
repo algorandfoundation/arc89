@@ -556,3 +556,10 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert self._asa_exists(asset_id), err.ASA_NOT_EXIST
         assert self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST
         assert self._is_asa_manager(asset_id), err.UNAUTHORIZED
+
+    @arc4.abimethod
+    def extra_resources(self) -> None:
+        """
+        Placeholder method to acquire AVM extra resources.
+        """
+        pass
