@@ -27,6 +27,13 @@ class MutableFlag(arc4.Struct, kw_only=True):
     last_modified_round: arc4.UInt64
 
 
+class MetadataExistence(arc4.Struct, kw_only=True):
+    """Metadata Existence"""
+
+    asa_exists: arc4.Bool
+    metadata_exists: arc4.Bool
+
+
 class Pagination(arc4.Struct, kw_only=True):
     """Asset Metadata Pagination"""
 
