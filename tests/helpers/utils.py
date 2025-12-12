@@ -127,7 +127,7 @@ def replace_metadata(
             ),
             params=CommonAppCallParams(
                 sender=asset_manager.address,
-                static_fee=AlgoAmount(micro_algo=(len(chunks)) * min_fee),
+                static_fee=AlgoAmount(micro_algo=(len(chunks) + 1) * min_fee),
             ),
         )
     _append_extra_payload(replace_metadata_composer, asset_manager, new_metadata)
