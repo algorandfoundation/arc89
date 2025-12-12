@@ -27,6 +27,14 @@ class MutableFlag(arc4.Struct, kw_only=True):
     last_modified_round: arc4.UInt64
 
 
+class Pagination(arc4.Struct, kw_only=True):
+    """Asset Metadata Pagination"""
+
+    metadata_size: arc4.UInt16
+    page_size: arc4.UInt16
+    total_pages: arc4.UInt8
+
+
 # ARC-28 Events
 class Arc89MetadataUpdated(arc4.Struct, kw_only=True):
     """Event emitted when Asset Metadata is created or updated"""
