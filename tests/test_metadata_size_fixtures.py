@@ -1,4 +1,5 @@
 """Tests demonstrating the use of metadata size fixtures."""
+
 from smart_contracts.asa_metadata_registry import constants as const
 from tests.helpers.factories import AssetMetadata
 
@@ -13,7 +14,7 @@ def test_empty_metadata_fixture(empty_metadata):
 
     # Empty metadata should still have valid hash (just header)
     assert len(empty_metadata.metadata_hash) == 32
-    assert empty_metadata.metadata_hash != b'\x00' * 32
+    assert empty_metadata.metadata_hash != b"\x00" * 32
 
     # Header should still be 42 bytes
     assert len(empty_metadata.header_bytes) == const.METADATA_HEADER_SIZE
@@ -40,7 +41,9 @@ def test_short_metadata_fixture(short_metadata):
     # Should have at least 1 page (even if small)
     assert short_metadata.total_pages >= 1
 
-    print(f"✓ Short metadata: {short_metadata.size} bytes (≤ {const.SHORT_METADATA_SIZE})")
+    print(
+        f"✓ Short metadata: {short_metadata.size} bytes (≤ {const.SHORT_METADATA_SIZE})"
+    )
 
 
 def test_maxed_metadata_fixture(maxed_metadata):
@@ -68,7 +71,9 @@ def test_maxed_metadata_fixture(maxed_metadata):
     assert len(hash_value) == 32
     assert hash_value == maxed_metadata.metadata_hash
 
-    print(f"✓ Maxed metadata: {maxed_metadata.size} bytes (= {const.MAX_METADATA_SIZE})")
+    print(
+        f"✓ Maxed metadata: {maxed_metadata.size} bytes (= {const.MAX_METADATA_SIZE})"
+    )
     print(f"  Pages: {maxed_metadata.total_pages}")
 
 
@@ -88,21 +93,30 @@ def test_oversized_metadata_fixture(oversized_metadata):
     assert mbr_delta.sign > 0  # Positive for creation
     assert mbr_delta.amount > 0
 
-    print(f"✓ Oversized metadata: {oversized_metadata.size} bytes (> {const.MAX_METADATA_SIZE})")
-    print(f"  Exceeds limit by: {oversized_metadata.size - const.MAX_METADATA_SIZE} bytes")
+    print(
+        f"✓ Oversized metadata: {oversized_metadata.size} bytes (> {const.MAX_METADATA_SIZE})"
+    )
+    print(
+        f"  Exceeds limit by: {oversized_metadata.size - const.MAX_METADATA_SIZE} bytes"
+    )
 
 
 def test_size_comparison():
     """Test to show the size progression."""
     # Create metadata of various sizes
-    sizes = [0, 100, 1000, const.SHORT_METADATA_SIZE,
-             const.SHORT_METADATA_SIZE + 1, const.MAX_METADATA_SIZE]
+    sizes = [
+        0,
+        100,
+        1000,
+        const.SHORT_METADATA_SIZE,
+        const.SHORT_METADATA_SIZE + 1,
+        const.MAX_METADATA_SIZE,
+    ]
 
     for size in sizes:
         content = "x" * size
         metadata = AssetMetadata.create(
-            asset_id=999,
-            metadata=content.encode('utf-8') if content else b""
+            asset_id=999, metadata=content.encode("utf-8") if content else b""
         )
 
         is_short = metadata.is_short
@@ -113,9 +127,7 @@ def test_size_comparison():
 
 
 def test_fixtures_with_smart_contract_operations(
-    empty_metadata,
-    short_metadata,
-    maxed_metadata
+    empty_metadata, short_metadata, maxed_metadata
 ):
     """
     Example test showing how to use fixtures in smart contract tests.
@@ -131,7 +143,10 @@ def test_fixtures_with_smart_contract_operations(
     if short_metadata.is_short:
         # Smart contract can operate directly on this metadata
         short_box_value = short_metadata.box_value
-        assert len(short_box_value) <= const.METADATA_HEADER_SIZE + const.SHORT_METADATA_SIZE
+        assert (
+            len(short_box_value)
+            <= const.METADATA_HEADER_SIZE + const.SHORT_METADATA_SIZE
+        )
 
     # Test 3: Maxed metadata tests the upper limit
     assert maxed_metadata.size == const.MAX_METADATA_SIZE
@@ -141,13 +156,11 @@ def test_fixtures_with_smart_contract_operations(
     # All should have valid hashes
     for metadata in [empty_metadata, short_metadata, maxed_metadata]:
         assert len(metadata.metadata_hash) == 32
-        assert metadata.metadata_hash != b'\x00' * 32
+        assert metadata.metadata_hash != b"\x00" * 32
 
 
 def test_mbr_calculations_for_different_sizes(
-    empty_metadata,
-    short_metadata,
-    maxed_metadata
+    empty_metadata, short_metadata, maxed_metadata
 ):
     """Test MBR calculations for different metadata sizes."""
 
@@ -155,7 +168,7 @@ def test_mbr_calculations_for_different_sizes(
     sizes_and_metadata = [
         ("empty", empty_metadata),
         ("short", short_metadata),
-        ("maxed", maxed_metadata)
+        ("maxed", maxed_metadata),
     ]
 
     for label, metadata in sizes_and_metadata:
@@ -165,7 +178,9 @@ def test_mbr_calculations_for_different_sizes(
         assert mbr_delta.sign > 0
         assert mbr_delta.amount > 0
 
-        print(f"{label:6s} metadata MBR: {mbr_delta.amount:8d} microALGO ({mbr_delta.amount/1_000_000:.6f} ALGO)")
+        print(
+            f"{label:6s} metadata MBR: {mbr_delta.amount:8d} microALGO ({mbr_delta.amount/1_000_000:.6f} ALGO)"
+        )
 
     # Maxed should require the most MBR
     empty_delta = empty_metadata.get_mbr_delta(old_size=None)
@@ -175,11 +190,7 @@ def test_mbr_calculations_for_different_sizes(
     assert empty_delta.amount < short_delta.amount < maxed_delta.amount
 
 
-def test_pagination_across_sizes(
-    empty_metadata,
-    short_metadata,
-    maxed_metadata
-):
+def test_pagination_across_sizes(empty_metadata, short_metadata, maxed_metadata):
     """Test pagination behavior for different sizes."""
 
     # Empty: no pages
@@ -208,4 +219,6 @@ def test_pagination_across_sizes(
         # Total should match metadata size
         assert total_content_size == metadata.size
 
-        print(f"{metadata.asset_id}: {metadata.total_pages} pages, {total_content_size} bytes total")
+        print(
+            f"{metadata.asset_id}: {metadata.total_pages} pages, {total_content_size} bytes total"
+        )

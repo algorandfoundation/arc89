@@ -1,4 +1,22 @@
-from algopy import Account, Asset, BoxMap, Bytes, Global, OnCompleteAction, TemplateVar, TransactionType, Txn, UInt64, arc4, itxn, gtxn, op, urange, subroutine, ensure_budget
+from algopy import (
+    Account,
+    Asset,
+    BoxMap,
+    Bytes,
+    Global,
+    OnCompleteAction,
+    TemplateVar,
+    TransactionType,
+    Txn,
+    UInt64,
+    arc4,
+    ensure_budget,
+    gtxn,
+    itxn,
+    op,
+    subroutine,
+    urange,
+)
 
 from . import abi_types as abi
 from . import bitmasks as masks
@@ -13,6 +31,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     """
     Singleton Application providing ASA metadata via Algod API and AVM
     """
+
     def __init__(self) -> None:
         self.asset_metadata = BoxMap(Asset, Bytes, key_prefix="")
 
@@ -72,7 +91,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         while n > 0:
             d = n % UInt64(10)
-            acc = digits[d:d + UInt64(1)] + acc
+            acc = digits[d : d + UInt64(1)] + acc
             n //= UInt64(10)
 
         return acc or Bytes(b"0")
@@ -82,85 +101,74 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """Return the 1-byte Metadata Identifiers for an ASA."""
         return self.asset_metadata.box(asa).extract(
             start_index=const.IDX_METADATA_IDENTIFIERS,
-            length=const.METADATA_IDENTIFIERS_SIZE
+            length=const.METADATA_IDENTIFIERS_SIZE,
         )
 
     @subroutine
     def _set_metadata_identifiers(self, asa: Asset, identifiers: Bytes) -> None:
         self.asset_metadata.box(asa).replace(
-            start_index=const.IDX_METADATA_IDENTIFIERS,
-            value=identifiers
+            start_index=const.IDX_METADATA_IDENTIFIERS, value=identifiers
         )
 
     @subroutine
     def _get_metadata_flags(self, asa: Asset) -> Bytes:
         """Return the 1-byte Metadata Identifiers for an ASA."""
         return self.asset_metadata.box(asa).extract(
-            start_index=const.IDX_METADATA_FLAGS,
-            length=const.METADATA_FLAGS_SIZE
+            start_index=const.IDX_METADATA_FLAGS, length=const.METADATA_FLAGS_SIZE
         )
 
     @subroutine
     def _set_metadata_flags(self, asa: Asset, flags: Bytes) -> None:
         self.asset_metadata.box(asa).replace(
-            start_index=const.IDX_METADATA_FLAGS,
-            value=flags
+            start_index=const.IDX_METADATA_FLAGS, value=flags
         )
 
     @subroutine
     def _is_short(self, asa: Asset) -> bool:
         return self._has_bits(
-            op.btoi(self._get_metadata_identifiers(asa)),
-            UInt64(masks.ID_SHORT)
+            op.btoi(self._get_metadata_identifiers(asa)), UInt64(masks.ID_SHORT)
         )
 
     @subroutine
     def _is_arc3(self, asa: Asset) -> bool:
         return self._has_bits(
-            op.btoi(self._get_metadata_flags(asa)),
-            UInt64(masks.FLG_ARC3)
+            op.btoi(self._get_metadata_flags(asa)), UInt64(masks.FLG_ARC3)
         )
 
     @subroutine
     def _is_arc20(self, asa: Asset) -> bool:
         return self._has_bits(
-            op.btoi(self._get_metadata_flags(asa)),
-            UInt64(masks.FLG_ARC20)
+            op.btoi(self._get_metadata_flags(asa)), UInt64(masks.FLG_ARC20)
         )
 
     @subroutine
     def _is_arc62(self, asa: Asset) -> bool:
         return self._has_bits(
-            op.btoi(self._get_metadata_flags(asa)),
-            UInt64(masks.FLG_ARC62)
+            op.btoi(self._get_metadata_flags(asa)), UInt64(masks.FLG_ARC62)
         )
 
     @subroutine
     def _is_arc89(self, asa: Asset) -> bool:
         return self._has_bits(
-            op.btoi(self._get_metadata_flags(asa)),
-            UInt64(masks.FLG_ARC89_NATIVE)
+            op.btoi(self._get_metadata_flags(asa)), UInt64(masks.FLG_ARC89_NATIVE)
         )
 
     @subroutine
     def _is_immutable(self, asa: Asset) -> bool:
         return self._has_bits(
-            op.btoi(self._get_metadata_flags(asa)),
-            UInt64(masks.FLG_IMMUTABLE)
+            op.btoi(self._get_metadata_flags(asa)), UInt64(masks.FLG_IMMUTABLE)
         )
 
     @subroutine
     def _get_metadata_hash(self, asa: Asset) -> Bytes:
         return self.asset_metadata.box(asa).extract(
-            start_index=const.IDX_METADATA_HASH,
-            length=const.METADATA_HASH_SIZE
+            start_index=const.IDX_METADATA_HASH, length=const.METADATA_HASH_SIZE
         )
 
     @subroutine
     def _set_metadata_hash(self, asa: Asset, metadata_hash: Bytes) -> None:
         self.asset_metadata.box(asa).replace(
-            start_index=const.IDX_METADATA_HASH,
-            value=metadata_hash
+            start_index=const.IDX_METADATA_HASH, value=metadata_hash
         )
 
     @subroutine
@@ -168,7 +176,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         return op.btoi(
             self.asset_metadata.box(asa).extract(
                 start_index=const.IDX_LAST_MODIFIED_ROUND,
-                length=const.LAST_MODIFIED_ROUND_SIZE
+                length=const.LAST_MODIFIED_ROUND_SIZE,
             )
         )
 
@@ -176,7 +184,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     def _set_last_modified_round(self, asa: Asset, last_modified_round: UInt64) -> None:
         self.asset_metadata.box(asa).replace(
             start_index=const.IDX_LAST_MODIFIED_ROUND,
-            value=op.itob(last_modified_round)
+            value=op.itob(last_modified_round),
         )
 
     @subroutine
@@ -190,8 +198,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             new_size=old_asset_metadata_box_size + payload.length
         )
         self.asset_metadata.box(asa).replace(
-            start_index=old_asset_metadata_box_size - 1,
-            value=payload
+            start_index=old_asset_metadata_box_size - 1, value=payload
         )
 
     @subroutine
@@ -200,7 +207,8 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             txn.type == TransactionType.ApplicationCall
             and txn.app_id == Global.current_application_id
             and txn.on_completion == OnCompleteAction.NoOp
-            and txn.app_args(0) == arc4.arc4_signature(AsaMetadataRegistryInterface.arc89_extra_payload)
+            and txn.app_args(0)
+            == arc4.arc4_signature(AsaMetadataRegistryInterface.arc89_extra_payload)
         )
 
     @subroutine
@@ -211,7 +219,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         ).native
 
     @subroutine
-    def _set_metadata_payload(self, asa: Asset, metadata_size: UInt64, payload: Bytes) -> None:
+    def _set_metadata_payload(
+        self, asa: Asset, metadata_size: UInt64, payload: Bytes
+    ) -> None:
         # Append provided payload
         self._append_payload(asa, payload)
 
@@ -222,7 +232,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             txn = gtxn.Transaction(idx)
             if self._is_extra_payload_txn(txn):
                 extra_payload = self._read_extra_payload(txn)
-                assert self._get_metadata_size(asa) + extra_payload.length <= metadata_size, err.PAYLOAD_OVERFLOW
+                assert (
+                    self._get_metadata_size(asa) + extra_payload.length <= metadata_size
+                ), err.PAYLOAD_OVERFLOW
                 self._append_payload(asa, extra_payload)
         assert self._get_metadata_size(asa) == metadata_size, err.METADATA_SIZE_MISMATCH
 
@@ -254,10 +266,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         remaining = n - start
         length = self._umin(ps, remaining)
 
-        return self.asset_metadata.box(asa).extract(
-            start_index=start,
-            length=length
-        )
+        return self.asset_metadata.box(asa).extract(start_index=start, length=length)
 
     @subroutine
     def _identify_metadata(self, asset_id: Asset, metadata_size: UInt64) -> None:
@@ -265,7 +274,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             self._set_bits(
                 op.btoi(self._get_metadata_identifiers(asset_id)),
                 UInt64(masks.ID_SHORT),
-                self._is_short_metadata_size(metadata_size)
+                self._is_short_metadata_size(metadata_size),
             ),
             size=UInt64(const.UINT8_SIZE),
         )
@@ -283,27 +292,19 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             size=UInt64(const.UINT16_SIZE),
         )
         return op.sha512_256(
-            domain
-            +asset_id
-            +metadata_identifiers
-            +metadata_flags
-            +metadata_size
+            domain + asset_id + metadata_identifiers + metadata_flags + metadata_size
         )
 
     @subroutine
-    def _compute_page_hash(self, asa: Asset, page_index: UInt64, page_content: Bytes) -> Bytes:
+    def _compute_page_hash(
+        self, asa: Asset, page_index: UInt64, page_content: Bytes
+    ) -> Bytes:
         # ph[i] = SHA-512/256("arc0089/page" || Asset ID || Page Index || Page Size || Page Content)
         domain = Bytes(const.HASH_DOMAIN_PAGE)
         asset_id = op.itob(asa.id)
         page_idx = self._trimmed_itob(page_index, UInt64(const.UINT8_SIZE))
         page_size = self._trimmed_itob(page_content.length, UInt64(const.UINT16_SIZE))
-        return op.sha512_256(
-            domain
-            + asset_id
-            + page_idx
-            + page_size
-            + page_content
-        )
+        return op.sha512_256(domain + asset_id + page_idx + page_size + page_content)
 
     @subroutine
     def _compute_metadata_hash(self, asa: Asset) -> Bytes:
@@ -324,7 +325,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     def _check_base_preconditions(self, asa: Asset, metadata_size: UInt64) -> None:
         assert self._asa_exists(asa), err.ASA_NOT_EXIST
         assert self._is_asa_manager(asa), err.UNAUTHORIZED
-        assert self._is_valid_max_metadata_size(metadata_size), err.EXCEEDS_MAX_METADATA_SIZE
+        assert self._is_valid_max_metadata_size(
+            metadata_size
+        ), err.EXCEEDS_MAX_METADATA_SIZE
 
     @subroutine
     def _check_update_preconditions(self, asa: Asset, metadata_size: UInt64) -> None:
@@ -376,15 +379,22 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert not self._metadata_exists(asset_id), err.ASSET_METADATA_EXIST
 
         # MBR Payment pre-validation
-        assert mbr_delta_payment.receiver == Global.current_application_address, err.MBR_DELTA_RECEIVER_INVALID
+        assert (
+            mbr_delta_payment.receiver == Global.current_application_address
+        ), err.MBR_DELTA_RECEIVER_INVALID
 
         # Initialize Asset Metadata Box Header
         mbr_i = Global.current_application_address.min_balance
-        _exists = self.asset_metadata.box(asset_id).create(size=UInt64(const.METADATA_HEADER_SIZE))
+        _exists = self.asset_metadata.box(asset_id).create(
+            size=UInt64(const.METADATA_HEADER_SIZE)
+        )
 
         # Set Metadata Header (without Metadata Hash, computed after payload upload)
         self._identify_metadata(asset_id, metadata_size.as_uint64())
-        self._set_metadata_flags(asset_id, self._trimmed_itob(flags.as_uint64(), size=UInt64(const.BYTE_SIZE)))
+        self._set_metadata_flags(
+            asset_id,
+            self._trimmed_itob(flags.as_uint64(), size=UInt64(const.BYTE_SIZE)),
+        )
         self._set_last_modified_round(asset_id, Global.round)
 
         # Set Metadata Body
@@ -400,9 +410,13 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
                 + const.URI_ARC_89_SUFFIX
             )
             asa_url = asset_id.url
-            assert asa_url[:arc_89_uri.length] == arc_89_uri, err.ASA_URL_INVALID_ARC89_URI
+            assert (
+                asa_url[: arc_89_uri.length] == arc_89_uri
+            ), err.ASA_URL_INVALID_ARC89_URI
 
-        if asset_id.metadata_hash != Bytes(const.BYTES32_SIZE * b'\x00'):  # Not empty metadata hash
+        if asset_id.metadata_hash != Bytes(
+            const.BYTES32_SIZE * b"\x00"
+        ):  # Not empty metadata hash
             assert self._is_immutable(asset_id), err.REQUIRES_IMMUTABLE
             metadata_hash = asset_id.metadata_hash
         else:
@@ -410,7 +424,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._set_metadata_hash(asset_id, metadata_hash)
 
         mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
-        assert mbr_delta_payment.amount >= mbr_delta_amount, err.MBR_DELTA_AMOUNT_INVALID
+        assert (
+            mbr_delta_payment.amount >= mbr_delta_amount
+        ), err.MBR_DELTA_AMOUNT_INVALID
 
         arc4.emit(
             abi.Arc89MetadataUpdated(
@@ -423,7 +439,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             )
         )
 
-        return abi.MbrDelta(sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount))
+        return abi.MbrDelta(
+            sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
+        )
 
     @arc4.abimethod
     def arc89_replace_metadata(
@@ -448,7 +466,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_update_preconditions(asset_id, metadata_size.as_uint64())
-        assert metadata_size.as_uint64() <= self._get_metadata_size(asset_id), err.LARGER_METADATA_SIZE
+        assert metadata_size.as_uint64() <= self._get_metadata_size(
+            asset_id
+        ), err.LARGER_METADATA_SIZE
 
         # Update Metadata Header (without Metadata Hash, computed after payload upload)
         self._identify_metadata(asset_id, metadata_size.as_uint64())
@@ -456,11 +476,15 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         # Update Metadata Body
         mbr_i = Global.current_application_address.min_balance
-        self.asset_metadata.box(asset_id).resize(new_size=UInt64(const.METADATA_HEADER_SIZE))
+        self.asset_metadata.box(asset_id).resize(
+            new_size=UInt64(const.METADATA_HEADER_SIZE)
+        )
         self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload.native)
 
         # Postconditions
-        assert self._get_metadata_size(asset_id) == metadata_size.as_uint64(), err.METADATA_SIZE_MISMATCH
+        assert (
+            self._get_metadata_size(asset_id) == metadata_size.as_uint64()
+        ), err.METADATA_SIZE_MISMATCH
         metadata_hash = self._compute_metadata_hash(asset_id)
         self._set_metadata_hash(asset_id, metadata_hash)
 
@@ -512,7 +536,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_update_preconditions(asset_id, metadata_size.as_uint64())
-        assert metadata_size.as_uint64() > self._get_metadata_size(asset_id), err.SMALLER_METADATA_SIZE
+        assert metadata_size.as_uint64() > self._get_metadata_size(
+            asset_id
+        ), err.SMALLER_METADATA_SIZE
 
         # Update Metadata Header (without Metadata Hash, computed after payload upload)
         self._identify_metadata(asset_id, metadata_size.as_uint64())
@@ -520,16 +546,22 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         # Update Metadata Body
         mbr_i = Global.current_application_address.min_balance
-        self.asset_metadata.box(asset_id).resize(new_size=UInt64(const.METADATA_HEADER_SIZE))
-        self._set_metadata_payload(asset_id, metadata_size.as_uint64(),payload.native)
+        self.asset_metadata.box(asset_id).resize(
+            new_size=UInt64(const.METADATA_HEADER_SIZE)
+        )
+        self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload.native)
 
         # Postconditions
-        assert self._get_metadata_size(asset_id) == metadata_size.as_uint64(), err.METADATA_SIZE_MISMATCH
+        assert (
+            self._get_metadata_size(asset_id) == metadata_size.as_uint64()
+        ), err.METADATA_SIZE_MISMATCH
         metadata_hash = self._compute_metadata_hash(asset_id)
         self._set_metadata_hash(asset_id, metadata_hash)
 
         mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
-        assert mbr_delta_payment.amount >= mbr_delta_amount, err.MBR_DELTA_AMOUNT_INVALID
+        assert (
+            mbr_delta_payment.amount >= mbr_delta_amount
+        ), err.MBR_DELTA_AMOUNT_INVALID
 
         arc4.emit(
             abi.Arc89MetadataUpdated(
@@ -542,7 +574,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             )
         )
 
-        return abi.MbrDelta(sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount))
+        return abi.MbrDelta(
+            sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
+        )
 
     @arc4.abimethod
     def arc89_extra_payload(
@@ -581,7 +615,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         return abi.Pagination(
             metadata_size=arc4.UInt16(self._get_metadata_size(asset_id)),
             page_size=arc4.UInt16(const.PAGE_SIZE),
-            total_pages=arc4.UInt8(self._get_total_pages(asset_id))
+            total_pages=arc4.UInt8(self._get_total_pages(asset_id)),
         )
 
     @arc4.abimethod

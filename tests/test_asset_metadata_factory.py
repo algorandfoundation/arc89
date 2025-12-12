@@ -1,24 +1,22 @@
 """Tests for the AssetMetadata factory class."""
+
+from smart_contracts.asa_metadata_registry import constants as const
+from smart_contracts.asa_metadata_registry import enums
 from tests.helpers.factories import (
     AssetMetadata,
     create_test_metadata,
 )
-from smart_contracts.asa_metadata_registry import constants as const
-from smart_contracts.asa_metadata_registry import enums
 
 
 def test_create_simple_metadata():
     """Test creating simple metadata with defaults."""
-    metadata = AssetMetadata.create(
-        asset_id=12345,
-        metadata={"name": "Test Asset"}
-    )
+    metadata = AssetMetadata.create(asset_id=12345, metadata={"name": "Test Asset"})
 
     assert metadata.asset_id == 12345
     assert metadata.size > 0
     assert metadata.is_short  # Small metadata should be marked as short
     assert not metadata.is_immutable
-    assert metadata.metadata_hash != b'\x00' * 32  # Hash should be computed
+    assert metadata.metadata_hash != b"\x00" * 32  # Hash should be computed
 
 
 def test_metadata_flags():
@@ -30,7 +28,7 @@ def test_metadata_flags():
         arc89_native=True,
         immutable=True,
         arc20=True,
-        arc62=True
+        arc62=True,
     )
 
     assert metadata.is_arc3
@@ -43,19 +41,13 @@ def test_metadata_flags():
 def test_short_metadata_identifier():
     """Test that short metadata identifier is set correctly."""
     # Small metadata should be short
-    small_metadata = AssetMetadata.create(
-        asset_id=1,
-        metadata={"name": "Short"}
-    )
+    small_metadata = AssetMetadata.create(asset_id=1, metadata={"name": "Short"})
     assert small_metadata.is_short
     assert small_metadata.size <= const.SHORT_METADATA_SIZE
 
     # Large metadata should not be short
     large_data = "x" * (const.SHORT_METADATA_SIZE + 100)
-    large_metadata = AssetMetadata.create(
-        asset_id=2,
-        metadata=large_data
-    )
+    large_metadata = AssetMetadata.create(asset_id=2, metadata=large_data)
     assert not large_metadata.is_short
     assert large_metadata.size > const.SHORT_METADATA_SIZE
 
@@ -63,19 +55,18 @@ def test_short_metadata_identifier():
 def test_hash_computation():
     """Test that hashes are computed correctly."""
     metadata = AssetMetadata.create(
-        asset_id=12345,
-        metadata={"name": "Test", "description": "A test asset"}
+        asset_id=12345, metadata={"name": "Test", "description": "A test asset"}
     )
 
     # Check that header hash can be computed
     hh = metadata.compute_header_hash()
     assert len(hh) == 32
-    assert hh != b'\x00' * 32
+    assert hh != b"\x00" * 32
 
     # Check that metadata hash is computed
     am = metadata.compute_metadata_hash()
     assert len(am) == 32
-    assert am != b'\x00' * 32
+    assert am != b"\x00" * 32
     assert am == metadata.metadata_hash
 
 
@@ -83,10 +74,7 @@ def test_page_computation():
     """Test metadata pagination."""
     # Create metadata that spans multiple pages
     large_data = "x" * (const.PAGE_SIZE * 2 + 500)
-    metadata = AssetMetadata.create(
-        asset_id=1,
-        metadata=large_data
-    )
+    metadata = AssetMetadata.create(asset_id=1, metadata=large_data)
 
     assert metadata.total_pages == 3
 
@@ -107,10 +95,7 @@ def test_page_computation():
 
 def test_empty_metadata():
     """Test metadata with empty body."""
-    metadata = AssetMetadata.create(
-        asset_id=1,
-        metadata=b""
-    )
+    metadata = AssetMetadata.create(asset_id=1, metadata=b"")
 
     assert metadata.size == 0
     assert metadata.total_pages == 0
@@ -128,7 +113,7 @@ def test_box_serialization():
         metadata={"name": "Test Asset", "description": "Testing"},
         arc3_compliant=True,
         immutable=True,
-        last_modified_round=100
+        last_modified_round=100,
     )
 
     # Get box value
@@ -151,10 +136,7 @@ def test_box_serialization():
 
 def test_mbr_delta_calculation():
     """Test MBR delta calculation."""
-    metadata = AssetMetadata.create(
-        asset_id=1,
-        metadata={"name": "Test"}
-    )
+    metadata = AssetMetadata.create(asset_id=1, metadata={"name": "Test"})
 
     # New creation should be positive
     mbr_delta = metadata.get_mbr_delta(old_size=None)
@@ -196,16 +178,10 @@ def test_json_operations():
     metadata_dict = {
         "name": "Test Asset",
         "description": "A test",
-        "properties": {
-            "test": True,
-            "value": 42
-        }
+        "properties": {"test": True, "value": 42},
     }
 
-    metadata = AssetMetadata.create(
-        asset_id=1,
-        metadata=metadata_dict
-    )
+    metadata = AssetMetadata.create(asset_id=1, metadata=metadata_dict)
 
     # Test that we can decode back to JSON
     decoded = metadata.to_json()
@@ -218,34 +194,24 @@ def test_json_operations():
 def test_validation():
     """Test metadata validation methods."""
     # Valid metadata
-    valid = AssetMetadata.create(
-        asset_id=1,
-        metadata={"name": "Test"}
-    )
+    valid = AssetMetadata.create(asset_id=1, metadata={"name": "Test"})
     assert valid.validate_size()
     assert valid.validate_json()
 
     # Too large metadata
     too_large = AssetMetadata(
-        asset_id=2,
-        metadata_bytes=b"x" * (const.MAX_METADATA_SIZE + 1)
+        asset_id=2, metadata_bytes=b"x" * (const.MAX_METADATA_SIZE + 1)
     )
     assert not too_large.validate_size()
 
     # Invalid JSON
-    invalid_json = AssetMetadata(
-        asset_id=3,
-        metadata_bytes=b"not valid json {"
-    )
+    invalid_json = AssetMetadata(asset_id=3, metadata_bytes=b"not valid json {")
     assert not invalid_json.validate_json()
 
 
 def test_create_test_metadata_helper():
     """Test the convenience test metadata creator."""
-    metadata = create_test_metadata(
-        asset_id=999,
-        arc3_compliant=True
-    )
+    metadata = create_test_metadata(asset_id=999, arc3_compliant=True)
 
     assert metadata.asset_id == 999
     assert metadata.is_arc3
@@ -281,10 +247,7 @@ def test_flag_toggling():
 
 def test_metadata_hash_update():
     """Test that metadata hash updates when content changes."""
-    metadata = AssetMetadata.create(
-        asset_id=1,
-        metadata={"name": "Original"}
-    )
+    metadata = AssetMetadata.create(asset_id=1, metadata={"name": "Original"})
 
     original_hash = metadata.metadata_hash
 
@@ -298,10 +261,7 @@ def test_metadata_hash_update():
 
 def test_immutable_flag_one_way():
     """Test that immutable flag can be set but not unset (one-way)."""
-    metadata = AssetMetadata.create(
-        asset_id=1,
-        metadata={"name": "Test"}
-    )
+    metadata = AssetMetadata.create(asset_id=1, metadata={"name": "Test"})
 
     assert not metadata.is_immutable
 

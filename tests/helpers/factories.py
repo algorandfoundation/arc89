@@ -1,13 +1,14 @@
 """Factory helpers for creating test fixtures for ASA Metadata Registry tests."""
+
 import hashlib
 import json
-from typing import Optional, Any, List
 from dataclasses import dataclass, field
+from typing import Any
 
 from algokit_utils import AlgoAmount
 
-from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.asa_metadata_registry import bitmasks as masks
+from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.asa_metadata_registry import enums
 
 
@@ -17,6 +18,7 @@ class MbrDelta:
     Simple Python representation of MBR Delta for testing.
     Mimics the ARC-89 MbrDelta ABI type but uses native Python types.
     """
+
     sign: int  # Enum: MBR_DELTA_NULL (0), MBR_DELTA_POS (1), or MBR_DELTA_NEG (255)
     amount: AlgoAmount  # MBR amount in microALGO (always positive)
 
@@ -54,7 +56,7 @@ class AssetMetadata:
     # Header fields
     identifiers: int = 0
     flags: int = 0
-    metadata_hash: bytes = field(default_factory=lambda: b'\x00' * 32)
+    metadata_hash: bytes = field(default_factory=lambda: b"\x00" * 32)
     last_modified_round: int = 0
 
     # Body
@@ -113,10 +115,10 @@ class AssetMetadata:
     def header_bytes(self) -> bytes:
         """Get the complete metadata header as bytes."""
         return (
-            self.identifiers.to_bytes(1, 'big') +
-            self.flags.to_bytes(1, 'big') +
-            self.metadata_hash +
-            self.last_modified_round.to_bytes(8, 'big')
+            self.identifiers.to_bytes(1, "big")
+            + self.flags.to_bytes(1, "big")
+            + self.metadata_hash
+            + self.last_modified_round.to_bytes(8, "big")
         )
 
     @property
@@ -127,7 +129,7 @@ class AssetMetadata:
     @property
     def box_name(self) -> bytes:
         """Get the Asset Metadata Box name (8-byte big-endian asset ID)."""
-        return self.asset_id.to_bytes(8, 'big')
+        return self.asset_id.to_bytes(8, "big")
 
     # ==================== SETTERS ====================
 
@@ -139,9 +141,11 @@ class AssetMetadata:
             metadata: Either raw bytes, a JSON string, or a dict that will be encoded
         """
         if isinstance(metadata, str):
-            self.metadata_bytes = metadata.encode('utf-8')
+            self.metadata_bytes = metadata.encode("utf-8")
         elif isinstance(metadata, dict):
-            self.metadata_bytes = json.dumps(metadata, separators=(',', ':')).encode('utf-8')
+            self.metadata_bytes = json.dumps(metadata, separators=(",", ":")).encode(
+                "utf-8"
+            )
         else:
             self.metadata_bytes = metadata
 
@@ -194,10 +198,10 @@ class AssetMetadata:
             32-byte header hash
         """
         domain = const.HASH_DOMAIN_HEADER
-        asset_id_bytes = self.asset_id.to_bytes(8, 'big')
-        identifiers = self.identifiers.to_bytes(1, 'big')
-        flags = self.flags.to_bytes(1, 'big')
-        size = self.size.to_bytes(2, 'big')
+        asset_id_bytes = self.asset_id.to_bytes(8, "big")
+        identifiers = self.identifiers.to_bytes(1, "big")
+        flags = self.flags.to_bytes(1, "big")
+        size = self.size.to_bytes(2, "big")
 
         data = domain + asset_id_bytes + identifiers + flags + size
         return hashlib.sha512(data).digest()[:32]
@@ -217,20 +221,24 @@ class AssetMetadata:
             32-byte page hash
         """
         if page_index >= self.total_pages:
-            raise ValueError(f"Page index {page_index} out of range (total pages: {self.total_pages})")
+            raise ValueError(
+                f"Page index {page_index} out of range (total pages: {self.total_pages})"
+            )
 
         domain = const.HASH_DOMAIN_PAGE
-        asset_id_bytes = self.asset_id.to_bytes(8, 'big')
-        page_index_byte = page_index.to_bytes(1, 'big')
+        asset_id_bytes = self.asset_id.to_bytes(8, "big")
+        page_index_byte = page_index.to_bytes(1, "big")
 
         # Get page content
         start = page_index * const.PAGE_SIZE
         end = min(start + const.PAGE_SIZE, self.size)
         page_content = self.metadata_bytes[start:end]
         page_size = len(page_content)
-        page_size_bytes = page_size.to_bytes(2, 'big')
+        page_size_bytes = page_size.to_bytes(2, "big")
 
-        data = domain + asset_id_bytes + page_index_byte + page_size_bytes + page_content
+        data = (
+            domain + asset_id_bytes + page_index_byte + page_size_bytes + page_content
+        )
         return hashlib.sha512(data).digest()[:32]
 
     def compute_metadata_hash(self) -> bytes:
@@ -292,13 +300,15 @@ class AssetMetadata:
             Page content bytes (may be less than PAGE_SIZE for the last page)
         """
         if page_index >= self.total_pages:
-            raise ValueError(f"Page index {page_index} out of range (total pages: {self.total_pages})")
+            raise ValueError(
+                f"Page index {page_index} out of range (total pages: {self.total_pages})"
+            )
 
         start = page_index * const.PAGE_SIZE
         end = min(start + const.PAGE_SIZE, self.size)
         return self.metadata_bytes[start:end]
 
-    def get_mbr_delta(self, old_size: Optional[int] = None) -> MbrDelta:
+    def get_mbr_delta(self, old_size: int | None = None) -> MbrDelta:
         """
         Calculate the MBR delta for this metadata.
 
@@ -314,10 +324,11 @@ class AssetMetadata:
 
         if old_size is None:
             # New creation
-            new_mbr = const.FLAT_MBR + const.BYTE_MBR * (box_name_size + new_box_value_size)
+            new_mbr = const.FLAT_MBR + const.BYTE_MBR * (
+                box_name_size + new_box_value_size
+            )
             return MbrDelta(
-                sign=enums.MBR_DELTA_POS,
-                amount=AlgoAmount(micro_algo=new_mbr)
+                sign=enums.MBR_DELTA_POS, amount=AlgoAmount(micro_algo=new_mbr)
             )
 
         old_box_value_size = const.METADATA_HEADER_SIZE + old_size
@@ -328,19 +339,15 @@ class AssetMetadata:
 
         if delta > 0:
             return MbrDelta(
-                sign=enums.MBR_DELTA_POS,
-                amount=AlgoAmount(micro_algo=delta)
+                sign=enums.MBR_DELTA_POS, amount=AlgoAmount(micro_algo=delta)
             )
         elif delta < 0:
             return MbrDelta(
                 sign=enums.MBR_DELTA_NEG,
-                amount=AlgoAmount(micro_algo=-delta)  # Amount is always positive
+                amount=AlgoAmount(micro_algo=-delta),  # Amount is always positive
             )
         else:
-            return MbrDelta(
-                sign=enums.MBR_DELTA_NULL,
-                amount=AlgoAmount(micro_algo=0)
-            )
+            return MbrDelta(sign=enums.MBR_DELTA_NULL, amount=AlgoAmount(micro_algo=0))
 
     def to_json(self) -> dict:
         """
@@ -352,7 +359,7 @@ class AssetMetadata:
         Raises:
             json.JSONDecodeError: If metadata is not valid JSON
         """
-        return json.loads(self.metadata_bytes.decode('utf-8'))
+        return json.loads(self.metadata_bytes.decode("utf-8"))
 
     def validate_size(self) -> bool:
         """
@@ -371,13 +378,13 @@ class AssetMetadata:
             True if valid JSON, False otherwise
         """
         try:
-            json.loads(self.metadata_bytes.decode('utf-8'))
+            json.loads(self.metadata_bytes.decode("utf-8"))
             return True
         except (json.JSONDecodeError, UnicodeDecodeError):
             return False
 
     @classmethod
-    def chunk_payload(cls, payload: bytes) -> List[bytes]:
+    def chunk_payload(cls, payload: bytes) -> list[bytes]:
         """
         Split payload into chunks:
         - First chunk: up to FIRST_PAYLOAD_MAX_SIZE.
@@ -386,16 +393,16 @@ class AssetMetadata:
         if payload == b"":
             return [b""]
 
-        chunks: List[bytes] = []
+        chunks: list[bytes] = []
         # First chunk
-        first = payload[:const.FIRST_PAYLOAD_MAX_SIZE]
+        first = payload[: const.FIRST_PAYLOAD_MAX_SIZE]
         chunks.append(first)
 
         # Remaining chunks
-        remaining = payload[len(first):]
+        remaining = payload[len(first) :]
         if remaining:
             for i in range(0, len(remaining), const.EXTRA_PAYLOAD_MAX_SIZE):
-                chunks.append(remaining[i:i + const.EXTRA_PAYLOAD_MAX_SIZE])
+                chunks.append(remaining[i : i + const.EXTRA_PAYLOAD_MAX_SIZE])
 
         return chunks
 
@@ -417,14 +424,19 @@ class AssetMetadata:
         # Parse header
         identifiers = box_value[const.IDX_METADATA_IDENTIFIERS]
         flags = box_value[const.IDX_METADATA_FLAGS]
-        metadata_hash = box_value[const.IDX_METADATA_HASH:const.IDX_METADATA_HASH + const.METADATA_HASH_SIZE]
+        metadata_hash = box_value[
+            const.IDX_METADATA_HASH : const.IDX_METADATA_HASH + const.METADATA_HASH_SIZE
+        ]
         last_modified_round = int.from_bytes(
-            box_value[const.IDX_LAST_MODIFIED_ROUND:const.IDX_LAST_MODIFIED_ROUND + const.LAST_MODIFIED_ROUND_SIZE],
-            'big'
+            box_value[
+                const.IDX_LAST_MODIFIED_ROUND : const.IDX_LAST_MODIFIED_ROUND
+                + const.LAST_MODIFIED_ROUND_SIZE
+            ],
+            "big",
         )
 
         # Parse body
-        metadata_bytes = box_value[const.IDX_METADATA:]
+        metadata_bytes = box_value[const.IDX_METADATA :]
 
         return cls(
             asset_id=asset_id,
@@ -432,7 +444,7 @@ class AssetMetadata:
             flags=flags,
             metadata_hash=metadata_hash,
             last_modified_round=last_modified_round,
-            metadata_bytes=metadata_bytes
+            metadata_bytes=metadata_bytes,
         )
 
     @classmethod
@@ -445,7 +457,7 @@ class AssetMetadata:
         arc89_native: bool = False,
         arc20: bool = False,
         arc62: bool = False,
-        last_modified_round: int = 0
+        last_modified_round: int = 0,
     ) -> "AssetMetadata":
         """
         Factory method to create an AssetMetadata instance with common parameters.
@@ -464,9 +476,7 @@ class AssetMetadata:
             AssetMetadata instance with hash computed
         """
         instance = cls(
-            asset_id=asset_id,
-            flags=0,
-            last_modified_round=last_modified_round
+            asset_id=asset_id, flags=0, last_modified_round=last_modified_round
         )
 
         # Set metadata (this will auto-update short identifier)
@@ -495,7 +505,7 @@ def create_arc3_metadata(
     description: str = "",
     image: str = "",
     external_url: str = "",
-    properties: Optional[dict] = None
+    properties: dict | None = None,
 ) -> dict:
     """
     Create an ARC-3 compliant metadata dictionary.
@@ -527,9 +537,7 @@ def create_arc3_metadata(
 
 
 def create_test_metadata(
-    asset_id: int,
-    metadata_content: Optional[dict] = None,
-    **kwargs
+    asset_id: int, metadata_content: dict | None = None, **kwargs
 ) -> AssetMetadata:
     """
     Convenience function to create test metadata with sensible defaults.
@@ -548,9 +556,4 @@ def create_test_metadata(
             description="Test asset metadata",
         )
 
-    return AssetMetadata.create(
-        asset_id=asset_id,
-        metadata=metadata_content,
-        **kwargs
-    )
-
+    return AssetMetadata.create(asset_id=asset_id, metadata=metadata_content, **kwargs)

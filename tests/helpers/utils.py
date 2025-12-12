@@ -1,18 +1,29 @@
-from algokit_utils import SigningAccount, PaymentParams, CommonAppCallParams, AlgoAmount, SendParams
+from algokit_utils import (
+    AlgoAmount,
+    CommonAppCallParams,
+    PaymentParams,
+    SendParams,
+    SigningAccount,
+)
 from algosdk.transaction import Transaction
 
-from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import \
-    AsaMetadataRegistryClient, Arc89CreateMetadataArgs, Arc89ExtraPayloadArgs, \
-    Arc89ReplaceMetadataArgs, AsaMetadataRegistryComposer, MbrDelta, \
-    Arc89GetMetadataPaginationArgs, Arc89ReplaceMetadataLargerArgs
-
+from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
+    Arc89CreateMetadataArgs,
+    Arc89ExtraPayloadArgs,
+    Arc89GetMetadataPaginationArgs,
+    Arc89ReplaceMetadataArgs,
+    Arc89ReplaceMetadataLargerArgs,
+    AsaMetadataRegistryClient,
+    AsaMetadataRegistryComposer,
+    MbrDelta,
+)
 from tests.helpers.factories import AssetMetadata
 
 
 def _append_extra_payload(
     composer: AsaMetadataRegistryComposer,
     asset_manager: SigningAccount,
-    metadata: AssetMetadata
+    metadata: AssetMetadata,
 ) -> None:
     chunks = metadata.chunked_payload()
     for i, chunk in enumerate(chunks[1:], start=1):
@@ -24,7 +35,7 @@ def _append_extra_payload(
             params=CommonAppCallParams(
                 sender=asset_manager.address,
                 note=i.to_bytes(8, "big"),
-                static_fee=AlgoAmount(algo=0)
+                static_fee=AlgoAmount(algo=0),
             ),
         )
 
@@ -55,7 +66,9 @@ def create_metadata(
     Create metadata, splitting payload into chunks suitable for ARC-89 extra payload calls.
     """
     creation_mbr_delta = metadata.get_mbr_delta(old_size=None)
-    mbr_payment = get_mbr_delta_payment(asa_metadata_registry_client, asset_manager, creation_mbr_delta.amount)
+    mbr_payment = get_mbr_delta_payment(
+        asa_metadata_registry_client, asset_manager, creation_mbr_delta.amount
+    )
 
     chunks = metadata.chunked_payload()
     min_fee = asa_metadata_registry_client.algorand.get_suggested_params().min_fee
@@ -75,9 +88,13 @@ def create_metadata(
         ),
     )
     _append_extra_payload(create_metadata_composer, asset_manager, metadata)
-    asset_create_response = create_metadata_composer.send(
-        send_params=SendParams(cover_app_call_inner_transaction_fees=True)
-    ).returns[0].value
+    asset_create_response = (
+        create_metadata_composer.send(
+            send_params=SendParams(cover_app_call_inner_transaction_fees=True)
+        )
+        .returns[0]
+        .value
+    )
 
     return MbrDelta(sign=asset_create_response[0], amount=asset_create_response[1])
 
@@ -97,9 +114,11 @@ def replace_metadata(
     min_fee = asa_metadata_registry_client.algorand.get_suggested_params().min_fee
     replace_metadata_composer = asa_metadata_registry_client.new_group()
 
-    current_metadata_size = asa_metadata_registry_client.send.arc89_get_metadata_pagination(
-        args=Arc89GetMetadataPaginationArgs(asset_id=asset_id),
-    ).abi_return.metadata_size
+    current_metadata_size = (
+        asa_metadata_registry_client.send.arc89_get_metadata_pagination(
+            args=Arc89GetMetadataPaginationArgs(asset_id=asset_id),
+        ).abi_return.metadata_size
+    )
     if new_metadata.size <= current_metadata_size:
         replace_metadata_composer.arc89_replace_metadata(
             args=Arc89ReplaceMetadataArgs(
@@ -116,7 +135,7 @@ def replace_metadata(
         mbr_payment = get_mbr_delta_payment(
             asa_metadata_registry_client,
             asset_manager,
-            new_metadata.get_mbr_delta(current_metadata_size).amount
+            new_metadata.get_mbr_delta(current_metadata_size).amount,
         )
         replace_metadata_composer.arc89_replace_metadata_larger(
             args=Arc89ReplaceMetadataLargerArgs(
@@ -136,11 +155,15 @@ def replace_metadata(
             params=CommonAppCallParams(
                 sender=asset_manager.address,
                 note=i.to_bytes(8, "big"),
-                static_fee=AlgoAmount(micro_algo=min_fee)
+                static_fee=AlgoAmount(micro_algo=min_fee),
             ),
         )
-    asset_create_response = replace_metadata_composer.send(
-        send_params=SendParams(cover_app_call_inner_transaction_fees=True)
-    ).returns[0].value
+    asset_create_response = (
+        replace_metadata_composer.send(
+            send_params=SendParams(cover_app_call_inner_transaction_fees=True)
+        )
+        .returns[0]
+        .value
+    )
 
     return MbrDelta(sign=asset_create_response[0], amount=asset_create_response[1])

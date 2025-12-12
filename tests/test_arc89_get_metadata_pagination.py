@@ -1,9 +1,10 @@
 from algokit_utils import SigningAccount
 
-from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import \
-    AsaMetadataRegistryClient, Arc89GetMetadataPaginationArgs
+from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
+    Arc89GetMetadataPaginationArgs,
+    AsaMetadataRegistryClient,
+)
 from smart_contracts.asa_metadata_registry import constants as const
-
 from tests.helpers.factories import AssetMetadata
 
 
@@ -44,5 +45,6 @@ def test_arc89_maxed_metadata_pagination(
     assert pagination.metadata_size == uploaded_maxed_metadata.size
     assert pagination.page_size == const.PAGE_SIZE
     assert pagination.total_pages == uploaded_maxed_metadata.total_pages
+
 
 # TODO: Test failing conditions

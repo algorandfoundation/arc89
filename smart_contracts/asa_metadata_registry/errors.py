@@ -8,12 +8,18 @@ ASSET_METADATA_EXIST = "Asset Metadata already exists for the specified ASA"
 ASSET_METADATA_NOT_EXIST = "Asset Metadata does not exist for the specified ASA"
 
 EXCEEDS_MAX_METADATA_SIZE = "Invalid Metadata size, exceeds maximum allowed size"
-LARGER_METADATA_SIZE = "Invalid Metadata size, must be smaller than or equal to the current size"
+LARGER_METADATA_SIZE = (
+    "Invalid Metadata size, must be smaller than or equal to the current size"
+)
 SMALLER_METADATA_SIZE = "Invalid Metadata size, must be larger than the current size"
 PAYLOAD_OVERFLOW = "Payload overflow, exceeds metadata size"
-METADATA_SIZE_MISMATCH = "Metadata size mismatch, must be exactly equal to declared size"
+METADATA_SIZE_MISMATCH = (
+    "Metadata size mismatch, must be exactly equal to declared size"
+)
 
-MBR_DELTA_RECEIVER_INVALID = "Invalid MBR Delta receiver, must be the ASA Metadata Registry"
+MBR_DELTA_RECEIVER_INVALID = (
+    "Invalid MBR Delta receiver, must be the ASA Metadata Registry"
+)
 MBR_DELTA_AMOUNT_INVALID = "Invalid MBR Delta amount"
 
 REQUIRES_IMMUTABLE = "Must be flagged as immutable"

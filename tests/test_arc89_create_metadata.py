@@ -1,8 +1,8 @@
 from algokit_utils import SigningAccount
 
-from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import \
-    AsaMetadataRegistryClient
-
+from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
+    AsaMetadataRegistryClient,
+)
 from tests.helpers.factories import AssetMetadata
 from tests.helpers.utils import create_metadata
 
@@ -53,5 +53,6 @@ def test_maxed_metadata(
     )
     assert mbr_delta.amount == creation_mbr_delta.amount.micro_algo
     # TODO: Verify Asset Metadata Box contents matches fixture data
+
 
 # TODO: Test failing conditions
