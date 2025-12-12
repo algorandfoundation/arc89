@@ -1,4 +1,3 @@
-import pytest
 from algokit_utils import SigningAccount
 
 from smart_contracts.asa_metadata_registry.enums import MBR_DELTA_NULL, MBR_DELTA_NEG
@@ -6,7 +5,7 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
     AsaMetadataRegistryClient
 
 from tests.helpers.factories import AssetMetadata
-from tests.helpers.utils import create_metadata, replace_metadata
+from tests.helpers.utils import replace_metadata
 
 def test_replace_with_empty_metadata(
     asset_manager: SigningAccount,
@@ -24,6 +23,7 @@ def test_replace_with_empty_metadata(
     assert -mbr_delta.amount == replace_mbr_delta.signed_amount
     assert mbr_delta.amount == replace_mbr_delta.amount.micro_algo
     assert mbr_delta.sign == MBR_DELTA_NEG
+    # TODO: Verify Asset Metadata Box contents matches fixture data
 
 
 def test_replace_with_smaller_metadata_size(
@@ -43,6 +43,7 @@ def test_replace_with_smaller_metadata_size(
     assert -mbr_delta.amount == replace_mbr_delta.signed_amount
     assert mbr_delta.amount == replace_mbr_delta.amount.micro_algo
     assert mbr_delta.sign == MBR_DELTA_NEG
+    # TODO: Verify Asset Metadata Box contents matches fixture data
 
 
 def test_replace_with_equal_metadata_size(
@@ -61,5 +62,6 @@ def test_replace_with_equal_metadata_size(
     assert mbr_delta.amount == replace_mbr_delta.signed_amount
     assert mbr_delta.amount == replace_mbr_delta.amount.micro_algo
     assert mbr_delta.sign == MBR_DELTA_NULL
+    # TODO: Verify Asset Metadata Box contents matches fixture data
 
 # TODO: Test failing conditions
