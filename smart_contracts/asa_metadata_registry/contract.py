@@ -37,7 +37,8 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
     @subroutine
     def _asa_exists(self, asa: Asset) -> bool:
-        return asa.creator != Global.zero_address
+        _creator, exists = op.AssetParamsGet.asset_creator(asa)
+        return exists
 
     @subroutine
     def _metadata_exists(self, asa: Asset) -> bool:
@@ -581,6 +582,48 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
         )
 
+
+    @arc4.abimethod
+    def arc89_delete_metadata(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.MbrDelta:
+        """
+        Delete Asset Metadata for an ASA, restricted to the ASA Manager Address (if the ASA still exists).
+
+        Args:
+            asset_id: The Asset ID to delete the Asset Metadata for
+
+        Returns:
+            MBR Delta: tuple of (sign enum, amount in microALGO)
+        """
+        # Preconditions
+        assert self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST
+        if self._asa_exists(asset_id):
+            assert not self._is_immutable(asset_id), err.IMMUTABLE
+            assert self._is_asa_manager(asset_id), err.UNAUTHORIZED
+
+        mbr_i = Global.current_application_address.min_balance
+        del self.asset_metadata[asset_id]
+        mbr_delta_amount = mbr_i - Global.current_application_address.min_balance
+        itxn.Payment(
+            receiver=asset_id.manager if self._asa_exists(asset_id) else Txn.sender,
+            amount=mbr_delta_amount,
+        ).submit()
+
+        arc4.emit(
+            abi.Arc89MetadataDeleted(
+                asset_id=arc4.UInt64(asset_id.id),
+                round=arc4.UInt64(Global.round),
+                timestamp=arc4.UInt64(Global.latest_timestamp),
+            )
+        )
+
+        return abi.MbrDelta(
+            sign=arc4.UInt8(enums.MBR_DELTA_NEG), amount=arc4.UInt64(mbr_delta_amount)
+        )
+
     @arc4.abimethod
     def arc89_extra_payload(
         self,
@@ -598,6 +641,26 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert self._asa_exists(asset_id), err.ASA_NOT_EXIST
         assert self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST
         assert self._is_asa_manager(asset_id), err.UNAUTHORIZED
+
+    @arc4.abimethod(readonly=True)
+    def arc89_check_metadata_exists(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.MetadataExistence:
+        """
+        Checks whether the specified ASA exists and whether its associated Asset Metadata is available.
+
+        Args:
+            asset_id: The Asset ID to check the ASA and Asset Metadata existence for
+
+        Returns:
+            Tuple of (ASA exists, Asset Metadata exists)
+        """
+        return abi.MetadataExistence(
+            asa_exists=arc4.Bool(self._asa_exists(asset_id)),
+            metadata_exists=arc4.Bool(self._metadata_exists(asset_id)),
+        )
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_pagination(
