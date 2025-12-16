@@ -77,7 +77,9 @@ def test_maxed_metadata_fixture(arc_89_asa: int, maxed_metadata: AssetMetadata) 
     print(f"  Pages: {maxed_metadata.total_pages}")
 
 
-def test_oversized_metadata_fixture(arc_89_asa: int, oversized_metadata: AssetMetadata) -> None:
+def test_oversized_metadata_fixture(
+    arc_89_asa: int, oversized_metadata: AssetMetadata
+) -> None:
     """Test the oversized metadata fixture."""
     assert oversized_metadata.asset_id == arc_89_asa
     assert oversized_metadata.size > const.MAX_METADATA_SIZE

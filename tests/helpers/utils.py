@@ -106,7 +106,9 @@ def create_metadata(
         .value
     )
 
-    return MbrDelta(sign=create_metadata_response[0], amount=create_metadata_response[1])
+    return MbrDelta(
+        sign=create_metadata_response[0], amount=create_metadata_response[1]
+    )
 
 
 def replace_metadata(
@@ -186,7 +188,9 @@ def replace_metadata(
         .value
     )
 
-    return MbrDelta(sign=replace_metadata_response[0], amount=replace_metadata_response[1])
+    return MbrDelta(
+        sign=replace_metadata_response[0], amount=replace_metadata_response[1]
+    )
 
 
 def delete_metadata(
@@ -226,8 +230,14 @@ def delete_metadata(
                 static_fee=AlgoAmount(micro_algo=min_fee),
             ),
         )
-    delete_metadata_response = delete_metadata_composer.send(
-        send_params=SendParams(cover_app_call_inner_transaction_fees=True)
-    ).returns[0].value
+    delete_metadata_response = (
+        delete_metadata_composer.send(
+            send_params=SendParams(cover_app_call_inner_transaction_fees=True)
+        )
+        .returns[0]
+        .value
+    )
 
-    return MbrDelta(sign=delete_metadata_response[0], amount=delete_metadata_response[1])
+    return MbrDelta(
+        sign=delete_metadata_response[0], amount=delete_metadata_response[1]
+    )

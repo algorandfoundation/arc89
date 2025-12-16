@@ -1,5 +1,3 @@
-from algokit_utils import SigningAccount
-
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
     Arc89GetMetadataPaginationArgs,
     AsaMetadataRegistryClient,
@@ -9,7 +7,6 @@ from tests.helpers.factories import AssetMetadata
 
 
 def test_arc89_empty_metadata_pagination(
-    untrusted_account: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     uploaded_empty_metadata: AssetMetadata,
 ) -> None:
@@ -22,7 +19,6 @@ def test_arc89_empty_metadata_pagination(
 
 
 def test_arc89_short_metadata_pagination(
-    untrusted_account: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     uploaded_short_metadata: AssetMetadata,
 ) -> None:
@@ -35,7 +31,6 @@ def test_arc89_short_metadata_pagination(
 
 
 def test_arc89_maxed_metadata_pagination(
-    untrusted_account: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     uploaded_maxed_metadata: AssetMetadata,
 ) -> None:
