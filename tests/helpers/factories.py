@@ -308,7 +308,9 @@ class AssetMetadata:
         end = min(start + const.PAGE_SIZE, self.size)
         return self.metadata_bytes[start:end]
 
-    def get_mbr_delta(self, old_size: int | None = None, delete: bool = False) -> MbrDelta:
+    def get_mbr_delta(
+        self, old_size: int | None = None, *, delete: bool = False
+    ) -> MbrDelta:
         """
         Calculate the MBR delta for this metadata by comparing old and new states.
 
@@ -316,6 +318,7 @@ class AssetMetadata:
         - Update: old_size is provided, delete is False -> +/- difference
         - Deletion: old_size is provided, delete is True -> -full box MBR
         """
+
         def box_mbr(metadata_body_size: int) -> int:
             # FLAT_MBR + BYTE_MBR * (box_name_size + box_value_size)
             return const.FLAT_MBR + const.BYTE_MBR * (
@@ -331,18 +334,14 @@ class AssetMetadata:
 
         if delta > 0:
             return MbrDelta(
-                sign=enums.MBR_DELTA_POS,
-                amount=AlgoAmount(micro_algo=delta)
+                sign=enums.MBR_DELTA_POS, amount=AlgoAmount(micro_algo=delta)
             )
         if delta < 0:
             return MbrDelta(
                 sign=enums.MBR_DELTA_NEG,
-                amount=AlgoAmount(micro_algo=abs(delta))  # Always positive
+                amount=AlgoAmount(micro_algo=abs(delta)),  # Always positive
             )
-        return MbrDelta(
-            sign=enums.MBR_DELTA_NULL,
-            amount=AlgoAmount(micro_algo=0)
-        )
+        return MbrDelta(sign=enums.MBR_DELTA_NULL, amount=AlgoAmount(micro_algo=0))
 
     def to_json(self) -> dict:
         """
