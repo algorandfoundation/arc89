@@ -2,19 +2,29 @@ from algopy import (
     Account,
     Asset,
     BoxMap,
+    Bytes,
     Global,
     OnCompleteAction,
     TemplateVar,
     TransactionType,
     Txn,
+    UInt64,
     arc4,
     ensure_budget,
     gtxn,
     itxn,
+    op,
     urange,
 )
 
-from smart_contracts.avm_common import *
+from smart_contracts.avm_common import (
+    ceil_div,
+    has_bits,
+    itoa,
+    set_bits,
+    trimmed_itob,
+    umin,
+)
 
 from . import abi_types as abi
 from . import bitmasks as masks
@@ -235,7 +245,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         domain = Bytes(const.HASH_DOMAIN_PAGE)
         asset_id = op.itob(asa.id)
         page_idx = trimmed_itob(uint=page_index, size=UInt64(const.UINT8_SIZE))
-        page_size = trimmed_itob(uint=page_content.length, size=UInt64(const.UINT16_SIZE))
+        page_size = trimmed_itob(
+            uint=page_content.length, size=UInt64(const.UINT16_SIZE)
+        )
         return op.sha512_256(domain + asset_id + page_idx + page_size + page_content)
 
     def _compute_metadata_hash(self, asa: Asset) -> Bytes:
@@ -269,7 +281,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST
 
     @arc4.baremethod(create="require")
-    def arc89_deploy(self) -> None:
+    def deploy(self) -> None:
         """
         Deploy the ASA Metadata Registry Application, restricted to the Trusted Deployer.
         """
@@ -505,7 +517,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         return abi.MbrDelta(
             sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
         )
-
 
     @arc4.abimethod
     def arc89_delete_metadata(
