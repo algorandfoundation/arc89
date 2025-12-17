@@ -3,12 +3,12 @@ from algokit_utils import (
     LogicError,
     SigningAccount,
 )
+
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
     AsaMetadataRegistryBareCallCreateParams,
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )
-
 from smart_contracts.asa_metadata_registry import errors as err
 
 
