@@ -148,7 +148,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             new_size=old_asset_metadata_box_size + payload.length
         )
         self.asset_metadata.box(asa).replace(
-            start_index=old_asset_metadata_box_size - 1, value=payload
+            start_index=old_asset_metadata_box_size, value=payload
         )
 
     def _is_extra_payload_txn(self, txn: gtxn.Transaction) -> bool:
@@ -211,7 +211,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         remaining = n - start
         length = umin(ps, remaining)
 
-        return self.asset_metadata.box(asa).extract(start_index=start, length=length)
+        return self.asset_metadata.box(asa).extract(
+            start_index=const.IDX_METADATA + start, length=length
+        )
 
     def _identify_metadata(self, asset_id: Asset, metadata_size: UInt64) -> None:
         identifiers = trimmed_itob(
