@@ -170,7 +170,7 @@ def test_mbr_delta_calculation():
     metadata.set_metadata({"name": "Test", "description": "Growing again"})
     mbr_delta_grow = metadata.get_mbr_delta(old_size=metadata.size - 10)
     assert mbr_delta_grow.signed_amount > 0
-    assert mbr_delta_grow.signed_amount == mbr_delta_grow.amount
+    assert mbr_delta_grow.signed_amount == mbr_delta_grow.amount.micro_algo
 
 
 def test_json_operations():
