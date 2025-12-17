@@ -9,13 +9,13 @@ BYTE_MBR: Final[int] = 400  # microALGO
 APP_CALL_OP_CODE_BUDGET: Final[int] = 700  # microALGO
 
 # ABI Types Byte Sizes
-UINT8_SIZE = 1
-UINT16_SIZE = 2
-UINT32_SIZE = 4
-UINT64_SIZE = 8
+UINT8_SIZE: Final[int] = 1
+UINT16_SIZE: Final[int] = 2
+UINT32_SIZE: Final[int] = 4
+UINT64_SIZE: Final[int] = 8
 
-BYTE_SIZE = 1
-BYTES32_SIZE = 32
+BYTE_SIZE: Final[int] = 1
+BYTES32_SIZE: Final[int] = 32
 
 # ARC-4 ABI Overhead
 ARC4_METHOD_SELECTOR_SIZE: Final[int] = 4
