@@ -323,7 +323,9 @@ class AssetMetadata:
         def box_mbr(metadata_body_size: int) -> int:
             # FLAT_MBR + BYTE_MBR * (box_name_size + box_value_size)
             return const.FLAT_MBR + const.BYTE_MBR * (
-                const.UINT64_SIZE + const.METADATA_HEADER_SIZE + metadata_body_size
+                const.ASSET_METADATA_BOX_KEY_SIZE
+                + const.METADATA_HEADER_SIZE
+                + metadata_body_size
             )
 
         if delete:
