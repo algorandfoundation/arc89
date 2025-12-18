@@ -2,18 +2,6 @@ from algopy import Bytes, UInt64, op, subroutine
 
 
 @subroutine
-def has_bits(*, bits: UInt64, mask: UInt64) -> bool:
-    # AVM bitwise operations on UInt64 are more efficient than on Bytes
-    return (bits & mask) != 0
-
-
-@subroutine
-def set_bits(*, bits: UInt64, mask: UInt64, value: bool) -> UInt64:
-    # AVM bitwise operations on UInt64 are more efficient than on Bytes
-    return (bits | mask) if value else (bits & ~mask)
-
-
-@subroutine
 def trimmed_itob(*, uint: UInt64, size: UInt64) -> Bytes:
     """
     Return exactly `size` rightmost bytes of the 8-byte big-endian itob(a).
