@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 
 import pytest
 from algokit_utils import CommonAppCallParams, SigningAccount
@@ -17,8 +17,9 @@ def _set_flag_and_verify(
     asset_manager: SigningAccount,
     asset_id: int,
     flag: int,
-    value: bool,
     check_fn: Callable[[AssetMetadata], bool],
+    *,
+    value: bool,
 ) -> None:
     asa_metadata_registry_client.send.arc89_set_reversible_flag(
         args=Arc89SetReversibleFlagArgs(
@@ -58,12 +59,22 @@ def test_set_and_clear_reversible_flags(
 
     # Set flag to True and verify
     _set_flag_and_verify(
-        asa_metadata_registry_client, asset_manager, asset_id, flag, True, check_fn
+        asa_metadata_registry_client,
+        asset_manager,
+        asset_id,
+        flag,
+        check_fn,
+        value=True,
     )
 
     # Set flag to False and verify
     _set_flag_and_verify(
-        asa_metadata_registry_client, asset_manager, asset_id, flag, False, check_fn
+        asa_metadata_registry_client,
+        asset_manager,
+        asset_id,
+        flag,
+        check_fn,
+        value=False,
     )
 
 
