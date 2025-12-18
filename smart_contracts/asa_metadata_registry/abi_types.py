@@ -10,6 +10,15 @@ Hash = arc4.StaticArray[arc4.Byte, Literal[32]]
 Timestamp = arc4.UIntN[Literal[64]]
 
 
+class MetadataHeader(arc4.Struct, kw_only=True):
+    """Asset Metadata Header"""
+
+    identifiers: arc4.Byte
+    flags: arc4.Byte
+    hash: Hash
+    last_modified_round: arc4.UInt64
+
+
 class MbrDelta(arc4.Struct, kw_only=True):
     """
     The variation of the ASA Metadata Registry Application Account MBR due to the
