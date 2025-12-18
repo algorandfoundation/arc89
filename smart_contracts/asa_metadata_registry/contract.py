@@ -28,7 +28,7 @@ from . import abi_types as abi
 from . import constants as const
 from . import enums as enums
 from . import errors as err
-from . import flags
+from . import flags as flg
 from .interface import AsaMetadataRegistryInterface
 from .template_vars import TRUSTED_DEPLOYER
 
@@ -83,19 +83,19 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     def _is_short(self, asa: Asset) -> bool:
         return op.getbit(
             self._get_metadata_identifiers(asa),
-            const.BIT_RIGHTMOST_IDENTIFIER - flags.ID_SHORT,
+            const.BIT_RIGHTMOST_IDENTIFIER - flg.ID_SHORT,
         )
 
     def _is_arc89(self, asa: Asset) -> bool:
         return op.getbit(
             self._get_metadata_flags(asa),
-            const.BIT_RIGHTMOST_FLAG - flags.FLG_ARC89_NATIVE,
+            const.BIT_RIGHTMOST_FLAG - flg.FLG_ARC89_NATIVE,
         )
 
     def _is_immutable(self, asa: Asset) -> bool:
         return op.getbit(
             self._get_metadata_flags(asa),
-            const.BIT_RIGHTMOST_FLAG - flags.FLG_IMMUTABLE,
+            const.BIT_RIGHTMOST_FLAG - flg.FLG_IMMUTABLE,
         )
 
     def _get_metadata_hash(self, asa: Asset) -> Bytes:
@@ -201,7 +201,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     def _identify_metadata(self, asa: Asset, metadata_size: UInt64) -> None:
         identifiers = op.setbit_bytes(
             self._get_metadata_identifiers(asa),
-            const.BIT_RIGHTMOST_FLAG - flags.ID_SHORT,
+            const.BIT_RIGHTMOST_FLAG - flg.ID_SHORT,
             self._is_short_metadata_size(metadata_size),
         )
         self._set_metadata_identifiers(asa, identifiers)
@@ -588,7 +588,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_set_flag_preconditions(asset_id)
-        assert flag.as_uint64() <= flags.FLG_RESERVED_3, err.FLAG_IDX_INVALID
+        assert flag.as_uint64() <= flg.FLG_RESERVED_3, err.FLAG_IDX_INVALID
 
         # Set Reversible Flags
         self._set_flag(asset_id, flag.as_uint64(), value=value.native)
@@ -626,7 +626,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         # Preconditions
         self._check_set_flag_preconditions(asset_id)
         assert (
-            flags.FLG_RESERVED_6 <= flag.as_uint64() <= flags.FLG_IMMUTABLE
+            flg.FLG_RESERVED_6 <= flag.as_uint64() <= flg.FLG_IMMUTABLE
         ), err.FLAG_IDX_INVALID
 
         # Set Reversible Flags
@@ -664,7 +664,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._check_set_flag_preconditions(asset_id)
 
         # Set Reversible Flags
-        self._set_flag(asset_id, UInt64(flags.FLG_IMMUTABLE), value=True)
+        self._set_flag(asset_id, UInt64(flg.FLG_IMMUTABLE), value=True)
 
         # Postconditions
         self._set_last_modified_round(asset_id, Global.round)
