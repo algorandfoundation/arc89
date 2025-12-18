@@ -198,7 +198,8 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             start_index=const.IDX_METADATA + start, length=length
         )
 
-    def _identify_metadata(self, asa: Asset, metadata_size: UInt64) -> None:
+    def _identify_metadata(self, asa: Asset) -> None:
+        metadata_size = self._get_metadata_size(asa)
         identifiers = op.setbit_bytes(
             self._get_metadata_identifiers(asa),
             const.BIT_RIGHTMOST_FLAG - flg.ID_SHORT,
@@ -273,6 +274,22 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert not self._is_immutable(asa), err.IMMUTABLE
         assert self._is_asa_manager(asa), err.UNAUTHORIZED
 
+    def _update_header_and_emit_event(self, asa: Asset) -> None:
+        self._identify_metadata(asa)
+        self._set_last_modified_round(asa, Global.round)
+        metadata_hash = self._compute_metadata_hash(asa)
+        self._set_metadata_hash(asa, metadata_hash)
+        arc4.emit(
+            abi.Arc89MetadataUpdated(
+                asset_id=arc4.UInt64(asa.id),
+                round=arc4.UInt64(Global.round),
+                timestamp=arc4.UInt64(Global.latest_timestamp),
+                flags=arc4.Byte(op.btoi(self._get_metadata_flags(asa))),
+                is_short=arc4.Bool(self._is_short(asa)),
+                hash=abi.Hash.from_bytes(metadata_hash),
+            )
+        )
+
     @arc4.baremethod(create="require")
     def deploy(self) -> None:
         """
@@ -323,12 +340,10 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         )
 
         # Set Metadata Header (without Metadata Hash, computed after payload upload)
-        self._identify_metadata(asset_id, metadata_size.as_uint64())
         self._set_metadata_flags(
             asset_id,
             trimmed_itob(uint=flags.as_uint64(), size=UInt64(const.BYTE_SIZE)),
         )
-        self._set_last_modified_round(asset_id, Global.round)
 
         # Set Metadata Body
         if payload.native.length > 0:
@@ -336,6 +351,10 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload.native)
 
         # Postconditions
+        mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
+        assert (
+            mbr_delta_payment.amount >= mbr_delta_amount
+        ), err.MBR_DELTA_AMOUNT_INVALID
         if self._is_arc89(asset_id):
             arc_89_uri = (
                 const.URI_ARC_89_PREFIX
@@ -354,13 +373,11 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             metadata_hash = asset_id.metadata_hash
         else:
             metadata_hash = self._compute_metadata_hash(asset_id)
+
+        # Update Metadata Header
+        self._identify_metadata(asset_id)
+        self._set_last_modified_round(asset_id, Global.round)
         self._set_metadata_hash(asset_id, metadata_hash)
-
-        mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
-        assert (
-            mbr_delta_payment.amount >= mbr_delta_amount
-        ), err.MBR_DELTA_AMOUNT_INVALID
-
         arc4.emit(
             abi.Arc89MetadataUpdated(
                 asset_id=arc4.UInt64(asset_id.id),
@@ -403,10 +420,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             asset_id
         ), err.LARGER_METADATA_SIZE
 
-        # Update Metadata Header (without Metadata Hash, computed after payload upload)
-        self._identify_metadata(asset_id, metadata_size.as_uint64())
-        self._set_last_modified_round(asset_id, Global.round)
-
         # Update Metadata Body
         mbr_i = Global.current_application_address.min_balance
         self.asset_metadata.box(asset_id).resize(
@@ -418,9 +431,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert (
             self._get_metadata_size(asset_id) == metadata_size.as_uint64()
         ), err.METADATA_SIZE_MISMATCH
-        metadata_hash = self._compute_metadata_hash(asset_id)
-        self._set_metadata_hash(asset_id, metadata_hash)
-
         mbr_delta_amount = mbr_i - Global.current_application_address.min_balance
         if mbr_delta_amount == 0:
             sign = UInt64(enums.MBR_DELTA_NULL)
@@ -431,16 +441,8 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
                 amount=mbr_delta_amount,
             ).submit()
 
-        arc4.emit(
-            abi.Arc89MetadataUpdated(
-                asset_id=arc4.UInt64(asset_id.id),
-                round=arc4.UInt64(Global.round),
-                timestamp=arc4.UInt64(Global.latest_timestamp),
-                flags=arc4.Byte(op.btoi(self._get_metadata_flags(asset_id))),
-                is_short=arc4.Bool(self._is_short(asset_id)),
-                hash=abi.Hash.from_bytes(metadata_hash),
-            )
-        )
+        # Update Metadata Header
+        self._update_header_and_emit_event(asset_id)
 
         return abi.MbrDelta(sign=arc4.UInt8(sign), amount=arc4.UInt64(mbr_delta_amount))
 
@@ -473,10 +475,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             asset_id
         ), err.SMALLER_METADATA_SIZE
 
-        # Update Metadata Header (without Metadata Hash, computed after payload upload)
-        self._identify_metadata(asset_id, metadata_size.as_uint64())
-        self._set_last_modified_round(asset_id, Global.round)
-
         # Update Metadata Body
         mbr_i = Global.current_application_address.min_balance
         self.asset_metadata.box(asset_id).resize(
@@ -488,24 +486,13 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert (
             self._get_metadata_size(asset_id) == metadata_size.as_uint64()
         ), err.METADATA_SIZE_MISMATCH
-        metadata_hash = self._compute_metadata_hash(asset_id)
-        self._set_metadata_hash(asset_id, metadata_hash)
-
         mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
         assert (
             mbr_delta_payment.amount >= mbr_delta_amount
         ), err.MBR_DELTA_AMOUNT_INVALID
 
-        arc4.emit(
-            abi.Arc89MetadataUpdated(
-                asset_id=arc4.UInt64(asset_id.id),
-                round=arc4.UInt64(Global.round),
-                timestamp=arc4.UInt64(Global.latest_timestamp),
-                flags=arc4.Byte(op.btoi(self._get_metadata_flags(asset_id))),
-                is_short=arc4.Bool(self._is_short(asset_id)),
-                hash=abi.Hash.from_bytes(metadata_hash),
-            )
-        )
+        # Update Metadata Header
+        self._update_header_and_emit_event(asset_id)
 
         return abi.MbrDelta(
             sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
@@ -532,6 +519,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             assert not self._is_immutable(asset_id), err.IMMUTABLE
             assert self._is_asa_manager(asset_id), err.UNAUTHORIZED
 
+        # Delete Metadata and refund MBR
         mbr_i = Global.current_application_address.min_balance
         del self.asset_metadata[asset_id]
         mbr_delta_amount = mbr_i - Global.current_application_address.min_balance
@@ -593,21 +581,8 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         # Set Reversible Flags
         self._set_flag(asset_id, flag.as_uint64(), value=value.native)
 
-        # Postconditions
-        self._set_last_modified_round(asset_id, Global.round)
-        metadata_hash = self._compute_metadata_hash(asset_id)
-        self._set_metadata_hash(asset_id, metadata_hash)
-
-        arc4.emit(
-            abi.Arc89MetadataUpdated(
-                asset_id=arc4.UInt64(asset_id.id),
-                round=arc4.UInt64(Global.round),
-                timestamp=arc4.UInt64(Global.latest_timestamp),
-                flags=arc4.Byte(op.btoi(self._get_metadata_flags(asset_id))),
-                is_short=arc4.Bool(self._is_short(asset_id)),
-                hash=abi.Hash.from_bytes(metadata_hash),
-            )
-        )
+        # Update Metadata Header
+        self._update_header_and_emit_event(asset_id)
 
     @arc4.abimethod
     def arc89_set_irreversible_flag(
@@ -632,21 +607,8 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         # Set Reversible Flags
         self._set_flag(asset_id, flag.as_uint64(), value=True)
 
-        # Postconditions
-        self._set_last_modified_round(asset_id, Global.round)
-        metadata_hash = self._compute_metadata_hash(asset_id)
-        self._set_metadata_hash(asset_id, metadata_hash)
-
-        arc4.emit(
-            abi.Arc89MetadataUpdated(
-                asset_id=arc4.UInt64(asset_id.id),
-                round=arc4.UInt64(Global.round),
-                timestamp=arc4.UInt64(Global.latest_timestamp),
-                flags=arc4.Byte(op.btoi(self._get_metadata_flags(asset_id))),
-                is_short=arc4.Bool(self._is_short(asset_id)),
-                hash=abi.Hash.from_bytes(metadata_hash),
-            )
-        )
+        # Update Metadata Header
+        self._update_header_and_emit_event(asset_id)
 
     @arc4.abimethod
     def arc89_set_immutable(
@@ -666,21 +628,8 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         # Set Reversible Flags
         self._set_flag(asset_id, UInt64(flg.FLG_IMMUTABLE), value=True)
 
-        # Postconditions
-        self._set_last_modified_round(asset_id, Global.round)
-        metadata_hash = self._compute_metadata_hash(asset_id)
-        self._set_metadata_hash(asset_id, metadata_hash)
-
-        arc4.emit(
-            abi.Arc89MetadataUpdated(
-                asset_id=arc4.UInt64(asset_id.id),
-                round=arc4.UInt64(Global.round),
-                timestamp=arc4.UInt64(Global.latest_timestamp),
-                flags=arc4.Byte(op.btoi(self._get_metadata_flags(asset_id))),
-                is_short=arc4.Bool(self._is_short(asset_id)),
-                hash=abi.Hash.from_bytes(metadata_hash),
-            )
-        )
+        # Update Metadata Header
+        self._update_header_and_emit_event(asset_id)
 
     @arc4.abimethod(readonly=True)
     def arc89_check_metadata_exists(
