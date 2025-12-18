@@ -10,12 +10,12 @@ from tests.helpers.factories import AssetMetadata
 def test_set_immutable_flag(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    uploaded_short_metadata: AssetMetadata,
+    mutable_short_metadata: AssetMetadata,
 ) -> None:
-    asset_id = uploaded_short_metadata.asset_id
+    asset_id = mutable_short_metadata.asset_id
 
     # Verify initial state is False
-    assert not uploaded_short_metadata.is_immutable
+    assert not mutable_short_metadata.is_immutable
 
     # Set metadata as immutable and verify
     asa_metadata_registry_client.send.arc89_set_immutable(

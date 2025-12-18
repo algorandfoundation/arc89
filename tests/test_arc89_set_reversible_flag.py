@@ -24,14 +24,14 @@ from tests.helpers.utils import set_flag_and_verify
 def test_set_and_clear_reversible_flags(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    uploaded_short_metadata: AssetMetadata,
+    mutable_short_metadata: AssetMetadata,
     flag: int,
     check_fn: Callable[[AssetMetadata], bool],
 ) -> None:
-    asset_id = uploaded_short_metadata.asset_id
+    asset_id = mutable_short_metadata.asset_id
 
     # Verify initial state is False
-    assert not check_fn(uploaded_short_metadata)
+    assert not check_fn(mutable_short_metadata)
 
     # Set flag to True and verify
     set_flag_and_verify(

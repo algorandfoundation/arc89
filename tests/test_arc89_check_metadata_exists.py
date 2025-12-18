@@ -20,10 +20,10 @@ def test_asset_exists_metadata_not_uploaded(
 
 def test_asset_exists_metadata_uploaded(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    uploaded_short_metadata: AssetMetadata,
+    mutable_short_metadata: AssetMetadata,
 ) -> None:
     metadata_existence = asa_metadata_registry_client.send.arc89_check_metadata_exists(
-        args=Arc89CheckMetadataExistsArgs(asset_id=uploaded_short_metadata.asset_id),
+        args=Arc89CheckMetadataExistsArgs(asset_id=mutable_short_metadata.asset_id),
     ).abi_return
     assert metadata_existence.asa_exists
     assert metadata_existence.metadata_exists
@@ -32,16 +32,16 @@ def test_asset_exists_metadata_uploaded(
 def test_asset_not_exists_metadata_uploaded(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    uploaded_short_metadata: AssetMetadata,
+    mutable_short_metadata: AssetMetadata,
 ) -> None:
     asa_metadata_registry_client.algorand.send.asset_destroy(
         params=AssetDestroyParams(
-            asset_id=uploaded_short_metadata.asset_id, sender=asset_manager.address
+            asset_id=mutable_short_metadata.asset_id, sender=asset_manager.address
         )
     )
 
     metadata_existence = asa_metadata_registry_client.send.arc89_check_metadata_exists(
-        args=Arc89CheckMetadataExistsArgs(asset_id=uploaded_short_metadata.asset_id),
+        args=Arc89CheckMetadataExistsArgs(asset_id=mutable_short_metadata.asset_id),
     ).abi_return
     assert not metadata_existence.asa_exists
     assert metadata_existence.metadata_exists

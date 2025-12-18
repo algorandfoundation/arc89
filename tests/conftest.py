@@ -183,7 +183,7 @@ def oversized_metadata(arc_89_asa: int) -> AssetMetadata:
 
 # Uploaded AssetMetadata fixtures
 @pytest.fixture(scope="function")
-def uploaded_empty_metadata(
+def mutable_empty_metadata(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     empty_metadata: AssetMetadata,
@@ -198,7 +198,7 @@ def uploaded_empty_metadata(
 
 
 @pytest.fixture(scope="function")
-def uploaded_short_metadata(
+def mutable_short_metadata(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     short_metadata: AssetMetadata,
@@ -213,7 +213,7 @@ def uploaded_short_metadata(
 
 
 @pytest.fixture(scope="function")
-def uploaded_maxed_metadata(
+def mutable_maxed_metadata(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     maxed_metadata: AssetMetadata,

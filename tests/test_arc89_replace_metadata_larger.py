@@ -11,16 +11,16 @@ from tests.helpers.utils import replace_metadata
 def test_replace_empty_with_short_metadata(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    uploaded_empty_metadata: AssetMetadata,
+    mutable_empty_metadata: AssetMetadata,
     short_metadata: AssetMetadata,
 ) -> None:
     replace_mbr_delta = short_metadata.get_mbr_delta(
-        old_size=uploaded_empty_metadata.size
+        old_size=mutable_empty_metadata.size
     )
     mbr_delta = replace_metadata(
         asset_manager=asset_manager,
         asa_metadata_registry_client=asa_metadata_registry_client,
-        asset_id=uploaded_empty_metadata.asset_id,
+        asset_id=mutable_empty_metadata.asset_id,
         new_metadata=short_metadata,
     )
     assert mbr_delta.amount == replace_mbr_delta.signed_amount
@@ -32,16 +32,16 @@ def test_replace_empty_with_short_metadata(
 def test_replace_empty_with_maxed_metadata(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    uploaded_empty_metadata: AssetMetadata,
+    mutable_empty_metadata: AssetMetadata,
     maxed_metadata: AssetMetadata,
 ) -> None:
     replace_mbr_delta = maxed_metadata.get_mbr_delta(
-        old_size=uploaded_empty_metadata.size
+        old_size=mutable_empty_metadata.size
     )
     mbr_delta = replace_metadata(
         asset_manager=asset_manager,
         asa_metadata_registry_client=asa_metadata_registry_client,
-        asset_id=uploaded_empty_metadata.asset_id,
+        asset_id=mutable_empty_metadata.asset_id,
         new_metadata=maxed_metadata,
     )
     assert mbr_delta.amount == replace_mbr_delta.signed_amount
@@ -53,16 +53,16 @@ def test_replace_empty_with_maxed_metadata(
 def test_replace_short_with_maxed_metadata(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    uploaded_short_metadata: AssetMetadata,
+    mutable_short_metadata: AssetMetadata,
     maxed_metadata: AssetMetadata,
 ) -> None:
     replace_mbr_delta = maxed_metadata.get_mbr_delta(
-        old_size=uploaded_short_metadata.size
+        old_size=mutable_short_metadata.size
     )
     mbr_delta = replace_metadata(
         asset_manager=asset_manager,
         asa_metadata_registry_client=asa_metadata_registry_client,
-        asset_id=uploaded_short_metadata.asset_id,
+        asset_id=mutable_short_metadata.asset_id,
         new_metadata=maxed_metadata,
     )
     assert mbr_delta.amount == replace_mbr_delta.signed_amount
