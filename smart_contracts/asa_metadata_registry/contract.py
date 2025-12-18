@@ -646,6 +646,40 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             )
         )
 
+    @arc4.abimethod
+    def arc89_set_immutable(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> None:
+        """
+        Set Asset Metadata as immutable, restricted to the ASA Manager Address.
+
+        Args:
+            asset_id: The Asset ID to set immutable Asset Metadata for
+        """
+        # Preconditions
+        self._check_set_flag_preconditions(asset_id)
+
+        # Set Reversible Flags
+        self._set_flag(asset_id, UInt64(flags.FLG_IMMUTABLE), value=True)
+
+        # Postconditions
+        self._set_last_modified_round(asset_id, Global.round)
+        metadata_hash = self._compute_metadata_hash(asset_id)
+        self._set_metadata_hash(asset_id, metadata_hash)
+
+        arc4.emit(
+            abi.Arc89MetadataUpdated(
+                asset_id=arc4.UInt64(asset_id.id),
+                round=arc4.UInt64(Global.round),
+                timestamp=arc4.UInt64(Global.latest_timestamp),
+                flags=arc4.Byte(op.btoi(self._get_metadata_flags(asset_id))),
+                is_short=arc4.Bool(self._is_short(asset_id)),
+                hash=abi.Hash.from_bytes(metadata_hash),
+            )
+        )
+
     @arc4.abimethod(readonly=True)
     def arc89_check_metadata_exists(
         self,
