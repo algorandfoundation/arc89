@@ -629,7 +629,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             flags.FLG_RESERVED_6 <= flag.as_uint64() <= flags.FLG_IMMUTABLE
         ), err.FLAG_IDX_INVALID
 
-        # Set Reversible Flags
+        # Set Irreversible Flag
         self._set_flag(asset_id, flag.as_uint64(), value=True)
 
         # Postconditions
@@ -663,7 +663,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         # Preconditions
         self._check_set_flag_preconditions(asset_id)
 
-        # Set Reversible Flags
+        # Set Immutable Flag
         self._set_flag(asset_id, UInt64(flags.FLG_IMMUTABLE), value=True)
 
         # Postconditions
