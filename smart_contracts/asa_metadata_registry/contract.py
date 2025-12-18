@@ -202,7 +202,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         metadata_size = self._get_metadata_size(asa)
         identifiers = op.setbit_bytes(
             self._get_metadata_identifiers(asa),
-            const.BIT_RIGHTMOST_FLAG - flg.ID_SHORT,
+            const.BIT_RIGHTMOST_IDENTIFIER - flg.ID_SHORT,
             self._is_short_metadata_size(metadata_size),
         )
         self._set_metadata_identifiers(asa, identifiers)
