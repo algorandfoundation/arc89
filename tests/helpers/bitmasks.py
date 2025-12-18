@@ -1,6 +1,6 @@
 from smart_contracts.asa_metadata_registry import flags
 
-MASK_ID_SHORT = 1 << flags.FLG_ID_SHORT
+MASK_ID_SHORT = 1 << flags.ID_SHORT
 
 MASK_ARC20 = 1 << flags.FLG_ARC20
 MASK_ARC62 = 1 << flags.FLG_ARC62

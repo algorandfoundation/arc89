@@ -6,7 +6,7 @@ from typing import Final
 # index 0 as the leftmost bit of the leftmost byte.
 
 # Metadata Identifiers byte (set by the ASA Metadata Registry; clients just read)
-FLG_ID_SHORT: Final[int] = 7  # Short Metadata (derived from size)
+ID_SHORT: Final[int] = 7  # Short Metadata (derived from size)
 
 # Metadata Flags byte (set by ASA Manager Address)
 FLG_ARC20: Final[int] = 0  # reversible
