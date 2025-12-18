@@ -225,3 +225,51 @@ def mutable_maxed_metadata(
         metadata=maxed_metadata,
     )
     return maxed_metadata
+
+
+@pytest.fixture(scope="function")
+def immutable_empty_metadata(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    empty_metadata: AssetMetadata,
+) -> AssetMetadata:
+    empty_metadata.set_immutable(value=True)
+    create_metadata(
+        asset_manager=asset_manager,
+        asa_metadata_registry_client=asa_metadata_registry_client,
+        asset_id=empty_metadata.asset_id,
+        metadata=empty_metadata,
+    )
+    return empty_metadata
+
+
+@pytest.fixture(scope="function")
+def immutable_short_metadata(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    short_metadata: AssetMetadata,
+) -> AssetMetadata:
+    short_metadata.set_immutable(value=True)
+    create_metadata(
+        asset_manager=asset_manager,
+        asa_metadata_registry_client=asa_metadata_registry_client,
+        asset_id=short_metadata.asset_id,
+        metadata=short_metadata,
+    )
+    return short_metadata
+
+
+@pytest.fixture(scope="function")
+def immutable_maxed_metadata(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    maxed_metadata: AssetMetadata,
+) -> AssetMetadata:
+    maxed_metadata.set_immutable(value=True)
+    create_metadata(
+        asset_manager=asset_manager,
+        asa_metadata_registry_client=asa_metadata_registry_client,
+        asset_id=maxed_metadata.asset_id,
+        metadata=maxed_metadata,
+    )
+    return maxed_metadata
