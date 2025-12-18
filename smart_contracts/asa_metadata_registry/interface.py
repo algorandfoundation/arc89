@@ -120,8 +120,9 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_mbr_delta(
         self,
+        *,
         asset_id: Asset,
-        metadata_size: arc4.UInt16,
+        new_metadata_size: arc4.UInt16,
     ) -> abi.MbrDelta:
         pass
 
@@ -134,37 +135,23 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
     ) -> abi.MetadataExistence:
         pass
 
-    # @abstractmethod
-    # @arc4.abimethod(readonly=True)
-    # def arc89_is_metadata_immutable(
-    #     self,
-    #     asset_id: Asset,
-    # ) -> arc4.Bool:
-    #     """Return True if the Asset Metadata for an ASA is immutable, False otherwise.
-    #
-    #     Args:
-    #         asset_id: The Asset ID to check the Asset Metadata immutability for
-    #
-    #     Returns:
-    #         Asset Metadata for the ASA is immutable
-    #     """
-    #     pass
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
+    def arc89_is_metadata_immutable(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> arc4.Bool:
+        pass
 
-    # @abstractmethod
-    # @arc4.abimethod(readonly=True)
-    # def arc89_is_metadata_short(
-    #     self,
-    #     asset_id: Asset,
-    # ) -> abi.MutableFlag:
-    #     """Return True if Asset Metadata for an ASA is short (up to 4096 bytes), False otherwise.
-    #
-    #     Args:
-    #         asset_id: The Asset ID to check the Asset Metadata size classification for
-    #
-    #     Returns:
-    #         Tuple of (is short metadata, Metadata Last Modified Round)
-    #     """
-    #     pass
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
+    def arc89_is_metadata_short(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.MutableFlag:
+        pass
 
     # @abstractmethod
     # @arc4.abimethod(readonly=True)

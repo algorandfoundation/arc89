@@ -632,48 +632,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._update_header_and_emit_event(asset_id)
 
     @arc4.abimethod(readonly=True)
-    def arc89_check_metadata_exists(
-        self,
-        *,
-        asset_id: Asset,
-    ) -> abi.MetadataExistence:
-        """
-        Checks whether the specified ASA exists and whether its associated Asset Metadata is available.
-
-        Args:
-            asset_id: The Asset ID to check the ASA and Asset Metadata existence for
-
-        Returns:
-            Tuple of (ASA exists, Asset Metadata exists)
-        """
-        return abi.MetadataExistence(
-            asa_exists=arc4.Bool(self._asa_exists(asset_id)),
-            metadata_exists=arc4.Bool(self._metadata_exists(asset_id)),
-        )
-
-    @arc4.abimethod(readonly=True)
-    def arc89_get_metadata_pagination(
-        self,
-        *,
-        asset_id: Asset,
-    ) -> abi.Pagination:
-        """Return the Asset Metadata pagination for an ASA.
-
-        Args:
-            asset_id: The Asset ID to get the Asset Metadata pagination for
-
-        Returns:
-            Tuple of (total metadata byte size, PAGE_SIZE, total number of pages)
-        """
-        # Preconditions
-        self._check_existence_preconditions(asset_id)
-        return abi.Pagination(
-            metadata_size=arc4.UInt16(self._get_metadata_size(asset_id)),
-            page_size=arc4.UInt16(const.PAGE_SIZE),
-            total_pages=arc4.UInt8(self._get_total_pages(asset_id)),
-        )
-
-    @arc4.abimethod(readonly=True)
     def arc89_get_metadata_registry_parameters(self) -> abi.RegistryParameters:
         """
         Return the ASA Metadata Registry parameters.
@@ -696,6 +654,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_mbr_delta(
         self,
+        *,
         asset_id: Asset,
         new_metadata_size: arc4.UInt16,
     ) -> abi.MbrDelta:
@@ -738,6 +697,85 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         delta_amount = flat_mbr + const.BYTE_MBR * delta_size
         return abi.MbrDelta(sign=arc4.UInt8(sign), amount=arc4.UInt64(delta_amount))
+
+    @arc4.abimethod(readonly=True)
+    def arc89_check_metadata_exists(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.MetadataExistence:
+        """
+        Checks whether the specified ASA exists and whether its associated Asset Metadata is available.
+
+        Args:
+            asset_id: The Asset ID to check the ASA and Asset Metadata existence for
+
+        Returns:
+            Tuple of (ASA exists, Asset Metadata exists)
+        """
+        return abi.MetadataExistence(
+            asa_exists=arc4.Bool(self._asa_exists(asset_id)),
+            metadata_exists=arc4.Bool(self._metadata_exists(asset_id)),
+        )
+
+    @arc4.abimethod(readonly=True)
+    def arc89_is_metadata_immutable(self, *, asset_id: Asset) -> arc4.Bool:
+        """
+        Return True if the Asset Metadata for an ASA is immutable, False otherwise.
+
+        Args:
+            asset_id: The Asset ID to check the Asset Metadata immutability for
+
+        Returns:
+            Asset Metadata for the ASA is immutable
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        return arc4.Bool(self._is_immutable(asset_id))
+
+    @arc4.abimethod(readonly=True)
+    def arc89_is_metadata_short(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.MutableFlag:
+        """
+        Return True if Asset Metadata for an ASA is short (up to 4096 bytes), False otherwise.
+
+        Args:
+            asset_id: The Asset ID to check the Asset Metadata size classification for
+
+        Returns:
+            Tuple of (is short metadata, Metadata Last Modified Round)
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        return abi.MutableFlag(
+            flag=arc4.Bool(self._is_short(asset_id)),
+            last_modified_round=arc4.UInt64(self._get_last_modified_round(asset_id)),
+        )
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_pagination(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.Pagination:
+        """Return the Asset Metadata pagination for an ASA.
+
+        Args:
+            asset_id: The Asset ID to get the Asset Metadata pagination for
+
+        Returns:
+            Tuple of (total metadata byte size, PAGE_SIZE, total number of pages)
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        return abi.Pagination(
+            metadata_size=arc4.UInt16(self._get_metadata_size(asset_id)),
+            page_size=arc4.UInt16(const.PAGE_SIZE),
+            total_pages=arc4.UInt8(self._get_total_pages(asset_id)),
+        )
 
     @arc4.abimethod
     def extra_resources(self) -> None:
