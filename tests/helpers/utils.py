@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from algokit_utils import (
     AlgoAmount,
     CommonAppCallParams,
@@ -14,6 +16,8 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
     Arc89GetMetadataPaginationArgs,
     Arc89ReplaceMetadataArgs,
     Arc89ReplaceMetadataLargerArgs,
+    Arc89SetIrreversibleFlagArgs,
+    Arc89SetReversibleFlagArgs,
     AsaMetadataRegistryClient,
     AsaMetadataRegistryComposer,
     MbrDelta,
@@ -39,6 +43,45 @@ def _append_extra_payload(
                 static_fee=AlgoAmount(algo=0),
             ),
         )
+
+
+def set_flag_and_verify(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    asset_manager: SigningAccount,
+    asset_id: int,
+    flag: int,
+    check_fn: Callable[[AssetMetadata], bool],
+    *,
+    reversible: bool = True,
+    value: bool | None = None,
+) -> None:
+    if reversible:
+        assert value is not None, "Flag value must be provided when reversible=True"
+        asa_metadata_registry_client.send.arc89_set_reversible_flag(
+            args=Arc89SetReversibleFlagArgs(
+                asset_id=asset_id,
+                flag=flag,
+                value=value,
+            ),
+            params=CommonAppCallParams(sender=asset_manager.address),
+        )
+        expected_value = value
+    else:
+        # Irreversible flags are always set to True
+        asa_metadata_registry_client.send.arc89_set_irreversible_flag(
+            args=Arc89SetIrreversibleFlagArgs(
+                asset_id=asset_id,
+                flag=flag,
+            ),
+            params=CommonAppCallParams(sender=asset_manager.address),
+        )
+        expected_value = True
+
+    post_set = AssetMetadata.from_box_value(
+        asset_id,
+        asa_metadata_registry_client.state.box.asset_metadata.get_value(asset_id),
+    )
+    assert check_fn(post_set) == expected_value
 
 
 def get_mbr_delta_payment(
