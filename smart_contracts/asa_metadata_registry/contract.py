@@ -607,6 +607,45 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             )
         )
 
+    @arc4.abimethod
+    def arc89_set_irreversible_flag(
+        self,
+        *,
+        asset_id: Asset,
+        flag: arc4.UInt8,
+    ) -> None:
+        """
+        Set an irreversible Asset Metadata Flag, restricted to the ASA Manager Address
+
+        Args:
+            asset_id: The Asset ID to set the Metadata Flag for
+            flag: The irreversible flag index to set. WARNING: must be 6, 7
+        """
+        # Preconditions
+        self._check_set_flag_preconditions(asset_id)
+        assert (
+            flags.FLG_RESERVED_6 <= flag.as_uint64() <= flags.FLG_IMMUTABLE
+        ), err.FLAG_IDX_INVALID
+
+        # Set Reversible Flags
+        self._set_flag(asset_id, flag.as_uint64(), value=True)
+
+        # Postconditions
+        self._set_last_modified_round(asset_id, Global.round)
+        metadata_hash = self._compute_metadata_hash(asset_id)
+        self._set_metadata_hash(asset_id, metadata_hash)
+
+        arc4.emit(
+            abi.Arc89MetadataUpdated(
+                asset_id=arc4.UInt64(asset_id.id),
+                round=arc4.UInt64(Global.round),
+                timestamp=arc4.UInt64(Global.latest_timestamp),
+                flags=arc4.Byte(op.btoi(self._get_metadata_flags(asset_id))),
+                is_short=arc4.Bool(self._is_short(asset_id)),
+                hash=abi.Hash.from_bytes(metadata_hash),
+            )
+        )
+
     @arc4.abimethod(readonly=True)
     def arc89_check_metadata_exists(
         self,
