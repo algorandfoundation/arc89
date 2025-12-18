@@ -208,10 +208,10 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._set_metadata_identifiers(asa, identifiers)
 
     def _set_flag(self, asa: Asset, flag: UInt64, *, value: bool) -> None:
-        flags = op.setbit_bytes(
+        updated_flags = op.setbit_bytes(
             self._get_metadata_flags(asa), const.BIT_RIGHTMOST_FLAG - flag, value
         )
-        self._set_metadata_flags(asa, flags)
+        self._set_metadata_flags(asa, updated_flags)
 
     def _compute_header_hash(self, asa: Asset) -> Bytes:
         # hh = SHA - 512 / 256("arc0089/header" || Asset ID || Metadata Identifiers || Metadata Flags || Metadata Size)
