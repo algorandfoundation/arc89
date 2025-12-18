@@ -153,21 +153,14 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
     ) -> abi.MutableFlag:
         pass
 
-    # @abstractmethod
-    # @arc4.abimethod(readonly=True)
-    # def arc89_get_metadata_header(
-    #     self,
-    #     asset_id: Asset,
-    # ) -> arc4.Tuple[arc4.Byte, arc4.Byte, abi.Hash, arc4.UInt64]:
-    #     """Return the Asset Metadata Header for an ASA.
-    #
-    #     Args:
-    #         asset_id: The Asset ID to get the Asset Metadata Header for
-    #
-    #     Returns:
-    #         Asset Metadata Header: (Identifiers, Flags, Hash, Last Modified Round)
-    #     """
-    #     pass
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_header(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.MetadataHeader:
+        pass
 
     @abstractmethod
     @arc4.abimethod(readonly=True)

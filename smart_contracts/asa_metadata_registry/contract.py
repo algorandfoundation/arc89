@@ -760,6 +760,30 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         )
 
     @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_header(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.MetadataHeader:
+        """
+        Return the Asset Metadata Header for an ASA.
+
+        Args:
+            asset_id: The Asset ID to get the Asset Metadata Header for
+
+        Returns:
+            Asset Metadata Header: (Identifiers, Flags, Hash, Last Modified Round)
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        return abi.MetadataHeader(
+            identifiers=arc4.Byte.from_bytes(self._get_metadata_identifiers(asset_id)),
+            flags=arc4.Byte.from_bytes(self._get_metadata_flags(asset_id)),
+            hash=abi.Hash.from_bytes(self._get_metadata_hash(asset_id)),
+            last_modified_round=arc4.UInt64(self._get_last_modified_round(asset_id)),
+        )
+
+    @arc4.abimethod(readonly=True)
     def arc89_get_metadata_pagination(
         self,
         *,
