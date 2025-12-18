@@ -673,6 +673,72 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             total_pages=arc4.UInt8(self._get_total_pages(asset_id)),
         )
 
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_registry_parameters(self) -> abi.RegistryParameters:
+        """
+        Return the ASA Metadata Registry parameters.
+
+        Returns:
+            Tuple of (HEADER_SIZE, MAX_METADATA_SIZE, SHORT_METADATA_SIZE, PAGE_SIZE,
+            FIRST_PAYLOAD_MAX_SIZE, EXTRA_PAYLOAD_MAX_SIZE, FLAT_MBR, BYTE_MBR)
+        """
+        return abi.RegistryParameters(
+            header_size=arc4.UInt16(const.METADATA_HEADER_SIZE),
+            max_metadata_size=arc4.UInt16(const.MAX_METADATA_SIZE),
+            short_metadata_size=arc4.UInt16(const.SHORT_METADATA_SIZE),
+            page_size=arc4.UInt16(const.PAGE_SIZE),
+            first_payload_max_size=arc4.UInt16(const.FIRST_PAYLOAD_MAX_SIZE),
+            extra_payload_max_size=arc4.UInt16(const.EXTRA_PAYLOAD_MAX_SIZE),
+            flat_mbr=arc4.UInt64(const.FLAT_MBR),
+            byte_mbr=arc4.UInt64(const.BYTE_MBR),
+        )
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_mbr_delta(
+        self,
+        asset_id: Asset,
+        new_metadata_size: arc4.UInt16,
+    ) -> abi.MbrDelta:
+        """
+        Return the Asset Metadata Box MBR Delta for an ASA, given a new Asset Metadata byte size.
+        If the Asset Metadata Box does not exist, the creation MBR Delta is returned.
+
+        Args:
+            asset_id: The Asset ID to calculate the Asset Metadata MBR Delta for
+            new_metadata_size: The new_Asset Metadata byte size
+
+        Returns:
+            MBR Delta: tuple of (sign enum, amount in microALGO)
+        """
+        # Preconditions
+        assert (
+            new_metadata_size.as_uint64() <= const.MAX_METADATA_SIZE
+        ), err.EXCEEDS_MAX_METADATA_SIZE
+
+        if self._metadata_exists(asset_id):
+            metadata_size = self._get_metadata_size(asset_id)
+            flat_mbr = UInt64(0)
+            if new_metadata_size.as_uint64() == metadata_size:
+                sign = UInt64(enums.MBR_DELTA_NULL)
+                delta_size = UInt64(0)
+            elif new_metadata_size.as_uint64() > metadata_size:
+                sign = UInt64(enums.MBR_DELTA_POS)
+                delta_size = new_metadata_size.as_uint64() - metadata_size
+            else:
+                sign = UInt64(enums.MBR_DELTA_NEG)
+                delta_size = metadata_size - new_metadata_size.as_uint64()
+        else:
+            flat_mbr = UInt64(const.FLAT_MBR)
+            sign = UInt64(enums.MBR_DELTA_POS)
+            delta_size = (
+                const.ASSET_METADATA_BOX_KEY_SIZE
+                + const.METADATA_HEADER_SIZE
+                + new_metadata_size.as_uint64()
+            )
+
+        delta_amount = flat_mbr + const.BYTE_MBR * delta_size
+        return abi.MbrDelta(sign=arc4.UInt8(sign), amount=arc4.UInt64(delta_amount))
+
     @arc4.abimethod
     def extra_resources(self) -> None:
         """

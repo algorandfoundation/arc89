@@ -111,37 +111,19 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
     ) -> None:
         pass
 
-    # @abstractmethod
-    # @arc4.abimethod(readonly=True)
-    # def arc89_get_metadata_registry_parameters(
-    #     self,
-    # ) -> arc4.Tuple[
-    #     arc4.UInt16, arc4.UInt16, arc4.UInt16, arc4.UInt16, arc4.UInt64, arc4.UInt64
-    # ]:
-    #     """Return the ASA Metadata Registry parameters.
-    #
-    #     Returns:
-    #         Tuple of (HEADER_SIZE, MAX_METADATA_SIZE, MAX_SHORT_METADATA_SIZE, PAGE_SIZE, FLAT_MBR, BYTE_MBR)
-    #     """
-    #     pass
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_registry_parameters(self) -> abi.RegistryParameters:
+        pass
 
-    # @abstractmethod
-    # @arc4.abimethod(readonly=True)
-    # def arc89_get_metadata_mbr_delta(
-    #     self,
-    #     asset_id: Asset,
-    #     metadata_size: arc4.UInt16,
-    # ) -> abi.MbrDelta:
-    #     """Return the Asset Metadata Box MBR Delta for an ASA, given a new Asset Metadata byte size.
-    #
-    #     Args:
-    #         asset_id: The Asset ID to calculate the Asset Metadata MBR Delta for
-    #         metadata_size: The Asset Metadata byte size
-    #
-    #     Returns:
-    #         MBR Delta: tuple of (sign enum, amount in microALGO)
-    #     """
-    #     pass
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_mbr_delta(
+        self,
+        asset_id: Asset,
+        metadata_size: arc4.UInt16,
+    ) -> abi.MbrDelta:
+        pass
 
     @abstractmethod
     @arc4.abimethod(readonly=True)
