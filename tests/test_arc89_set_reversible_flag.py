@@ -1,39 +1,15 @@
 from collections.abc import Callable
 
 import pytest
-from algokit_utils import CommonAppCallParams, SigningAccount
+from algokit_utils import SigningAccount
 
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
-    Arc89SetReversibleFlagArgs,
     AsaMetadataRegistryClient,
 )
 from smart_contracts.asa_metadata_registry import flags
 from tests.helpers import bitmasks
 from tests.helpers.factories import AssetMetadata
-
-
-def _set_flag_and_verify(
-    asa_metadata_registry_client: AsaMetadataRegistryClient,
-    asset_manager: SigningAccount,
-    asset_id: int,
-    flag: int,
-    check_fn: Callable[[AssetMetadata], bool],
-    *,
-    value: bool,
-) -> None:
-    asa_metadata_registry_client.send.arc89_set_reversible_flag(
-        args=Arc89SetReversibleFlagArgs(
-            asset_id=asset_id,
-            flag=flag,
-            value=value,
-        ),
-        params=CommonAppCallParams(sender=asset_manager.address),
-    )
-    post_set = AssetMetadata.from_box_value(
-        asset_id,
-        asa_metadata_registry_client.state.box.asset_metadata.get_value(asset_id),
-    )
-    assert check_fn(post_set) == value
+from tests.helpers.utils import set_flag_and_verify
 
 
 @pytest.mark.parametrize(
@@ -58,7 +34,7 @@ def test_set_and_clear_reversible_flags(
     assert not check_fn(uploaded_short_metadata)
 
     # Set flag to True and verify
-    _set_flag_and_verify(
+    set_flag_and_verify(
         asa_metadata_registry_client,
         asset_manager,
         asset_id,
@@ -68,7 +44,7 @@ def test_set_and_clear_reversible_flags(
     )
 
     # Set flag to False and verify
-    _set_flag_and_verify(
+    set_flag_and_verify(
         asa_metadata_registry_client,
         asset_manager,
         asset_id,
