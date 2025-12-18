@@ -19,7 +19,7 @@ from tests.helpers.utils import set_flag_and_verify
         (flags.FLG_IMMUTABLE, lambda m: m.is_immutable),
     ],
 )
-def test_set_and_clear_reversible_flags(
+def test_set_irreversible_flags(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     uploaded_short_metadata: AssetMetadata,
