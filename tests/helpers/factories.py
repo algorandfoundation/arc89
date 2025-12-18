@@ -7,9 +7,10 @@ from typing import Any
 
 from algokit_utils import AlgoAmount
 
-from smart_contracts.asa_metadata_registry import bitmasks as masks
 from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.asa_metadata_registry import enums
+
+from . import bitmasks
 
 
 @dataclass
@@ -77,32 +78,32 @@ class AssetMetadata:
     @property
     def is_short(self) -> bool:
         """Check if metadata is identified as short."""
-        return (self.identifiers & masks.ID_SHORT) != 0
+        return (self.identifiers & bitmasks.MASK_ID_SHORT) != 0
 
     @property
     def is_arc20(self) -> bool:
         """Check if ASA is declared as ARC-20 Smart ASA."""
-        return (self.flags & masks.FLG_ARC20) != 0
+        return (self.flags & bitmasks.MASK_ARC20) != 0
 
     @property
     def is_arc62(self) -> bool:
         """Check if ARC-62 Circulating Supply is enabled."""
-        return (self.flags & masks.FLG_ARC62) != 0
+        return (self.flags & bitmasks.MASK_ARC62) != 0
 
     @property
     def is_arc3(self) -> bool:
         """Check if metadata is ARC-3 compliant."""
-        return (self.flags & masks.FLG_ARC3) != 0
+        return (self.flags & bitmasks.MASK_ARC3) != 0
 
     @property
     def is_arc89_native(self) -> bool:
         """Check if ASA is ARC-89 native."""
-        return (self.flags & masks.FLG_ARC89_NATIVE) != 0
+        return (self.flags & bitmasks.MASK_ARC89_NATIVE) != 0
 
     @property
     def is_immutable(self) -> bool:
         """Check if metadata is immutable."""
-        return (self.flags & masks.FLG_IMMUTABLE) != 0
+        return (self.flags & bitmasks.MASK_IMMUTABLE) != 0
 
     @property
     def total_pages(self) -> int:
@@ -166,23 +167,23 @@ class AssetMetadata:
 
     def set_arc20(self, *, value: bool) -> None:
         """Set the ARC-20 Smart ASA flag."""
-        self.set_flag(flag_mask=masks.FLG_ARC20, value=value)
+        self.set_flag(flag_mask=bitmasks.MASK_ARC20, value=value)
 
     def set_arc62(self, *, value: bool) -> None:
         """Set the ARC-62 Circulating Supply flag."""
-        self.set_flag(flag_mask=masks.FLG_ARC62, value=value)
+        self.set_flag(flag_mask=bitmasks.MASK_ARC62, value=value)
 
     def set_arc3(self, *, value: bool) -> None:
         """Set the ARC-3 compliant flag."""
-        self.set_flag(flag_mask=masks.FLG_ARC3, value=value)
+        self.set_flag(flag_mask=bitmasks.MASK_ARC3, value=value)
 
     def set_arc89_native(self, *, value: bool) -> None:
         """Set the ARC-89 native ASA flag."""
-        self.set_flag(flag_mask=masks.FLG_ARC89_NATIVE, value=value)
+        self.set_flag(flag_mask=bitmasks.MASK_ARC89_NATIVE, value=value)
 
     def set_immutable(self, *, value: bool) -> None:
         """Set the metadata immutability flag."""
-        self.set_flag(flag_mask=masks.FLG_IMMUTABLE, value=value)
+        self.set_flag(flag_mask=bitmasks.MASK_IMMUTABLE, value=value)
 
     # ==================== HASH COMPUTATION ====================
 
@@ -276,9 +277,9 @@ class AssetMetadata:
     def _update_short_identifier(self) -> None:
         """Update the short metadata identifier based on current metadata size."""
         if self.size <= const.SHORT_METADATA_SIZE:
-            self.identifiers |= masks.ID_SHORT
+            self.identifiers |= bitmasks.MASK_ID_SHORT
         else:
-            self.identifiers &= ~masks.ID_SHORT
+            self.identifiers &= ~bitmasks.MASK_ID_SHORT
 
     def chunked_payload(self) -> list[bytes]:
         """
@@ -376,6 +377,22 @@ class AssetMetadata:
             return True
         except (json.JSONDecodeError, UnicodeDecodeError):
             return False
+
+    # ==================== VISUALIZATION ====================
+
+    def print_header(self) -> None:
+        print(f"Identifiers: {self.identifiers:08b}")
+        print(f"Flags: {self.flags:08b}")
+        print(f"Metadata Hash: {self.metadata_hash.hex()}")
+        print(f"Last Modified Round: {self.last_modified_round}")
+
+    def print_metadata(self) -> None:
+        try:
+            obj = json.loads(self.metadata_bytes.decode("utf-8"))
+            print(json.dumps(obj, indent=2, ensure_ascii=False))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            print("⚠️ Invalid JSON:")
+            print(self.metadata_bytes.decode("utf-8", errors="replace"))
 
     @classmethod
     def chunk_payload(cls, payload: bytes) -> list[bytes]:
