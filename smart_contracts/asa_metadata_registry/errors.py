@@ -24,3 +24,5 @@ MBR_DELTA_AMOUNT_INVALID = "Invalid MBR Delta amount"
 
 REQUIRES_IMMUTABLE = "Must be flagged as immutable"
 IMMUTABLE = "Metadata is immutable"
+
+FLAG_IDX_INVALID = "Invalid flag index"
