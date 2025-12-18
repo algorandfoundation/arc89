@@ -42,6 +42,19 @@ class Pagination(arc4.Struct, kw_only=True):
     total_pages: arc4.UInt8
 
 
+class RegistryParameters(arc4.Struct, kw_only=True):
+    """ASA Metadata Registry Parameters"""
+
+    header_size: arc4.UInt16
+    max_metadata_size: arc4.UInt16
+    short_metadata_size: arc4.UInt16
+    page_size: arc4.UInt16
+    first_payload_max_size: arc4.UInt16
+    extra_payload_max_size: arc4.UInt16
+    flat_mbr: arc4.UInt64
+    byte_mbr: arc4.UInt64
+
+
 # ARC-28 Events
 class Arc89MetadataUpdated(arc4.Struct, kw_only=True):
     """Event emitted when Asset Metadata is created or updated"""
