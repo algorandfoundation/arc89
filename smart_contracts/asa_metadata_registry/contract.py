@@ -83,19 +83,19 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     def _is_short(self, asa: Asset) -> bool:
         return op.getbit(
             self._get_metadata_identifiers(asa),
-            7 - flags.FLG_ID_SHORT,
+            const.BIT_RIGHTMOST_IDENTIFIER - flags.ID_SHORT,
         )
 
     def _is_arc89(self, asa: Asset) -> bool:
         return op.getbit(
             self._get_metadata_flags(asa),
-            7 - flags.FLG_ARC89_NATIVE,
+            const.BIT_RIGHTMOST_FLAG - flags.FLG_ARC89_NATIVE,
         )
 
     def _is_immutable(self, asa: Asset) -> bool:
         return op.getbit(
             self._get_metadata_flags(asa),
-            7 - flags.FLG_IMMUTABLE,
+            const.BIT_RIGHTMOST_FLAG - flags.FLG_IMMUTABLE,
         )
 
     def _get_metadata_hash(self, asa: Asset) -> Bytes:
@@ -201,13 +201,15 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     def _identify_metadata(self, asa: Asset, metadata_size: UInt64) -> None:
         identifiers = op.setbit_bytes(
             self._get_metadata_identifiers(asa),
-            7 - flags.FLG_ID_SHORT,
+            const.BIT_RIGHTMOST_FLAG - flags.ID_SHORT,
             self._is_short_metadata_size(metadata_size),
         )
         self._set_metadata_identifiers(asa, identifiers)
 
     def _set_flag(self, asa: Asset, flag: UInt64, *, value: bool) -> None:
-        flags = op.setbit_bytes(self._get_metadata_flags(asa), 7 - flag, value)
+        flags = op.setbit_bytes(
+            self._get_metadata_flags(asa), const.BIT_RIGHTMOST_FLAG - flag, value
+        )
         self._set_metadata_flags(asa, flags)
 
     def _compute_header_hash(self, asa: Asset) -> Bytes:
