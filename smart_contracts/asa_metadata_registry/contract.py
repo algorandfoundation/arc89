@@ -719,7 +719,11 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         )
 
     @arc4.abimethod(readonly=True)
-    def arc89_is_metadata_immutable(self, *, asset_id: Asset) -> arc4.Bool:
+    def arc89_is_metadata_immutable(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> arc4.Bool:
         """
         Return True if the Asset Metadata for an ASA is immutable, False otherwise.
 
