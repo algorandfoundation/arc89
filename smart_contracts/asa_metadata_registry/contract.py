@@ -19,18 +19,16 @@ from algopy import (
 
 from smart_contracts.avm_common import (
     ceil_div,
-    has_bits,
     itoa,
-    set_bits,
     trimmed_itob,
     umin,
 )
 
 from . import abi_types as abi
-from . import bitmasks as masks
 from . import constants as const
 from . import enums as enums
 from . import errors as err
+from . import flags
 from .interface import AsaMetadataRegistryInterface
 from .template_vars import TRUSTED_DEPLOYER
 
@@ -83,36 +81,21 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         )
 
     def _is_short(self, asa: Asset) -> bool:
-        return has_bits(
-            bits=op.btoi(self._get_metadata_identifiers(asa)),
-            mask=UInt64(masks.ID_SHORT),
-        )
-
-    def _is_arc3(self, asa: Asset) -> bool:
-        return has_bits(
-            bits=op.btoi(self._get_metadata_flags(asa)), mask=UInt64(masks.FLG_ARC3)
-        )
-
-    def _is_arc20(self, asa: Asset) -> bool:
-        return has_bits(
-            bits=op.btoi(self._get_metadata_flags(asa)), mask=UInt64(masks.FLG_ARC20)
-        )
-
-    def _is_arc62(self, asa: Asset) -> bool:
-        return has_bits(
-            bits=op.btoi(self._get_metadata_flags(asa)), mask=UInt64(masks.FLG_ARC62)
+        return op.getbit(
+            self._get_metadata_identifiers(asa),
+            7 - flags.FLG_ID_SHORT,
         )
 
     def _is_arc89(self, asa: Asset) -> bool:
-        return has_bits(
-            bits=op.btoi(self._get_metadata_flags(asa)),
-            mask=UInt64(masks.FLG_ARC89_NATIVE),
+        return op.getbit(
+            self._get_metadata_flags(asa),
+            7 - flags.FLG_ARC89_NATIVE,
         )
 
     def _is_immutable(self, asa: Asset) -> bool:
-        return has_bits(
-            bits=op.btoi(self._get_metadata_flags(asa)),
-            mask=UInt64(masks.FLG_IMMUTABLE),
+        return op.getbit(
+            self._get_metadata_flags(asa),
+            7 - flags.FLG_IMMUTABLE,
         )
 
     def _get_metadata_hash(self, asa: Asset) -> Bytes:
@@ -215,16 +198,17 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             start_index=const.IDX_METADATA + start, length=length
         )
 
-    def _identify_metadata(self, asset_id: Asset, metadata_size: UInt64) -> None:
-        identifiers = trimmed_itob(
-            uint=set_bits(
-                bits=op.btoi(self._get_metadata_identifiers(asset_id)),
-                mask=UInt64(masks.ID_SHORT),
-                value=self._is_short_metadata_size(metadata_size),
-            ),
-            size=UInt64(const.UINT8_SIZE),
+    def _identify_metadata(self, asa: Asset, metadata_size: UInt64) -> None:
+        identifiers = op.setbit_bytes(
+            self._get_metadata_identifiers(asa),
+            7 - flags.FLG_ID_SHORT,
+            self._is_short_metadata_size(metadata_size),
         )
-        self._set_metadata_identifiers(asset_id, identifiers)
+        self._set_metadata_identifiers(asa, identifiers)
+
+    def _set_flag(self, asa: Asset, flag: UInt64, *, value: bool) -> None:
+        flags = op.setbit_bytes(self._get_metadata_flags(asa), 7 - flag, value)
+        self._set_metadata_flags(asa, flags)
 
     def _compute_header_hash(self, asa: Asset) -> Bytes:
         # hh = SHA - 512 / 256("arc0089/header" || Asset ID || Metadata Identifiers || Metadata Flags || Metadata Size)
@@ -278,9 +262,14 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert self._metadata_exists(asa), err.ASSET_METADATA_NOT_EXIST
         assert not self._is_immutable(asa), err.IMMUTABLE
 
-    def _check_existence_preconditions(self, asset_id: Asset) -> None:
-        assert self._asa_exists(asset_id), err.ASA_NOT_EXIST
-        assert self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST
+    def _check_existence_preconditions(self, asa: Asset) -> None:
+        assert self._asa_exists(asa), err.ASA_NOT_EXIST
+        assert self._metadata_exists(asa), err.ASSET_METADATA_NOT_EXIST
+
+    def _check_set_flag_preconditions(self, asa: Asset) -> None:
+        self._check_existence_preconditions(asa)
+        assert not self._is_immutable(asa), err.IMMUTABLE
+        assert self._is_asa_manager(asa), err.UNAUTHORIZED
 
     @arc4.baremethod(create="require")
     def deploy(self) -> None:
@@ -578,6 +567,45 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert self._asa_exists(asset_id), err.ASA_NOT_EXIST
         assert self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST
         assert self._is_asa_manager(asset_id), err.UNAUTHORIZED
+
+    @arc4.abimethod
+    def arc89_set_reversible_flag(
+        self,
+        *,
+        asset_id: Asset,
+        flag: arc4.UInt8,
+        value: arc4.Bool,
+    ) -> None:
+        """
+        Set a reversible Asset Metadata Flag, restricted to the ASA Manager Address
+
+        Args:
+            asset_id: The Asset ID to set the Metadata Flag for
+            flag: The reversible flag index to set. WARNING: must be 0 ... 3
+            value: The flag value to set
+        """
+        # Preconditions
+        self._check_set_flag_preconditions(asset_id)
+        assert flag.as_uint64() <= flags.FLG_RESERVED_3, err.FLAG_IDX_INVALID
+
+        # Set Reversible Flags
+        self._set_flag(asset_id, flag.as_uint64(), value=value.native)
+
+        # Postconditions
+        self._set_last_modified_round(asset_id, Global.round)
+        metadata_hash = self._compute_metadata_hash(asset_id)
+        self._set_metadata_hash(asset_id, metadata_hash)
+
+        arc4.emit(
+            abi.Arc89MetadataUpdated(
+                asset_id=arc4.UInt64(asset_id.id),
+                round=arc4.UInt64(Global.round),
+                timestamp=arc4.UInt64(Global.latest_timestamp),
+                flags=arc4.Byte(op.btoi(self._get_metadata_flags(asset_id))),
+                is_short=arc4.Bool(self._is_short(asset_id)),
+                hash=abi.Hash.from_bytes(metadata_hash),
+            )
+        )
 
     @arc4.abimethod(readonly=True)
     def arc89_check_metadata_exists(
