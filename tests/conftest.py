@@ -23,7 +23,7 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
 from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.asa_metadata_registry.template_vars import TRUSTED_DEPLOYER
 
-from .helpers.factories import AssetMetadata, create_arc3_metadata
+from .helpers.factories import AssetMetadata, AVMJsonObj, create_arc3_metadata
 from .helpers.utils import add_extra_resources, create_metadata
 
 ACCOUNT_MBR: Final[int] = 100_000  # microALGO
@@ -87,6 +87,11 @@ def asa_metadata_registry_factory(
         ),
         default_sender=deployer.address,
     )
+
+
+@pytest.fixture(scope="session")
+def json_obj() -> AVMJsonObj:
+    return AVMJsonObj()
 
 
 @pytest.fixture(scope="function")
@@ -184,6 +189,17 @@ def oversized_metadata(arc_89_asa: int) -> AssetMetadata:
     return metadata
 
 
+@pytest.fixture(scope="function")
+def json_obj_metadata(arc_89_asa: int, json_obj: AVMJsonObj) -> AssetMetadata:
+    metadata = AssetMetadata.create(
+        asset_id=arc_89_asa,
+        metadata=json_obj.to_dict(),
+    )
+    assert metadata.validate_json()
+    assert metadata.is_short
+    return metadata
+
+
 # Uploaded AssetMetadata fixtures
 def _create_uploaded_metadata_fixture(
     metadata_fixture_name: str, *, immutable: bool = False
@@ -242,4 +258,8 @@ immutable_short_metadata = _create_uploaded_metadata_fixture(
 )
 immutable_maxed_metadata = _create_uploaded_metadata_fixture(
     "maxed_metadata", immutable=True
+)
+mutable_json_obj_metadata = _create_uploaded_metadata_fixture("json_obj_metadata")
+immutable_json_obj_metadata = _create_uploaded_metadata_fixture(
+    "json_obj_metadata", immutable=True
 )
