@@ -39,10 +39,18 @@ def _append_extra_payload(
             ),
             params=CommonAppCallParams(
                 sender=asset_manager.address,
-                note=i.to_bytes(8, "big"),
+                note=i.to_bytes(),
                 static_fee=AlgoAmount(algo=0),
             ),
         )
+
+
+def add_extra_resources(
+    composer: AsaMetadataRegistryComposer,
+    count: int
+) -> None:
+    for i in range(count):
+        composer.extra_resources(params=CommonAppCallParams(note=i.to_bytes()))
 
 
 def set_flag_and_verify(
@@ -215,14 +223,7 @@ def replace_metadata(
             ),
         )
     _append_extra_payload(replace_metadata_composer, asset_manager, new_metadata)
-    for i in range(extra_resources):
-        replace_metadata_composer.extra_resources(
-            params=CommonAppCallParams(
-                sender=asset_manager.address,
-                note=i.to_bytes(8, "big"),
-                static_fee=AlgoAmount(micro_algo=min_fee),
-            ),
-        )
+    add_extra_resources(replace_metadata_composer, extra_resources)
     replace_metadata_response = (
         replace_metadata_composer.send(
             send_params=SendParams(cover_app_call_inner_transaction_fees=True)
@@ -265,14 +266,7 @@ def delete_metadata(
             static_fee=AlgoAmount(micro_algo=2 * min_fee),
         ),
     ),
-    for i in range(extra_resources):
-        delete_metadata_composer.extra_resources(
-            params=CommonAppCallParams(
-                sender=caller.address,
-                note=i.to_bytes(8, "big"),
-                static_fee=AlgoAmount(micro_algo=min_fee),
-            ),
-        )
+    add_extra_resources(delete_metadata_composer, extra_resources)
     delete_metadata_response = (
         delete_metadata_composer.send(
             send_params=SendParams(cover_app_call_inner_transaction_fees=True)
