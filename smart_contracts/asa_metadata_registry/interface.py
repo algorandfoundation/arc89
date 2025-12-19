@@ -237,22 +237,13 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
     ) -> abi.Hash:
         pass
 
-    # @abstractmethod
-    # @arc4.abimethod(readonly=True)
-    # def arc89_get_metadata_key_value(
-    #     self,
-    #     asset_id: Asset,
-    #     key: arc4.DynamicBytes,
-    #     key_type: arc4.UInt8,
-    # ) -> arc4.DynamicBytes:
-    #     """Return the JSON Metadata key value for an ASA, if identified as short.
-    #
-    #     Args:
-    #         asset_id: The Asset ID to get the key value for
-    #         key: The key to fetch
-    #         key_type: The JSON key type (0: JSON String, 1: JSON Uint64, 2: JSON Object)
-    #
-    #     Returns:
-    #         The key's value from valid UTF-8 encoded JSON Metadata (size limited to PAGE_SIZE)
-    #     """
-    #     pass
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_key_value(
+        self,
+        *,
+        asset_id: Asset,
+        key: arc4.DynamicBytes,
+        key_type: arc4.UInt8,
+    ) -> arc4.DynamicBytes:
+        pass

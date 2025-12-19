@@ -198,6 +198,11 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             start_index=const.IDX_METADATA + start, length=length
         )
 
+    def _get_short_metadata(self, asa: Asset) -> Bytes:
+        return self.asset_metadata.box(asa).extract(
+            start_index=const.IDX_METADATA, length=self._get_metadata_size(asa)
+        )
+
     def _identify_metadata(self, asa: Asset) -> None:
         metadata_size = self._get_metadata_size(asa)
         identifiers = op.setbit_bytes(
@@ -871,6 +876,45 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._check_existence_preconditions(asset_id)
 
         return abi.Hash.from_bytes(self._get_metadata_hash(asset_id))
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_key_value(
+        self,
+        *,
+        asset_id: Asset,
+        key: arc4.DynamicBytes,
+        key_type: arc4.UInt8,
+    ) -> arc4.DynamicBytes:
+        """
+        Return the JSON Metadata key value for an ASA, if identified as short.
+
+        Args:
+            asset_id: The Asset ID to get the key value for
+            key: The key to fetch
+            key_type: The JSON key type (0: JSON String, 1: JSON Uint64, 2: JSON Object)
+
+        Returns:
+            The key's value from valid UTF-8 encoded JSON Metadata (size limited to PAGE_SIZE)
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        assert self._is_short(asset_id), err.METADATA_NOT_SHORT
+        assert (
+            key_type.as_uint64() <= enums.JSON_KEY_TYPE_OBJECT
+        ), err.JSON_KEY_TYPE_INVALID
+
+        obj = self._get_short_metadata(asset_id)
+        value = Bytes()
+        match key_type.as_uint64():
+            case enums.JSON_KEY_TYPE_STRING:
+                value = op.JsonRef.json_string(obj, key.native)
+            case enums.JSON_KEY_TYPE_UINT64:
+                value = op.itob(op.JsonRef.json_uint64(obj, key.native))
+            case enums.JSON_KEY_TYPE_OBJECT:
+                value = op.JsonRef.json_object(obj, key.native)
+            case _:  # Pedantic, privilege Pythonic readability over TEAL size
+                assert False, err.JSON_KEY_TYPE_INVALID  # noqa: B011
+        return arc4.DynamicBytes.from_bytes(value)
 
     @arc4.abimethod
     def extra_resources(self) -> None:
