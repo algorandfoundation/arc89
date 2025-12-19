@@ -228,21 +228,14 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
     ) -> abi.Hash:
         pass
 
-    # @abstractmethod
-    # @arc4.abimethod(readonly=True)
-    # def arc89_get_metadata_hash(
-    #     self,
-    #     asset_id: Asset,
-    # ) -> abi.Hash:
-    #     """Return the Metadata Hash for an ASA.
-    #
-    #     Args:
-    #         asset_id: The Asset ID to get the Metadata Hash for
-    #
-    #     Returns:
-    #         Asset Metadata Hash
-    #     """
-    #     pass
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_hash(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.Hash:
+        pass
 
     # @abstractmethod
     # @arc4.abimethod(readonly=True)
