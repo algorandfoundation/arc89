@@ -2,7 +2,7 @@
 
 import hashlib
 import json
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from algokit_utils import AlgoAmount
@@ -11,6 +11,61 @@ from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.asa_metadata_registry import enums
 
 from . import bitmasks
+
+
+@dataclass(frozen=True)
+class _JsonNested:
+    nested: str = "value"
+
+
+@dataclass(frozen=True)
+class AVMJsonObj:
+    string: str = "Test"
+    uint64: int = 42  # use numeric type to reflect JSON uint64
+    object: _JsonNested = field(default_factory=_JsonNested)
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+    # Helpers to infer AVM JSON key type enum from a key/value
+    def key_type_for(self, key: str) -> int:
+        data = self.to_dict()
+        if key not in data:
+            raise KeyError(f"Key '{key}' not found in JsonObj")
+        value = data[key]
+
+        # Map Python type to AVM JSON key type enum
+        if isinstance(value, str):
+            return enums.JSON_KEY_TYPE_STRING
+        if isinstance(value, int):
+            # AVM only supports uint64 for numeric JSON in this context
+            if value < 0:
+                raise ValueError("Uint64 JSON value must be non-negative")
+            return enums.JSON_KEY_TYPE_UINT64
+        if isinstance(value, dict):
+            return enums.JSON_KEY_TYPE_OBJECT
+
+        # If nested dataclass hasn't been converted, allow it as object
+        # (shouldn't happen as we use asdict, but keep for robustness)
+        if hasattr(value, "__dict__"):
+            return enums.JSON_KEY_TYPE_OBJECT
+
+        raise TypeError(
+            f"Unsupported JSON value type for key '{key}': {type(value).__name__}"
+        )
+
+    def key_and_type(self, key: str) -> tuple[bytes, int]:
+        # ARC-89 ABI expects key as byte[]; encode the key name to UTF-8 bytes
+        return key.encode("utf-8"), self.key_type_for(key)
+
+    def string_key(self) -> tuple[bytes, int]:
+        return self.key_and_type("string")
+
+    def uint64_key(self) -> tuple[bytes, int]:
+        return self.key_and_type("uint64")
+
+    def object_key(self) -> tuple[bytes, int]:
+        return self.key_and_type("object")
 
 
 @dataclass
