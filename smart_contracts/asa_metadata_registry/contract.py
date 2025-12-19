@@ -274,11 +274,12 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert not self._is_immutable(asa), err.IMMUTABLE
         assert self._is_asa_manager(asa), err.UNAUTHORIZED
 
-    def _update_header_and_emit_event(self, asa: Asset) -> None:
+    def _update_header_excluding_flags_and_emit(self, asa: Asset) -> None:
         self._identify_metadata(asa)
-        self._set_last_modified_round(asa, Global.round)
+        # ⚠️ The subroutine assumes that Metadata Flags have already been set
         metadata_hash = self._compute_metadata_hash(asa)
         self._set_metadata_hash(asa, metadata_hash)
+        self._set_last_modified_round(asa, Global.round)
         arc4.emit(
             abi.Arc89MetadataUpdated(
                 asset_id=arc4.UInt64(asa.id),
@@ -339,12 +340,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             size=UInt64(const.METADATA_HEADER_SIZE)
         )
 
-        # Set Metadata Header (without Metadata Hash, computed after payload upload)
-        self._set_metadata_flags(
-            asset_id,
-            trimmed_itob(uint=flags.as_uint64(), size=UInt64(const.BYTE_SIZE)),
-        )
-
         # Set Metadata Body
         if payload.native.length > 0:
             ensure_budget(required_budget=const.APP_CALL_OP_CODE_BUDGET)
@@ -366,6 +361,12 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
                 asa_url[: arc_89_uri.length] == arc_89_uri
             ), err.ASA_URL_INVALID_ARC89_URI
 
+        # Update Metadata Header
+        self._identify_metadata(asset_id)
+        self._set_metadata_flags(
+            asset_id,
+            trimmed_itob(uint=flags.as_uint64(), size=UInt64(const.BYTE_SIZE)),
+        )
         if asset_id.metadata_hash != Bytes(
             const.BYTES32_SIZE * b"\x00"
         ):  # Not empty metadata hash
@@ -373,10 +374,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             metadata_hash = asset_id.metadata_hash
         else:
             metadata_hash = self._compute_metadata_hash(asset_id)
-
-        # Update Metadata Header
-        self._identify_metadata(asset_id)
-        self._set_last_modified_round(asset_id, Global.round)
         self._set_metadata_hash(asset_id, metadata_hash)
         arc4.emit(
             abi.Arc89MetadataUpdated(
@@ -388,6 +385,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
                 hash=abi.Hash.from_bytes(metadata_hash),
             )
         )
+        self._set_last_modified_round(asset_id, Global.round)
 
         return abi.MbrDelta(
             sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
@@ -442,7 +440,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             ).submit()
 
         # Update Metadata Header
-        self._update_header_and_emit_event(asset_id)
+        self._update_header_excluding_flags_and_emit(asset_id)
 
         return abi.MbrDelta(sign=arc4.UInt8(sign), amount=arc4.UInt64(mbr_delta_amount))
 
@@ -492,7 +490,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         ), err.MBR_DELTA_AMOUNT_INVALID
 
         # Update Metadata Header
-        self._update_header_and_emit_event(asset_id)
+        self._update_header_excluding_flags_and_emit(asset_id)
 
         return abi.MbrDelta(
             sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
@@ -582,7 +580,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._set_flag(asset_id, flag.as_uint64(), value=value.native)
 
         # Update Metadata Header
-        self._update_header_and_emit_event(asset_id)
+        self._update_header_excluding_flags_and_emit(asset_id)
 
     @arc4.abimethod
     def arc89_set_irreversible_flag(
@@ -608,7 +606,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._set_flag(asset_id, flag.as_uint64(), value=True)
 
         # Update Metadata Header
-        self._update_header_and_emit_event(asset_id)
+        self._update_header_excluding_flags_and_emit(asset_id)
 
     @arc4.abimethod
     def arc89_set_immutable(
@@ -629,7 +627,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._set_flag(asset_id, UInt64(flg.FLG_IMMUTABLE), value=True)
 
         # Update Metadata Header
-        self._update_header_and_emit_event(asset_id)
+        self._update_header_excluding_flags_and_emit(asset_id)
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_registry_parameters(self) -> abi.RegistryParameters:
