@@ -16,6 +16,10 @@ PAYLOAD_OVERFLOW = "Payload overflow, exceeds metadata size"
 METADATA_SIZE_MISMATCH = (
     "Metadata size mismatch, must be exactly equal to declared size"
 )
+METADATA_NOT_SHORT = "Metadata is not short"
+JSON_KEY_TYPE_INVALID = (
+    "Invalid JSON key type, must be 0 (String), 1 (UInt64), or 2 (Object)"
+)
 
 MBR_DELTA_RECEIVER_INVALID = (
     "Invalid MBR Delta receiver, must be the ASA Metadata Registry"
