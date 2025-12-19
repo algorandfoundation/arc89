@@ -806,6 +806,25 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         )
 
     @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_header_hash(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.Hash:
+        """
+        Return the Metadata Header Hash for an ASA.
+
+        Args:
+            asset_id: The Asset ID to get the Metadata Header Hash for
+
+        Returns:
+            Asset Metadata Header Hash
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        return abi.Hash.from_bytes(self._compute_header_hash(asset_id))
+
+    @arc4.abimethod(readonly=True)
     def arc89_get_metadata_page_hash(
         self,
         *,
