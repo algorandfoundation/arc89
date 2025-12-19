@@ -805,6 +805,30 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             total_pages=arc4.UInt8(self._get_total_pages(asset_id)),
         )
 
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_page_hash(
+        self,
+        *,
+        asset_id: Asset,
+        page: arc4.UInt8,
+    ) -> abi.Hash:
+        """
+        Return the SHA512-256 of a Metadata page for an ASA.
+
+        Args:
+            asset_id: The Asset ID to get the Asset Metadata page hash for
+            page: The 0-based Metadata page number
+
+        Returns:
+            The SHA512-256 of the Metadata page
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+
+        page_content = self._get_metadata_page(asset_id, page.as_uint64())
+        page_hash = self._compute_page_hash(asset_id, page.as_uint64(), page_content)
+        return abi.Hash.from_bytes(page_hash)
+
     @arc4.abimethod
     def extra_resources(self) -> None:
         """

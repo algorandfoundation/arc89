@@ -189,23 +189,15 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
     #     """
     #     pass
 
-    # @abstractmethod
-    # @arc4.abimethod(readonly=True)
-    # def arc89_get_metadata_page_hash(
-    #     self,
-    #     asset_id: Asset,
-    #     page: arc4.UInt8,
-    # ) -> abi.Hash:
-    #     """Return the SHA512-256 of a Metadata page for an ASA.
-    #
-    #     Args:
-    #         asset_id: The Asset ID to get the Asset Metadata page hash for
-    #         page: The 0-based Metadata page number
-    #
-    #     Returns:
-    #         The SHA512-256 of the Metadata page
-    #     """
-    #     pass
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_page_hash(
+        self,
+        *,
+        asset_id: Asset,
+        page: arc4.UInt8,
+    ) -> abi.Hash:
+        pass
 
     # @abstractmethod
     # @arc4.abimethod(readonly=True)
