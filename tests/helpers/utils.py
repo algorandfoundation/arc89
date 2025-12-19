@@ -45,12 +45,14 @@ def _append_extra_payload(
         )
 
 
-def add_extra_resources(
-    composer: AsaMetadataRegistryComposer,
-    count: int
-) -> None:
+def add_extra_resources(composer: AsaMetadataRegistryComposer, count: int) -> None:
     for i in range(count):
-        composer.extra_resources(params=CommonAppCallParams(note=i.to_bytes()))
+        composer.extra_resources(
+            params=CommonAppCallParams(
+                note=i.to_bytes(),
+                static_fee=AlgoAmount(micro_algo=0),
+            )
+        )
 
 
 def set_flag_and_verify(
@@ -201,7 +203,9 @@ def replace_metadata(
             ),
             params=CommonAppCallParams(
                 sender=asset_manager.address,
-                static_fee=AlgoAmount(micro_algo=(len(chunks) + 1) * min_fee),
+                static_fee=AlgoAmount(
+                    micro_algo=(len(chunks) + extra_resources + 1) * min_fee
+                ),
             ),
         )
     else:
@@ -263,7 +267,7 @@ def delete_metadata(
         args=Arc89DeleteMetadataArgs(asset_id=asset_id),
         params=CommonAppCallParams(
             sender=caller.address,
-            static_fee=AlgoAmount(micro_algo=2 * min_fee),
+            static_fee=AlgoAmount(micro_algo=(2 + extra_resources) * min_fee),
         ),
     ),
     add_extra_resources(delete_metadata_composer, extra_resources)
