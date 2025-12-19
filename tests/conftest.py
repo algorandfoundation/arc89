@@ -24,7 +24,7 @@ from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.asa_metadata_registry.template_vars import TRUSTED_DEPLOYER
 
 from .helpers.factories import AssetMetadata, create_arc3_metadata
-from .helpers.utils import create_metadata
+from .helpers.utils import create_metadata, add_extra_resources
 
 ACCOUNT_MBR: Final[int] = 100_000  # microALGO
 
@@ -204,10 +204,14 @@ def _create_uploaded_metadata_fixture(
         )
 
         if immutable:
-            asa_metadata_registry_client.send.arc89_set_immutable(
+            set_immutable = asa_metadata_registry_client.new_group()
+            set_immutable.arc89_set_immutable(
                 args=Arc89SetImmutableArgs(asset_id=asset_id),
                 params=CommonAppCallParams(sender=asset_manager.address),
             )
+            if metadata_fixture_name == "maxed_metadata":
+                add_extra_resources(set_immutable, 5)
+            set_immutable.send()
 
         return AssetMetadata.from_box_value(
             asset_id,
