@@ -1,5 +1,7 @@
-from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import \
-    AsaMetadataRegistryClient, Arc89GetMetadataHeaderArgs
+from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
+    Arc89GetMetadataHeaderArgs,
+    AsaMetadataRegistryClient,
+)
 from tests.helpers.factories import AssetMetadata
 
 
