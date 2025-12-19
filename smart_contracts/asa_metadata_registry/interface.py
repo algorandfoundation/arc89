@@ -189,16 +189,6 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
     #     """
     #     pass
 
-    @abstractmethod
-    @arc4.abimethod(readonly=True)
-    def arc89_get_metadata_page_hash(
-        self,
-        *,
-        asset_id: Asset,
-        page: arc4.UInt8,
-    ) -> abi.Hash:
-        pass
-
     # @abstractmethod
     # @arc4.abimethod(readonly=True)
     # def arc89_get_metadata_slice(
@@ -234,6 +224,16 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
     #         Asset Metadata Header Hash
     #     """
     #     pass
+
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_page_hash(
+        self,
+        *,
+        asset_id: Asset,
+        page: arc4.UInt8,
+    ) -> abi.Hash:
+        pass
 
     # @abstractmethod
     # @arc4.abimethod(readonly=True)
