@@ -696,6 +696,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             )
 
         delta_amount = flat_mbr + const.BYTE_MBR * delta_size
+
         return abi.MbrDelta(sign=arc4.UInt8(sign), amount=arc4.UInt64(delta_amount))
 
     @arc4.abimethod(readonly=True)
@@ -735,6 +736,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
+
         return arc4.Bool(self._is_immutable(asset_id))
 
     @arc4.abimethod(readonly=True)
@@ -754,6 +756,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
+
         return abi.MutableFlag(
             flag=arc4.Bool(self._is_short(asset_id)),
             last_modified_round=arc4.UInt64(self._get_last_modified_round(asset_id)),
@@ -776,6 +779,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
+
         return abi.MetadataHeader(
             identifiers=arc4.Byte.from_bytes(self._get_metadata_identifiers(asset_id)),
             flags=arc4.Byte.from_bytes(self._get_metadata_flags(asset_id)),
@@ -799,6 +803,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
+
         return abi.Pagination(
             metadata_size=arc4.UInt16(self._get_metadata_size(asset_id)),
             page_size=arc4.UInt16(const.PAGE_SIZE),
@@ -822,6 +827,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
+
         return abi.Hash.from_bytes(self._compute_header_hash(asset_id))
 
     @arc4.abimethod(readonly=True)
