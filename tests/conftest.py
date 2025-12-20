@@ -250,6 +250,7 @@ def _create_uploaded_metadata_fixture(
 
     return uploaded_metadata
 
+
 # Mutable Metadata Fixtures
 mutable_empty_metadata = _create_uploaded_metadata_fixture("empty_metadata")
 mutable_short_metadata = _create_uploaded_metadata_fixture("short_metadata")
