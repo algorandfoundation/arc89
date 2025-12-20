@@ -8,6 +8,7 @@ ASSET_METADATA_EXIST = "Asset Metadata already exists for the specified ASA"
 ASSET_METADATA_NOT_EXIST = "Asset Metadata does not exist for the specified ASA"
 
 EXCEEDS_MAX_METADATA_SIZE = "Invalid Metadata size, exceeds maximum allowed size"
+EXCEEDS_PAGE_SIZE = "Payload exceeds page size"
 LARGER_METADATA_SIZE = (
     "Invalid Metadata size, must be smaller than or equal to the current size"
 )
@@ -17,9 +18,6 @@ METADATA_SIZE_MISMATCH = (
     "Metadata size mismatch, must be exactly equal to declared size"
 )
 METADATA_NOT_SHORT = "Metadata is not short"
-JSON_KEY_TYPE_INVALID = (
-    "Invalid JSON key type, must be 0 (String), 1 (UInt64), or 2 (Object)"
-)
 
 MBR_DELTA_RECEIVER_INVALID = (
     "Invalid MBR Delta receiver, must be the ASA Metadata Registry"
