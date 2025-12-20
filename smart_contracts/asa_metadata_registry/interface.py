@@ -42,25 +42,16 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
     ) -> abi.MbrDelta:
         pass
 
-    # @abstractmethod
-    # @arc4.abimethod
-    # def arc89_replace_metadata_slice(
-    #     self,
-    #     asset_id: Asset,
-    #     offset: arc4.UInt16,
-    #     size: arc4.UInt16,
-    #     payload: arc4.DynamicBytes,
-    # ) -> None:
-    #     """Replace a slice of the Asset Metadata for an ASA with a payload of the same size,
-    #     restricted to the ASA Manager Address.
-    #
-    #     Args:
-    #         asset_id: The Asset ID to replace the Asset Metadata slice for
-    #         offset: The 0-based byte offset within the Metadata
-    #         size: The slice bytes size to set
-    #         payload: The slice payload
-    #     """
-    #     pass
+    @abstractmethod
+    @arc4.abimethod
+    def arc89_replace_metadata_slice(
+        self,
+        *,
+        asset_id: Asset,
+        offset: arc4.UInt16,
+        payload: arc4.DynamicBytes,
+    ) -> None:
+        pass
 
     @abstractmethod
     @arc4.abimethod

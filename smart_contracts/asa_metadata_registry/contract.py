@@ -502,6 +502,38 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         )
 
     @arc4.abimethod
+    def arc89_replace_metadata_slice(
+        self,
+        *,
+        asset_id: Asset,
+        offset: arc4.UInt16,
+        payload: arc4.DynamicBytes,
+    ) -> None:
+        """
+        Replace a slice of the Asset Metadata for an ASA with a payload of the same size,
+        restricted to the ASA Manager Address.
+
+        Args:
+            asset_id: The Asset ID to replace the Asset Metadata slice for
+            offset: The 0-based byte offset within the Metadata (body) bytes
+            payload: The slice payload
+        """
+        # Preconditions
+        self._check_update_preconditions(asset_id, self._get_metadata_size(asset_id))
+        assert offset.as_uint64() + payload.native.length <= self._get_metadata_size(
+            asset_id
+        ), err.EXCEEDS_METADATA_SIZE
+
+        # Update Metadata Body
+        self.asset_metadata.box(asset_id).replace(
+            start_index=const.IDX_METADATA + offset.as_uint64(),
+            value=payload.native,
+        )
+
+        # Update Metadata Header
+        self._update_header_excluding_flags_and_emit(asset_id)
+
+    @arc4.abimethod
     def arc89_delete_metadata(
         self,
         *,
@@ -641,7 +673,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         Returns:
             Tuple of (HEADER_SIZE, MAX_METADATA_SIZE, SHORT_METADATA_SIZE, PAGE_SIZE,
-            FIRST_PAYLOAD_MAX_SIZE, EXTRA_PAYLOAD_MAX_SIZE, FLAT_MBR, BYTE_MBR)
+            FIRST_PAYLOAD_MAX_SIZE, EXTRA_PAYLOAD_MAX_SIZE, REPLACE_PAYLOAD_MAX_SIZE, FLAT_MBR, BYTE_MBR)
         """
         return abi.RegistryParameters(
             header_size=arc4.UInt16(const.METADATA_HEADER_SIZE),
@@ -650,6 +682,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             page_size=arc4.UInt16(const.PAGE_SIZE),
             first_payload_max_size=arc4.UInt16(const.FIRST_PAYLOAD_MAX_SIZE),
             extra_payload_max_size=arc4.UInt16(const.EXTRA_PAYLOAD_MAX_SIZE),
+            replace_payload_max_size=arc4.UInt16(const.REPLACE_PAYLOAD_MAX_SIZE),
             flat_mbr=arc4.UInt64(const.FLAT_MBR),
             byte_mbr=arc4.UInt64(const.BYTE_MBR),
         )
@@ -826,7 +859,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         Args:
             asset_id: The Asset ID to get the Asset Metadata slice for
-            offset: The 0-based byte offset within the Metadata
+            offset: The 0-based byte offset within the Metadata (body) bytes
             size: The slice bytes size to return
 
         Returns:
@@ -834,10 +867,10 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
+        assert size.as_uint64() <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
         assert offset.as_uint64() + size.as_uint64() <= self._get_metadata_size(
             asset_id
         ), err.EXCEEDS_METADATA_SIZE
-        assert size.as_uint64() <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
 
         metadata_slice = self.asset_metadata.box(asset_id).extract(
             start_index=const.IDX_METADATA + offset.as_uint64(), length=size.as_uint64()
