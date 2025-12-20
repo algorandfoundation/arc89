@@ -814,6 +814,37 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         )
 
     @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_slice(
+        self,
+        *,
+        asset_id: Asset,
+        offset: arc4.UInt16,
+        size: arc4.UInt16,
+    ) -> arc4.DynamicBytes:
+        """
+        Return a slice of the Asset Metadata for an ASA.
+
+        Args:
+            asset_id: The Asset ID to get the Asset Metadata slice for
+            offset: The 0-based byte offset within the Metadata
+            size: The slice bytes size to return
+
+        Returns:
+            Asset Metadata slice (size limited to PAGE_SIZE)
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        assert offset.as_uint64() + size.as_uint64() <= self._get_metadata_size(
+            asset_id
+        ), err.EXCEEDS_METADATA_SIZE
+        assert size.as_uint64() <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
+
+        metadata_slice = self.asset_metadata.box(asset_id).extract(
+            start_index=offset.as_uint64(), length=size.as_uint64()
+        )
+        return arc4.DynamicBytes.from_bytes(metadata_slice)
+
+    @arc4.abimethod(readonly=True)
     def arc89_get_metadata_header_hash(
         self,
         *,

@@ -189,25 +189,16 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
     #     """
     #     pass
 
-    # @abstractmethod
-    # @arc4.abimethod(readonly=True)
-    # def arc89_get_metadata_slice(
-    #     self,
-    #     asset_id: Asset,
-    #     offset: arc4.UInt16,
-    #     size: arc4.UInt16,
-    # ) -> arc4.DynamicBytes:
-    #     """Return a slice of the Asset Metadata for an ASA.
-    #
-    #     Args:
-    #         asset_id: The Asset ID to get the Asset Metadata slice for
-    #         offset: The 0-based byte offset within the Metadata
-    #         size: The slice bytes size to return
-    #
-    #     Returns:
-    #         Asset Metadata slice (size limited to PAGE_SIZE)
-    #     """
-    #     pass
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_slice(
+        self,
+        *,
+        asset_id: Asset,
+        offset: arc4.UInt16,
+        size: arc4.UInt16,
+    ) -> arc4.DynamicBytes:
+        pass
 
     @abstractmethod
     @arc4.abimethod(readonly=True)
