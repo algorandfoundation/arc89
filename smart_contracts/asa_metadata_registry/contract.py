@@ -847,6 +847,36 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         )
 
     @arc4.abimethod(readonly=True)
+    def arc89_get_metadata(
+        self,
+        *,
+        asset_id: Asset,
+        page: arc4.UInt8,
+    ) -> abi.PaginatedMetadata:
+        """
+        Return paginated Asset Metadata (without Header) for an ASA.
+
+        Args:
+            asset_id: The Asset ID to get the Asset Metadata for
+            page: The 0-based Metadata page number
+
+        Returns:
+            Tuple of (has next page, Metadata Last Modified Round, page content)
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        total_pages = self._get_total_pages(asset_id)
+        assert page.as_uint64() < total_pages, err.PAGE_IDX_INVALID
+
+        return abi.PaginatedMetadata(
+            has_next_page=arc4.Bool(page.as_uint64() < total_pages - 1),
+            last_modified_round=arc4.UInt64(self._get_last_modified_round(asset_id)),
+            page_content=arc4.DynamicBytes(
+                self._get_metadata_page(asset_id, page.as_uint64())
+            ),
+        )
+
+    @arc4.abimethod(readonly=True)
     def arc89_get_metadata_slice(
         self,
         *,
