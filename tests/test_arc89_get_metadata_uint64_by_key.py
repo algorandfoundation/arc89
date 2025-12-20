@@ -5,7 +5,7 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
 from tests.helpers.factories import AssetMetadata
 
 
-def test_get_string_value(
+def test_get_uint64_value(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     json_obj: dict,
     mutable_json_obj_metadata: AssetMetadata,
