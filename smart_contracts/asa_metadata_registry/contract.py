@@ -885,15 +885,15 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         key: arc4.String,
     ) -> arc4.String:
         """
-        Return the UTF-8 string value for a top-level JSON key from short Metadata for an ASA;
+        Return the UTF 8 string value for a top level JSON key from short Metadata for an ASA;
         errors if the key is not a string or does not exist
 
         Args:
             asset_id: The Asset ID to get the key value for
-            key: The top‑level JSON key whose string value to fetch
+            key: The top level JSON key whose string value to fetch
 
         Returns:
-            The string value from valid UTF‑8 JSON Metadata (size limited to PAGE_SIZE)
+            The string value from valid UTF 8 JSON Metadata (size limited to PAGE_SIZE)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
@@ -915,15 +915,15 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         key: arc4.String,
     ) -> arc4.UInt64:
         """
-        Return the uint64 value for a top-level JSON key from short Metadata for an ASA;
+        Return the uint64 value for a top level JSON key from short Metadata for an ASA;
         errors if the key is not an uint64 or does not exist
 
         Args:
             asset_id: The Asset ID to get the key value for
-            key: The top‑level JSON key whose uint64 value to fetch
+            key: The top level JSON key whose uint64 value to fetch
 
         Returns:
-            The uint64 value from valid UTF‑8 JSON Metadata
+            The uint64 value from valid UTF 8 JSON Metadata
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
@@ -942,15 +942,15 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         key: arc4.String,
     ) -> arc4.String:
         """
-        Return the UTF-8 object value for a top-level JSON key from short Metadata for an ASA;
+        Return the UTF 8 object value for a top level JSON key from short Metadata for an ASA;
         errors if the key is not an object or does not exist
 
         Args:
             asset_id: The Asset ID to get the key value for
-            key: The top‑level JSON key whose object value to fetch
+            key: The top level JSON key whose object value to fetch
 
         Returns:
-            The object value from valid UTF‑8 JSON Metadata (size limited to PAGE_SIZE)
+            The object value from valid UTF 8 JSON Metadata (size limited to PAGE_SIZE)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
