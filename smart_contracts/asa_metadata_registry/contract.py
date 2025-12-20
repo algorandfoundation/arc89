@@ -840,7 +840,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert size.as_uint64() <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
 
         metadata_slice = self.asset_metadata.box(asset_id).extract(
-            start_index=offset.as_uint64(), length=size.as_uint64()
+            start_index=const.IDX_METADATA + offset.as_uint64(), length=size.as_uint64()
         )
         return arc4.DynamicBytes.from_bytes(metadata_slice)
 
