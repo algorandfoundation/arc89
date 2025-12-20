@@ -667,7 +667,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         Args:
             asset_id: The Asset ID to calculate the Asset Metadata MBR Delta for
-            new_metadata_size: The new_Asset Metadata byte size
+            new_metadata_size: The new Asset Metadata byte size
 
         Returns:
             MBR Delta: tuple of (sign enum, amount in microALGO)
