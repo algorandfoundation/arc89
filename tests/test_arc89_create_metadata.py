@@ -14,6 +14,7 @@ from tests.helpers.utils import create_metadata
         "empty_metadata",
         "short_metadata",
         "maxed_metadata",
+        "json_obj_metadata",
     ],
 )
 def test_create_metadata(

@@ -13,9 +13,11 @@ from tests.helpers.factories import AssetMetadata
         "mutable_empty_metadata",
         "mutable_short_metadata",
         "mutable_maxed_metadata",
+        "mutable_json_obj_metadata",
         "immutable_empty_metadata",
         "immutable_short_metadata",
         "immutable_maxed_metadata",
+        "immutable_json_obj_metadata",
     ],
 )
 def test_get_metadata_header(
