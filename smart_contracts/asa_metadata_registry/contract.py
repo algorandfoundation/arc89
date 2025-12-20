@@ -878,43 +878,91 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         return abi.Hash.from_bytes(self._get_metadata_hash(asset_id))
 
     @arc4.abimethod(readonly=True)
-    def arc89_get_metadata_key_value(
+    def arc89_get_metadata_string_by_key(
         self,
         *,
         asset_id: Asset,
-        key: arc4.DynamicBytes,
-        key_type: arc4.UInt8,
-    ) -> arc4.DynamicBytes:
+        key: arc4.String,
+    ) -> arc4.String:
         """
-        Return the JSON Metadata key value for an ASA, if identified as short.
+        Return the UTF-8 string value for a top-level JSON key from short Metadata for an ASA;
+        errors if the key is not a string or does not exist
 
         Args:
             asset_id: The Asset ID to get the key value for
-            key: The key to fetch
-            key_type: The JSON key type (0: JSON String, 1: JSON Uint64, 2: JSON Object)
+            key: The top‑level JSON key whose string value to fetch
 
         Returns:
-            The key's value from valid UTF-8 encoded JSON Metadata (size limited to PAGE_SIZE)
+            The string value from valid UTF‑8 JSON Metadata (size limited to PAGE_SIZE)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
         assert self._is_short(asset_id), err.METADATA_NOT_SHORT
-        assert (
-            key_type.as_uint64() <= enums.JSON_KEY_TYPE_OBJECT
-        ), err.JSON_KEY_TYPE_INVALID
 
         obj = self._get_short_metadata(asset_id)
-        value = Bytes()
-        match key_type.as_uint64():
-            case enums.JSON_KEY_TYPE_STRING:
-                value = op.JsonRef.json_string(obj, key.native)
-            case enums.JSON_KEY_TYPE_UINT64:
-                value = op.itob(op.JsonRef.json_uint64(obj, key.native))
-            case enums.JSON_KEY_TYPE_OBJECT:
-                value = op.JsonRef.json_object(obj, key.native)
-            case _:  # Pedantic, privilege Pythonic readability over TEAL size
-                assert False, err.JSON_KEY_TYPE_INVALID  # noqa: B011
-        return arc4.DynamicBytes.from_bytes(value)
+        value = op.JsonRef.json_string(obj, key.native.bytes)
+
+        # Postconditions
+        assert value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
+
+        return arc4.String.from_bytes(value)
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_uint64_by_key(
+        self,
+        *,
+        asset_id: Asset,
+        key: arc4.String,
+    ) -> arc4.UInt64:
+        """
+        Return the uint64 value for a top-level JSON key from short Metadata for an ASA;
+        errors if the key is not an uint64 or does not exist
+
+        Args:
+            asset_id: The Asset ID to get the key value for
+            key: The top‑level JSON key whose uint64 value to fetch
+
+        Returns:
+            The uint64 value from valid UTF‑8 JSON Metadata
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        assert self._is_short(asset_id), err.METADATA_NOT_SHORT
+
+        obj = self._get_short_metadata(asset_id)
+        value = op.JsonRef.json_uint64(obj, key.native.bytes)
+
+        return arc4.UInt64(value)
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_object_by_key(
+        self,
+        *,
+        asset_id: Asset,
+        key: arc4.String,
+    ) -> arc4.String:
+        """
+        Return the UTF-8 object value for a top-level JSON key from short Metadata for an ASA;
+        errors if the key is not an object or does not exist
+
+        Args:
+            asset_id: The Asset ID to get the key value for
+            key: The top‑level JSON key whose object value to fetch
+
+        Returns:
+            The object value from valid UTF‑8 JSON Metadata (size limited to PAGE_SIZE)
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        assert self._is_short(asset_id), err.METADATA_NOT_SHORT
+
+        obj = self._get_short_metadata(asset_id)
+        value = op.JsonRef.json_object(obj, key.native.bytes)
+
+        # Postconditions
+        assert value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
+
+        return arc4.String.from_bytes(value)
 
     @arc4.abimethod
     def extra_resources(self) -> None:

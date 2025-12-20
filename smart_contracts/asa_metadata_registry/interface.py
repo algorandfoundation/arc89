@@ -239,11 +239,30 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
 
     @abstractmethod
     @arc4.abimethod(readonly=True)
-    def arc89_get_metadata_key_value(
+    def arc89_get_metadata_string_by_key(
         self,
         *,
         asset_id: Asset,
-        key: arc4.DynamicBytes,
-        key_type: arc4.UInt8,
-    ) -> arc4.DynamicBytes:
+        key: arc4.String,
+    ) -> arc4.String:
+        pass
+
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_uint64_by_key(
+        self,
+        *,
+        asset_id: Asset,
+        key: arc4.String,
+    ) -> arc4.UInt64:
+        pass
+
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_object_by_key(
+        self,
+        *,
+        asset_id: Asset,
+        key: arc4.String,
+    ) -> arc4.String:
         pass
