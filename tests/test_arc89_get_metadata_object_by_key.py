@@ -9,7 +9,7 @@ from smart_contracts.asa_metadata_registry import constants as const
 from tests.helpers.factories import AssetMetadata
 
 
-def test_get_string_value(
+def test_get_object_value(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     json_obj: dict,
     mutable_json_obj_metadata: AssetMetadata,
