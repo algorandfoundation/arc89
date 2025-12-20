@@ -23,7 +23,7 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
 from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.asa_metadata_registry.template_vars import TRUSTED_DEPLOYER
 
-from .helpers.factories import AssetMetadata, AVMJsonObj, create_arc3_metadata
+from .helpers.factories import AssetMetadata, create_arc3_metadata
 from .helpers.utils import add_extra_resources, create_metadata
 
 ACCOUNT_MBR: Final[int] = 100_000  # microALGO
@@ -90,8 +90,12 @@ def asa_metadata_registry_factory(
 
 
 @pytest.fixture(scope="session")
-def json_obj() -> AVMJsonObj:
-    return AVMJsonObj()
+def json_obj() -> dict:
+    return {
+        "name": "Silvio",
+        "answer": 42,
+        "date": {"day": 13, "month": 10, "year": 1954},
+    }
 
 
 @pytest.fixture(scope="function")
@@ -190,10 +194,10 @@ def oversized_metadata(arc_89_asa: int) -> AssetMetadata:
 
 
 @pytest.fixture(scope="function")
-def json_obj_metadata(arc_89_asa: int, json_obj: AVMJsonObj) -> AssetMetadata:
+def json_obj_metadata(arc_89_asa: int, json_obj: dict) -> AssetMetadata:
     metadata = AssetMetadata.create(
         asset_id=arc_89_asa,
-        metadata=json_obj.to_dict(),
+        metadata=json_obj,
     )
     assert metadata.validate_json()
     assert metadata.is_short
