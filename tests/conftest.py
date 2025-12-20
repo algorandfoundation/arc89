@@ -250,10 +250,13 @@ def _create_uploaded_metadata_fixture(
 
     return uploaded_metadata
 
-
+# Mutable Metadata Fixtures
 mutable_empty_metadata = _create_uploaded_metadata_fixture("empty_metadata")
 mutable_short_metadata = _create_uploaded_metadata_fixture("short_metadata")
 mutable_maxed_metadata = _create_uploaded_metadata_fixture("maxed_metadata")
+mutable_json_obj_metadata = _create_uploaded_metadata_fixture("json_obj_metadata")
+
+# Immutable Metadata Fixtures
 immutable_empty_metadata = _create_uploaded_metadata_fixture(
     "empty_metadata", immutable=True
 )
@@ -263,7 +266,6 @@ immutable_short_metadata = _create_uploaded_metadata_fixture(
 immutable_maxed_metadata = _create_uploaded_metadata_fixture(
     "maxed_metadata", immutable=True
 )
-mutable_json_obj_metadata = _create_uploaded_metadata_fixture("json_obj_metadata")
 immutable_json_obj_metadata = _create_uploaded_metadata_fixture(
     "json_obj_metadata", immutable=True
 )
