@@ -198,6 +198,11 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             start_index=const.IDX_METADATA + start, length=length
         )
 
+    def _get_short_metadata(self, asa: Asset) -> Bytes:
+        return self.asset_metadata.box(asa).extract(
+            start_index=const.IDX_METADATA, length=self._get_metadata_size(asa)
+        )
+
     def _identify_metadata(self, asa: Asset) -> None:
         metadata_size = self._get_metadata_size(asa)
         identifiers = op.setbit_bytes(
@@ -274,11 +279,12 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert not self._is_immutable(asa), err.IMMUTABLE
         assert self._is_asa_manager(asa), err.UNAUTHORIZED
 
-    def _update_header_and_emit_event(self, asa: Asset) -> None:
+    def _update_header_excluding_flags_and_emit(self, asa: Asset) -> None:
         self._identify_metadata(asa)
-        self._set_last_modified_round(asa, Global.round)
+        # ⚠️ The subroutine assumes that Metadata Flags have already been set
         metadata_hash = self._compute_metadata_hash(asa)
         self._set_metadata_hash(asa, metadata_hash)
+        self._set_last_modified_round(asa, Global.round)
         arc4.emit(
             abi.Arc89MetadataUpdated(
                 asset_id=arc4.UInt64(asa.id),
@@ -339,12 +345,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             size=UInt64(const.METADATA_HEADER_SIZE)
         )
 
-        # Set Metadata Header (without Metadata Hash, computed after payload upload)
-        self._set_metadata_flags(
-            asset_id,
-            trimmed_itob(uint=flags.as_uint64(), size=UInt64(const.BYTE_SIZE)),
-        )
-
         # Set Metadata Body
         if payload.native.length > 0:
             ensure_budget(required_budget=const.APP_CALL_OP_CODE_BUDGET)
@@ -366,6 +366,12 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
                 asa_url[: arc_89_uri.length] == arc_89_uri
             ), err.ASA_URL_INVALID_ARC89_URI
 
+        # Update Metadata Header
+        self._identify_metadata(asset_id)
+        self._set_metadata_flags(
+            asset_id,
+            trimmed_itob(uint=flags.as_uint64(), size=UInt64(const.BYTE_SIZE)),
+        )
         if asset_id.metadata_hash != Bytes(
             const.BYTES32_SIZE * b"\x00"
         ):  # Not empty metadata hash
@@ -373,10 +379,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             metadata_hash = asset_id.metadata_hash
         else:
             metadata_hash = self._compute_metadata_hash(asset_id)
-
-        # Update Metadata Header
-        self._identify_metadata(asset_id)
-        self._set_last_modified_round(asset_id, Global.round)
         self._set_metadata_hash(asset_id, metadata_hash)
         arc4.emit(
             abi.Arc89MetadataUpdated(
@@ -388,6 +390,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
                 hash=abi.Hash.from_bytes(metadata_hash),
             )
         )
+        self._set_last_modified_round(asset_id, Global.round)
 
         return abi.MbrDelta(
             sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
@@ -442,7 +445,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             ).submit()
 
         # Update Metadata Header
-        self._update_header_and_emit_event(asset_id)
+        self._update_header_excluding_flags_and_emit(asset_id)
 
         return abi.MbrDelta(sign=arc4.UInt8(sign), amount=arc4.UInt64(mbr_delta_amount))
 
@@ -492,7 +495,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         ), err.MBR_DELTA_AMOUNT_INVALID
 
         # Update Metadata Header
-        self._update_header_and_emit_event(asset_id)
+        self._update_header_excluding_flags_and_emit(asset_id)
 
         return abi.MbrDelta(
             sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
@@ -582,7 +585,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._set_flag(asset_id, flag.as_uint64(), value=value.native)
 
         # Update Metadata Header
-        self._update_header_and_emit_event(asset_id)
+        self._update_header_excluding_flags_and_emit(asset_id)
 
     @arc4.abimethod
     def arc89_set_irreversible_flag(
@@ -608,7 +611,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._set_flag(asset_id, flag.as_uint64(), value=True)
 
         # Update Metadata Header
-        self._update_header_and_emit_event(asset_id)
+        self._update_header_excluding_flags_and_emit(asset_id)
 
     @arc4.abimethod
     def arc89_set_immutable(
@@ -629,7 +632,75 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._set_flag(asset_id, UInt64(flg.FLG_IMMUTABLE), value=True)
 
         # Update Metadata Header
-        self._update_header_and_emit_event(asset_id)
+        self._update_header_excluding_flags_and_emit(asset_id)
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_registry_parameters(self) -> abi.RegistryParameters:
+        """
+        Return the ASA Metadata Registry parameters.
+
+        Returns:
+            Tuple of (HEADER_SIZE, MAX_METADATA_SIZE, SHORT_METADATA_SIZE, PAGE_SIZE,
+            FIRST_PAYLOAD_MAX_SIZE, EXTRA_PAYLOAD_MAX_SIZE, FLAT_MBR, BYTE_MBR)
+        """
+        return abi.RegistryParameters(
+            header_size=arc4.UInt16(const.METADATA_HEADER_SIZE),
+            max_metadata_size=arc4.UInt16(const.MAX_METADATA_SIZE),
+            short_metadata_size=arc4.UInt16(const.SHORT_METADATA_SIZE),
+            page_size=arc4.UInt16(const.PAGE_SIZE),
+            first_payload_max_size=arc4.UInt16(const.FIRST_PAYLOAD_MAX_SIZE),
+            extra_payload_max_size=arc4.UInt16(const.EXTRA_PAYLOAD_MAX_SIZE),
+            flat_mbr=arc4.UInt64(const.FLAT_MBR),
+            byte_mbr=arc4.UInt64(const.BYTE_MBR),
+        )
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_mbr_delta(
+        self,
+        *,
+        asset_id: Asset,
+        new_metadata_size: arc4.UInt16,
+    ) -> abi.MbrDelta:
+        """
+        Return the Asset Metadata Box MBR Delta for an ASA, given a new Asset Metadata byte size.
+        If the Asset Metadata Box does not exist, the creation MBR Delta is returned.
+
+        Args:
+            asset_id: The Asset ID to calculate the Asset Metadata MBR Delta for
+            new_metadata_size: The new Asset Metadata byte size
+
+        Returns:
+            MBR Delta: tuple of (sign enum, amount in microALGO)
+        """
+        # Preconditions
+        assert (
+            new_metadata_size.as_uint64() <= const.MAX_METADATA_SIZE
+        ), err.EXCEEDS_MAX_METADATA_SIZE
+
+        if self._metadata_exists(asset_id):
+            metadata_size = self._get_metadata_size(asset_id)
+            flat_mbr = UInt64(0)
+            if new_metadata_size.as_uint64() == metadata_size:
+                sign = UInt64(enums.MBR_DELTA_NULL)
+                delta_size = UInt64(0)
+            elif new_metadata_size.as_uint64() > metadata_size:
+                sign = UInt64(enums.MBR_DELTA_POS)
+                delta_size = new_metadata_size.as_uint64() - metadata_size
+            else:
+                sign = UInt64(enums.MBR_DELTA_NEG)
+                delta_size = metadata_size - new_metadata_size.as_uint64()
+        else:
+            flat_mbr = UInt64(const.FLAT_MBR)
+            sign = UInt64(enums.MBR_DELTA_POS)
+            delta_size = (
+                const.ASSET_METADATA_BOX_KEY_SIZE
+                + const.METADATA_HEADER_SIZE
+                + new_metadata_size.as_uint64()
+            )
+
+        delta_amount = flat_mbr + const.BYTE_MBR * delta_size
+
+        return abi.MbrDelta(sign=arc4.UInt8(sign), amount=arc4.UInt64(delta_amount))
 
     @arc4.abimethod(readonly=True)
     def arc89_check_metadata_exists(
@@ -652,6 +723,74 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         )
 
     @arc4.abimethod(readonly=True)
+    def arc89_is_metadata_immutable(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> arc4.Bool:
+        """
+        Return True if the Asset Metadata for an ASA is immutable, False otherwise.
+
+        Args:
+            asset_id: The Asset ID to check the Asset Metadata immutability for
+
+        Returns:
+            Asset Metadata for the ASA is immutable
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+
+        return arc4.Bool(self._is_immutable(asset_id))
+
+    @arc4.abimethod(readonly=True)
+    def arc89_is_metadata_short(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.MutableFlag:
+        """
+        Return True if Asset Metadata for an ASA is short (up to 4096 bytes), False otherwise.
+
+        Args:
+            asset_id: The Asset ID to check the Asset Metadata size classification for
+
+        Returns:
+            Tuple of (is short metadata, Metadata Last Modified Round)
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+
+        return abi.MutableFlag(
+            flag=arc4.Bool(self._is_short(asset_id)),
+            last_modified_round=arc4.UInt64(self._get_last_modified_round(asset_id)),
+        )
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_header(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.MetadataHeader:
+        """
+        Return the Asset Metadata Header for an ASA.
+
+        Args:
+            asset_id: The Asset ID to get the Asset Metadata Header for
+
+        Returns:
+            Asset Metadata Header: (Identifiers, Flags, Hash, Last Modified Round)
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+
+        return abi.MetadataHeader(
+            identifiers=arc4.Byte.from_bytes(self._get_metadata_identifiers(asset_id)),
+            flags=arc4.Byte.from_bytes(self._get_metadata_flags(asset_id)),
+            hash=abi.Hash.from_bytes(self._get_metadata_hash(asset_id)),
+            last_modified_round=arc4.UInt64(self._get_last_modified_round(asset_id)),
+        )
+
+    @arc4.abimethod(readonly=True)
     def arc89_get_metadata_pagination(
         self,
         *,
@@ -667,11 +806,194 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
+
         return abi.Pagination(
             metadata_size=arc4.UInt16(self._get_metadata_size(asset_id)),
             page_size=arc4.UInt16(const.PAGE_SIZE),
             total_pages=arc4.UInt8(self._get_total_pages(asset_id)),
         )
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_slice(
+        self,
+        *,
+        asset_id: Asset,
+        offset: arc4.UInt16,
+        size: arc4.UInt16,
+    ) -> arc4.DynamicBytes:
+        """
+        Return a slice of the Asset Metadata for an ASA.
+
+        Args:
+            asset_id: The Asset ID to get the Asset Metadata slice for
+            offset: The 0-based byte offset within the Metadata
+            size: The slice bytes size to return
+
+        Returns:
+            Asset Metadata slice (size limited to PAGE_SIZE)
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        assert offset.as_uint64() + size.as_uint64() <= self._get_metadata_size(
+            asset_id
+        ), err.EXCEEDS_METADATA_SIZE
+        assert size.as_uint64() <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
+
+        metadata_slice = self.asset_metadata.box(asset_id).extract(
+            start_index=const.IDX_METADATA + offset.as_uint64(), length=size.as_uint64()
+        )
+        return arc4.DynamicBytes.from_bytes(metadata_slice)
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_header_hash(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.Hash:
+        """
+        Return the Metadata Header Hash for an ASA.
+
+        Args:
+            asset_id: The Asset ID to get the Metadata Header Hash for
+
+        Returns:
+            Asset Metadata Header Hash
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+
+        return abi.Hash.from_bytes(self._compute_header_hash(asset_id))
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_page_hash(
+        self,
+        *,
+        asset_id: Asset,
+        page: arc4.UInt8,
+    ) -> abi.Hash:
+        """
+        Return the SHA512-256 of a Metadata page for an ASA.
+
+        Args:
+            asset_id: The Asset ID to get the Asset Metadata page hash for
+            page: The 0-based Metadata page number
+
+        Returns:
+            The SHA512-256 of the Metadata page
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+
+        page_content = self._get_metadata_page(asset_id, page.as_uint64())
+        page_hash = self._compute_page_hash(asset_id, page.as_uint64(), page_content)
+        return abi.Hash.from_bytes(page_hash)
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_hash(
+        self,
+        *,
+        asset_id: Asset,
+    ) -> abi.Hash:
+        """
+        Return the Metadata Hash for an ASA.
+
+        Args:
+            asset_id: The Asset ID to get the Metadata Hash for
+
+        Returns:
+            Asset Metadata Hash
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+
+        return abi.Hash.from_bytes(self._get_metadata_hash(asset_id))
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_string_by_key(
+        self,
+        *,
+        asset_id: Asset,
+        key: arc4.String,
+    ) -> arc4.String:
+        """
+        Return the UTF 8 string value for a top level JSON key from short Metadata for an ASA;
+        errors if the key is not a string or does not exist
+
+        Args:
+            asset_id: The Asset ID to get the key value for
+            key: The top level JSON key whose string value to fetch
+
+        Returns:
+            The string value from valid UTF 8 JSON Metadata (size limited to PAGE_SIZE)
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        assert self._is_short(asset_id), err.METADATA_NOT_SHORT
+
+        obj = self._get_short_metadata(asset_id)
+        value = op.JsonRef.json_string(obj, key.native.bytes)
+
+        # Postconditions
+        assert value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
+
+        return arc4.String.from_bytes(value)
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_uint64_by_key(
+        self,
+        *,
+        asset_id: Asset,
+        key: arc4.String,
+    ) -> arc4.UInt64:
+        """
+        Return the uint64 value for a top level JSON key from short Metadata for an ASA;
+        errors if the key is not an uint64 or does not exist
+
+        Args:
+            asset_id: The Asset ID to get the key value for
+            key: The top level JSON key whose uint64 value to fetch
+
+        Returns:
+            The uint64 value from valid UTF 8 JSON Metadata
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        assert self._is_short(asset_id), err.METADATA_NOT_SHORT
+
+        obj = self._get_short_metadata(asset_id)
+        value = op.JsonRef.json_uint64(obj, key.native.bytes)
+
+        return arc4.UInt64(value)
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_object_by_key(
+        self,
+        *,
+        asset_id: Asset,
+        key: arc4.String,
+    ) -> arc4.String:
+        """
+        Return the UTF 8 object value for a top level JSON key from short Metadata for an ASA;
+        errors if the key is not an object or does not exist
+
+        Args:
+            asset_id: The Asset ID to get the key value for
+            key: The top level JSON key whose object value to fetch
+
+        Returns:
+            The object value from valid UTF 8 JSON Metadata (size limited to PAGE_SIZE)
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        assert self._is_short(asset_id), err.METADATA_NOT_SHORT
+
+        obj = self._get_short_metadata(asset_id)
+        value = op.JsonRef.json_object(obj, key.native.bytes)
+
+        # Postconditions
+        assert value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
+
+        return arc4.String.from_bytes(value)
 
     @arc4.abimethod
     def extra_resources(self) -> None:

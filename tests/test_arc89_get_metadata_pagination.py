@@ -1,3 +1,5 @@
+import pytest
+
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
     Arc89GetMetadataPaginationArgs,
     AsaMetadataRegistryClient,
@@ -6,40 +8,35 @@ from smart_contracts.asa_metadata_registry import constants as const
 from tests.helpers.factories import AssetMetadata
 
 
-def test_arc89_empty_metadata_pagination(
-    asa_metadata_registry_client: AsaMetadataRegistryClient,
-    uploaded_empty_metadata: AssetMetadata,
+def _verify_metadata_pagination(
+    client: AsaMetadataRegistryClient,
+    metadata: AssetMetadata,
 ) -> None:
-    pagination = asa_metadata_registry_client.send.arc89_get_metadata_pagination(
-        args=Arc89GetMetadataPaginationArgs(asset_id=uploaded_empty_metadata.asset_id),
+    """Helper function to verify metadata pagination properties."""
+    pagination = client.send.arc89_get_metadata_pagination(
+        args=Arc89GetMetadataPaginationArgs(asset_id=metadata.asset_id),
     ).abi_return
-    assert pagination.metadata_size == uploaded_empty_metadata.size
+    assert pagination.metadata_size == metadata.size
     assert pagination.page_size == const.PAGE_SIZE
-    assert pagination.total_pages == uploaded_empty_metadata.total_pages
+    assert pagination.total_pages == metadata.total_pages
 
 
-def test_arc89_short_metadata_pagination(
+@pytest.mark.parametrize(
+    "metadata_fixture",
+    [
+        "mutable_empty_metadata",
+        "mutable_short_metadata",
+        "mutable_maxed_metadata",
+    ],
+)
+def test_arc89_metadata_pagination(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    uploaded_short_metadata: AssetMetadata,
+    metadata_fixture: str,
+    request: pytest.FixtureRequest,
 ) -> None:
-    pagination = asa_metadata_registry_client.send.arc89_get_metadata_pagination(
-        args=Arc89GetMetadataPaginationArgs(asset_id=uploaded_short_metadata.asset_id),
-    ).abi_return
-    assert pagination.metadata_size == uploaded_short_metadata.size
-    assert pagination.page_size == const.PAGE_SIZE
-    assert pagination.total_pages == uploaded_short_metadata.total_pages
-
-
-def test_arc89_maxed_metadata_pagination(
-    asa_metadata_registry_client: AsaMetadataRegistryClient,
-    uploaded_maxed_metadata: AssetMetadata,
-) -> None:
-    pagination = asa_metadata_registry_client.send.arc89_get_metadata_pagination(
-        args=Arc89GetMetadataPaginationArgs(asset_id=uploaded_maxed_metadata.asset_id),
-    ).abi_return
-    assert pagination.metadata_size == uploaded_maxed_metadata.size
-    assert pagination.page_size == const.PAGE_SIZE
-    assert pagination.total_pages == uploaded_maxed_metadata.total_pages
+    """Test pagination for different metadata sizes (empty, short, and maxed)."""
+    metadata: AssetMetadata = request.getfixturevalue(metadata_fixture)
+    _verify_metadata_pagination(asa_metadata_registry_client, metadata)
 
 
 # TODO: Test failing conditions

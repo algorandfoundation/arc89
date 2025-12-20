@@ -199,13 +199,13 @@ class AssetMetadata:
             32-byte header hash
         """
         domain = const.HASH_DOMAIN_HEADER
-        asset_id_bytes = self.asset_id.to_bytes(8, "big")
-        identifiers = self.identifiers.to_bytes(1, "big")
-        flags = self.flags.to_bytes(1, "big")
-        size = self.size.to_bytes(2, "big")
+        asset_id_bytes = self.asset_id.to_bytes(const.UINT64_SIZE, "big")
+        identifiers = self.identifiers.to_bytes(const.BYTE_SIZE, "big")
+        flags = self.flags.to_bytes(const.BYTE_SIZE, "big")
+        size = self.size.to_bytes(const.UINT16_SIZE, "big")
 
-        data = domain + asset_id_bytes + identifiers + flags + size
-        return hashlib.sha512(data).digest()[:32]
+        preimage = domain + asset_id_bytes + identifiers + flags + size
+        return hashlib.new("sha512_256", preimage).digest()
 
     def compute_page_hash(self, page_index: int) -> bytes:
         """
@@ -227,20 +227,20 @@ class AssetMetadata:
             )
 
         domain = const.HASH_DOMAIN_PAGE
-        asset_id_bytes = self.asset_id.to_bytes(8, "big")
-        page_index_byte = page_index.to_bytes(1, "big")
+        asset_id_bytes = self.asset_id.to_bytes(const.UINT64_SIZE, "big")
+        page_index_byte = page_index.to_bytes(const.UINT8_SIZE, "big")
 
         # Get page content
         start = page_index * const.PAGE_SIZE
         end = min(start + const.PAGE_SIZE, self.size)
         page_content = self.metadata_bytes[start:end]
         page_size = len(page_content)
-        page_size_bytes = page_size.to_bytes(2, "big")
+        page_size_bytes = page_size.to_bytes(const.UINT16_SIZE, "big")
 
-        data = (
+        preimage = (
             domain + asset_id_bytes + page_index_byte + page_size_bytes + page_content
         )
-        return hashlib.sha512(data).digest()[:32]
+        return hashlib.new("sha512_256", preimage).digest()
 
     def compute_metadata_hash(self) -> bytes:
         """
@@ -259,14 +259,14 @@ class AssetMetadata:
         hh = self.compute_header_hash()
 
         # Start with domain and header hash
-        data = domain + hh
+        preimage = domain + hh
 
         # Append all page hashes if pages exist
         for i in range(self.total_pages):
             ph = self.compute_page_hash(i)
-            data += ph
+            preimage += ph
 
-        return hashlib.sha512(data).digest()[:32]
+        return hashlib.new("sha512_256", preimage).digest()
 
     def update_metadata_hash(self) -> None:
         """Recompute and update the stored metadata hash."""
@@ -323,7 +323,9 @@ class AssetMetadata:
         def box_mbr(metadata_body_size: int) -> int:
             # FLAT_MBR + BYTE_MBR * (box_name_size + box_value_size)
             return const.FLAT_MBR + const.BYTE_MBR * (
-                const.UINT64_SIZE + const.METADATA_HEADER_SIZE + metadata_body_size
+                const.ASSET_METADATA_BOX_KEY_SIZE
+                + const.METADATA_HEADER_SIZE
+                + metadata_body_size
             )
 
         if delete:

@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import Final
 
 import pytest
@@ -6,6 +7,7 @@ from algokit_utils import (
     AlgorandClient,
     AppClientCompilationParams,
     AssetCreateParams,
+    CommonAppCallParams,
     OnSchemaBreak,
     OnUpdate,
     PaymentParams,
@@ -14,6 +16,7 @@ from algokit_utils import (
 from algokit_utils.config import config
 
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
+    Arc89SetImmutableArgs,
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )
@@ -21,7 +24,7 @@ from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.asa_metadata_registry.template_vars import TRUSTED_DEPLOYER
 
 from .helpers.factories import AssetMetadata, create_arc3_metadata
-from .helpers.utils import create_metadata
+from .helpers.utils import add_extra_resources, create_metadata
 
 ACCOUNT_MBR: Final[int] = 100_000  # microALGO
 
@@ -84,6 +87,15 @@ def asa_metadata_registry_factory(
         ),
         default_sender=deployer.address,
     )
+
+
+@pytest.fixture(scope="session")
+def json_obj() -> dict:
+    return {
+        "name": "Silvio",
+        "answer": 42,
+        "date": {"day": 13, "month": 10, "year": 1954},
+    }
 
 
 @pytest.fixture(scope="function")
@@ -181,47 +193,80 @@ def oversized_metadata(arc_89_asa: int) -> AssetMetadata:
     return metadata
 
 
+@pytest.fixture(scope="function")
+def json_obj_metadata(arc_89_asa: int, json_obj: dict) -> AssetMetadata:
+    metadata = AssetMetadata.create(
+        asset_id=arc_89_asa,
+        metadata=json_obj,
+    )
+    assert metadata.validate_json()
+    assert metadata.is_short
+    return metadata
+
+
 # Uploaded AssetMetadata fixtures
-@pytest.fixture(scope="function")
-def uploaded_empty_metadata(
-    asset_manager: SigningAccount,
-    asa_metadata_registry_client: AsaMetadataRegistryClient,
-    empty_metadata: AssetMetadata,
-) -> AssetMetadata:
-    create_metadata(
-        asset_manager=asset_manager,
-        asa_metadata_registry_client=asa_metadata_registry_client,
-        asset_id=empty_metadata.asset_id,
-        metadata=empty_metadata,
-    )
-    return empty_metadata
+def _create_uploaded_metadata_fixture(
+    metadata_fixture_name: str, *, immutable: bool = False
+) -> Callable[..., AssetMetadata]:
+    @pytest.fixture(scope="function")
+    def uploaded_metadata(
+        asset_manager: SigningAccount,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        request: pytest.FixtureRequest,
+    ) -> AssetMetadata:
+        metadata = request.getfixturevalue(metadata_fixture_name)
+        asset_id = metadata.asset_id
+        create_metadata(
+            asset_manager=asset_manager,
+            asa_metadata_registry_client=asa_metadata_registry_client,
+            asset_id=asset_id,
+            metadata=metadata,
+        )
+
+        if immutable:
+            set_immutable = asa_metadata_registry_client.new_group()
+            min_fee = (
+                asa_metadata_registry_client.algorand.get_suggested_params().min_fee
+            )
+            # Maxed metadata needs extra AVM resources to process
+            extra_resources = 6 if metadata_fixture_name == "maxed_metadata" else 0
+            set_immutable.arc89_set_immutable(
+                args=Arc89SetImmutableArgs(asset_id=asset_id),
+                params=CommonAppCallParams(
+                    sender=asset_manager.address,
+                    static_fee=AlgoAmount.from_micro_algo(
+                        (1 + extra_resources) * min_fee
+                    ),
+                ),
+            )
+            if extra_resources:
+                add_extra_resources(set_immutable, extra_resources)
+            set_immutable.send()
+
+        return AssetMetadata.from_box_value(
+            asset_id,
+            asa_metadata_registry_client.state.box.asset_metadata.get_value(asset_id),
+        )
+
+    return uploaded_metadata
 
 
-@pytest.fixture(scope="function")
-def uploaded_short_metadata(
-    asset_manager: SigningAccount,
-    asa_metadata_registry_client: AsaMetadataRegistryClient,
-    short_metadata: AssetMetadata,
-) -> AssetMetadata:
-    create_metadata(
-        asset_manager=asset_manager,
-        asa_metadata_registry_client=asa_metadata_registry_client,
-        asset_id=short_metadata.asset_id,
-        metadata=short_metadata,
-    )
-    return short_metadata
+# Mutable Metadata Fixtures
+mutable_empty_metadata = _create_uploaded_metadata_fixture("empty_metadata")
+mutable_short_metadata = _create_uploaded_metadata_fixture("short_metadata")
+mutable_maxed_metadata = _create_uploaded_metadata_fixture("maxed_metadata")
+mutable_json_obj_metadata = _create_uploaded_metadata_fixture("json_obj_metadata")
 
-
-@pytest.fixture(scope="function")
-def uploaded_maxed_metadata(
-    asset_manager: SigningAccount,
-    asa_metadata_registry_client: AsaMetadataRegistryClient,
-    maxed_metadata: AssetMetadata,
-) -> AssetMetadata:
-    create_metadata(
-        asset_manager=asset_manager,
-        asa_metadata_registry_client=asa_metadata_registry_client,
-        asset_id=maxed_metadata.asset_id,
-        metadata=maxed_metadata,
-    )
-    return maxed_metadata
+# Immutable Metadata Fixtures
+immutable_empty_metadata = _create_uploaded_metadata_fixture(
+    "empty_metadata", immutable=True
+)
+immutable_short_metadata = _create_uploaded_metadata_fixture(
+    "short_metadata", immutable=True
+)
+immutable_maxed_metadata = _create_uploaded_metadata_fixture(
+    "maxed_metadata", immutable=True
+)
+immutable_json_obj_metadata = _create_uploaded_metadata_fixture(
+    "json_obj_metadata", immutable=True
+)
