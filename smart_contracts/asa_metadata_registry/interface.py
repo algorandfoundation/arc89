@@ -42,25 +42,16 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
     ) -> abi.MbrDelta:
         pass
 
-    # @abstractmethod
-    # @arc4.abimethod
-    # def arc89_replace_metadata_slice(
-    #     self,
-    #     asset_id: Asset,
-    #     offset: arc4.UInt16,
-    #     size: arc4.UInt16,
-    #     payload: arc4.DynamicBytes,
-    # ) -> None:
-    #     """Replace a slice of the Asset Metadata for an ASA with a payload of the same size,
-    #     restricted to the ASA Manager Address.
-    #
-    #     Args:
-    #         asset_id: The Asset ID to replace the Asset Metadata slice for
-    #         offset: The 0-based byte offset within the Metadata
-    #         size: The slice bytes size to set
-    #         payload: The slice payload
-    #     """
-    #     pass
+    @abstractmethod
+    @arc4.abimethod
+    def arc89_replace_metadata_slice(
+        self,
+        *,
+        asset_id: Asset,
+        offset: arc4.UInt16,
+        payload: arc4.DynamicBytes,
+    ) -> None:
+        pass
 
     @abstractmethod
     @arc4.abimethod
@@ -171,23 +162,15 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
     ) -> abi.Pagination:
         pass
 
-    # @abstractmethod
-    # @arc4.abimethod(readonly=True)
-    # def arc89_get_metadata(
-    #     self,
-    #     asset_id: Asset,
-    #     page: arc4.UInt8,
-    # ) -> arc4.Tuple[arc4.Bool, arc4.UInt64, arc4.DynamicBytes]:
-    #     """Return paginated Asset Metadata (without Header) for an ASA.
-    #
-    #     Args:
-    #         asset_id: The Asset ID to get the Asset Metadata for
-    #         page: The 0-based Metadata page number
-    #
-    #     Returns:
-    #         Tuple of (has next page, Metadata Last Modified Round, paginated Asset Metadata)
-    #     """
-    #     pass
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata(
+        self,
+        *,
+        asset_id: Asset,
+        page: arc4.UInt8,
+    ) -> abi.PaginatedMetadata:
+        pass
 
     @abstractmethod
     @arc4.abimethod(readonly=True)

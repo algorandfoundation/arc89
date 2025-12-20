@@ -229,7 +229,7 @@ def _create_uploaded_metadata_fixture(
                 asa_metadata_registry_client.algorand.get_suggested_params().min_fee
             )
             # Maxed metadata needs extra AVM resources to process
-            extra_resources = 6 if metadata_fixture_name == "maxed_metadata" else 0
+            extra_resources = 6 if "maxed" in metadata_fixture_name else 0
             set_immutable.arc89_set_immutable(
                 args=Arc89SetImmutableArgs(asset_id=asset_id),
                 params=CommonAppCallParams(

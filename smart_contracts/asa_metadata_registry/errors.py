@@ -29,3 +29,4 @@ REQUIRES_IMMUTABLE = "Must be flagged as immutable"
 IMMUTABLE = "Metadata is immutable"
 
 FLAG_IDX_INVALID = "Invalid flag index"
+PAGE_IDX_INVALID = "Invalid page index"

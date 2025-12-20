@@ -51,6 +51,14 @@ class Pagination(arc4.Struct, kw_only=True):
     total_pages: arc4.UInt8
 
 
+class PaginatedMetadata(arc4.Struct, kw_only=True):
+    """Paginated Asset Metadata"""
+
+    has_next_page: arc4.Bool
+    last_modified_round: arc4.UInt64
+    page_content: arc4.DynamicBytes
+
+
 class RegistryParameters(arc4.Struct, kw_only=True):
     """ASA Metadata Registry Parameters"""
 
@@ -60,6 +68,7 @@ class RegistryParameters(arc4.Struct, kw_only=True):
     page_size: arc4.UInt16
     first_payload_max_size: arc4.UInt16
     extra_payload_max_size: arc4.UInt16
+    replace_payload_max_size: arc4.UInt16
     flat_mbr: arc4.UInt64
     byte_mbr: arc4.UInt64
 
