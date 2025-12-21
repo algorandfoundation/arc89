@@ -1,5 +1,4 @@
 from collections.abc import Callable
-from typing import Final
 
 import pytest
 from algokit_utils import (
@@ -25,8 +24,6 @@ from smart_contracts.asa_metadata_registry.template_vars import TRUSTED_DEPLOYER
 
 from .helpers.factories import AssetMetadata, create_arc3_metadata
 from .helpers.utils import add_extra_resources, create_metadata
-
-ACCOUNT_MBR: Final[int] = 100_000  # microALGO
 
 # Uncomment if you want to load network specific or generic .env file
 # @pytest.fixture(autouse=True, scope="session")
@@ -111,7 +108,7 @@ def asa_metadata_registry_client(
         params=PaymentParams(
             sender=deployer.address,
             receiver=client.app_address,
-            amount=AlgoAmount(micro_algo=ACCOUNT_MBR),
+            amount=AlgoAmount(micro_algo=const.ACCOUNT_MBR),
         )
     )
     return client
@@ -125,7 +122,6 @@ def arc_89_asa(
     arc89_uri = (
         const.URI_ARC_89_PREFIX.decode()
         + str(asa_metadata_registry_client.app_id)
-        + const.URI_ARC_89_SUFFIX.decode()
         + const.URI_ARC_89_SUFFIX.decode()
     )
     return asa_metadata_registry_client.algorand.send.asset_create(

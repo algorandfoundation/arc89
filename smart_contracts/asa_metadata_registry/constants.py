@@ -6,6 +6,7 @@ MAX_LOG_SIZE: Final[int] = 1024
 MAX_ARG_SIZE: Final[int] = 2048
 FLAT_MBR: Final[int] = 2500  # microALGO
 BYTE_MBR: Final[int] = 400  # microALGO
+ACCOUNT_MBR: Final[int] = 100_000  # microALGO
 APP_CALL_OP_CODE_BUDGET: Final[int] = 700  # microALGO
 
 # ABI Types Byte Sizes
