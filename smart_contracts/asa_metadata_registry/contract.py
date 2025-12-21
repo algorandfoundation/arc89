@@ -86,17 +86,17 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             const.BIT_RIGHTMOST_IDENTIFIER - flg.ID_SHORT,
         )
 
-    def _is_arc89(self, asa: Asset) -> bool:
+    def _get_flag_value(self, asa: Asset, flag: UInt64) -> bool:
         return op.getbit(
             self._get_metadata_flags(asa),
-            const.BIT_RIGHTMOST_FLAG - flg.FLG_ARC89_NATIVE,
+            const.BIT_RIGHTMOST_FLAG - flag,
         )
 
+    def _is_arc89(self, asa: Asset) -> bool:
+        return self._get_flag_value(asa, UInt64(flg.FLG_ARC89_NATIVE))
+
     def _is_immutable(self, asa: Asset) -> bool:
-        return op.getbit(
-            self._get_metadata_flags(asa),
-            const.BIT_RIGHTMOST_FLAG - flg.FLG_IMMUTABLE,
-        )
+        return self._get_flag_value(asa, UInt64(flg.FLG_IMMUTABLE))
 
     def _get_metadata_hash(self, asa: Asset) -> Bytes:
         return self.asset_metadata.box(asa).extract(
@@ -202,10 +202,14 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             start_index=const.IDX_METADATA + start, length=length
         )
 
-    def _get_short_metadata(self, asa: Asset) -> Bytes:
+    def _get_slice(self, asa: Asset, offset: UInt64, size: UInt64) -> Bytes:
         return self.asset_metadata.box(asa).extract(
-            start_index=const.IDX_METADATA, length=self._get_metadata_size(asa)
+            start_index=const.IDX_METADATA + offset, length=size
         )
+
+    def _get_short_metadata(self, asa: Asset) -> Bytes:
+        assert self._is_short(asa), err.METADATA_NOT_SHORT
+        return self._get_slice(asa, UInt64(0), self._get_metadata_size(asa))
 
     def _identify_metadata(self, asa: Asset) -> None:
         metadata_size = self._get_metadata_size(asa)
@@ -524,14 +528,19 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             asset_id
         ), err.EXCEEDS_METADATA_SIZE
 
-        # Update Metadata Body
-        self.asset_metadata.box(asset_id).replace(
-            start_index=const.IDX_METADATA + offset.as_uint64(),
-            value=payload.native,
+        # Handle Not Idempotent
+        existing_slice = self._get_slice(
+            asset_id, offset.as_uint64(), payload.native.length
         )
+        if payload.native != existing_slice:
+            # Update Metadata Body
+            self.asset_metadata.box(asset_id).replace(
+                start_index=const.IDX_METADATA + offset.as_uint64(),
+                value=payload.native,
+            )
 
-        # Update Metadata Header
-        self._update_header_excluding_flags_and_emit(asset_id)
+            # Update Metadata Header
+            self._update_header_excluding_flags_and_emit(asset_id)
 
     @arc4.abimethod
     def arc89_delete_metadata(
@@ -613,11 +622,14 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._check_set_flag_preconditions(asset_id)
         assert flag.as_uint64() <= flg.FLG_RESERVED_3, err.FLAG_IDX_INVALID
 
-        # Set Reversible Flag
-        self._set_flag(asset_id, flag.as_uint64(), value=value.native)
+        # Handle Not Idempotent
+        existing_value = self._get_flag_value(asset_id, flag.as_uint64())
+        if value.native != existing_value:
+            # Set Reversible Flag
+            self._set_flag(asset_id, flag.as_uint64(), value=value.native)
 
-        # Update Metadata Header
-        self._update_header_excluding_flags_and_emit(asset_id)
+            # Update Metadata Header
+            self._update_header_excluding_flags_and_emit(asset_id)
 
     @arc4.abimethod
     def arc89_set_irreversible_flag(
@@ -639,11 +651,14 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             flg.FLG_RESERVED_6 <= flag.as_uint64() <= flg.FLG_IMMUTABLE
         ), err.FLAG_IDX_INVALID
 
-        # Set Irreversible Flag
-        self._set_flag(asset_id, flag.as_uint64(), value=True)
+        # Handle Not Idempotent
+        existing_value = self._get_flag_value(asset_id, flag.as_uint64())
+        if not existing_value:
+            # Set Irreversible Flag
+            self._set_flag(asset_id, flag.as_uint64(), value=True)
 
-        # Update Metadata Header
-        self._update_header_excluding_flags_and_emit(asset_id)
+            # Update Metadata Header
+            self._update_header_excluding_flags_and_emit(asset_id)
 
     @arc4.abimethod
     def arc89_set_immutable(
@@ -994,7 +1009,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
-        assert self._is_short(asset_id), err.METADATA_NOT_SHORT
 
         obj = self._get_short_metadata(asset_id)
         value = op.JsonRef.json_string(obj, key.native.bytes)
@@ -1024,7 +1038,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
-        assert self._is_short(asset_id), err.METADATA_NOT_SHORT
 
         obj = self._get_short_metadata(asset_id)
         value = op.JsonRef.json_uint64(obj, key.native.bytes)
@@ -1051,7 +1064,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
-        assert self._is_short(asset_id), err.METADATA_NOT_SHORT
 
         obj = self._get_short_metadata(asset_id)
         value = op.JsonRef.json_object(obj, key.native.bytes)
