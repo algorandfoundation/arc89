@@ -948,6 +948,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
+        assert page < self._get_total_pages(asset_id), err.PAGE_IDX_INVALID
 
         page_content = self._get_metadata_page(asset_id, page.as_uint64())
         page_hash = self._compute_page_hash(asset_id, page.as_uint64(), page_content)
