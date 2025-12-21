@@ -4,7 +4,7 @@
     "../../asa_metadata_registry/contract.py",
     "../../avm_common.py"
   ],
-  "mappings": "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",
+  "mappings": "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",
   "op_pc_offset": 2,
   "pc_events": {
     "0": {
@@ -17361,6 +17361,16 @@
       ]
     },
     "2183": {
+      "op": "dup",
+      "defined_out": [
+        "encoded_value%0#0"
+      ],
+      "stack_out": [
+        "encoded_value%0#0",
+        "encoded_value%0#0"
+      ]
+    },
+    "2184": {
       "op": "pushint 42",
       "defined_out": [
         "42",
@@ -17368,95 +17378,110 @@
       ],
       "stack_out": [
         "encoded_value%0#0",
+        "encoded_value%0#0",
         "42"
       ]
     },
-    "2185": {
-      "op": "box_resize",
-      "stack_out": []
-    },
     "2186": {
+      "op": "box_resize",
+      "stack_out": [
+        "encoded_value%0#0"
+      ]
+    },
+    "2187": {
       "op": "frame_dig -3",
       "stack_out": [
+        "encoded_value%0#0",
         "asa#0 (copy)"
       ]
     },
-    "2188": {
+    "2189": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)",
+        "encoded_value%0#0",
         "payload#0 (copy)"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "asa#0 (copy)",
         "payload#0 (copy)"
       ]
     },
-    "2190": {
+    "2191": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._append_payload",
       "op": "callsub _append_payload",
-      "stack_out": []
+      "stack_out": [
+        "encoded_value%0#0"
+      ]
     },
-    "2193": {
+    "2194": {
       "op": "global GroupSize"
     },
-    "2195": {
+    "2196": {
       "op": "txn GroupIndex"
     },
-    "2197": {
+    "2198": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
+        "encoded_value%0#0",
         "group_index#0",
         "group_size#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "group_index#0",
         "1"
       ]
     },
-    "2198": {
+    "2199": {
       "op": "+",
       "defined_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ]
     },
-    "2199": {
+    "2200": {
       "block": "_set_metadata_payload_for_header@1",
       "stack_in": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ],
-      "op": "frame_dig 1",
+      "op": "frame_dig 2",
       "defined_out": [
         "idx#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "idx#0"
       ]
     },
-    "2201": {
-      "op": "frame_dig 0",
+    "2202": {
+      "op": "frame_dig 1",
       "defined_out": [
         "group_size#0",
         "idx#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "idx#0",
         "group_size#0"
       ]
     },
-    "2203": {
+    "2204": {
       "op": "<",
       "defined_out": [
         "continue_looping%0#0",
@@ -17464,27 +17489,30 @@
         "idx#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "continue_looping%0#0"
       ]
     },
-    "2204": {
+    "2205": {
       "op": "bz _set_metadata_payload_after_for@6",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ]
     },
-    "2207": {
-      "op": "frame_dig 1",
+    "2208": {
+      "op": "frame_dig 2",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "idx#0"
       ]
     },
-    "2209": {
+    "2210": {
       "op": "gtxns TypeEnum",
       "defined_out": [
         "group_size#0",
@@ -17492,12 +17520,13 @@
         "tmp%0#2"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "tmp%0#2"
       ]
     },
-    "2211": {
+    "2212": {
       "op": "pushint 6 // appl",
       "defined_out": [
         "appl",
@@ -17506,13 +17535,14 @@
         "tmp%0#2"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "tmp%0#2",
         "appl"
       ]
     },
-    "2213": {
+    "2214": {
       "op": "==",
       "defined_out": [
         "group_size#0",
@@ -17520,27 +17550,30 @@
         "tmp%1#1"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "tmp%1#1"
       ]
     },
-    "2214": {
-      "op": "bz _set_metadata_payload_bool_false@14",
+    "2215": {
+      "op": "bz _set_metadata_payload_bool_false@15",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ]
     },
-    "2217": {
-      "op": "frame_dig 1",
+    "2218": {
+      "op": "frame_dig 2",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "idx#0"
       ]
     },
-    "2219": {
+    "2220": {
       "op": "gtxns ApplicationID",
       "defined_out": [
         "group_size#0",
@@ -17548,12 +17581,13 @@
         "tmp%2#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "tmp%2#0"
       ]
     },
-    "2221": {
+    "2222": {
       "op": "global CurrentApplicationID",
       "defined_out": [
         "group_size#0",
@@ -17562,13 +17596,14 @@
         "tmp%3#1"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "tmp%2#0",
         "tmp%3#1"
       ]
     },
-    "2223": {
+    "2224": {
       "op": "==",
       "defined_out": [
         "group_size#0",
@@ -17576,27 +17611,30 @@
         "tmp%4#1"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "tmp%4#1"
       ]
     },
-    "2224": {
-      "op": "bz _set_metadata_payload_bool_false@14",
+    "2225": {
+      "op": "bz _set_metadata_payload_bool_false@15",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ]
     },
-    "2227": {
-      "op": "frame_dig 1",
+    "2228": {
+      "op": "frame_dig 2",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "idx#0"
       ]
     },
-    "2229": {
+    "2230": {
       "op": "gtxns OnCompletion",
       "defined_out": [
         "group_size#0",
@@ -17604,27 +17642,30 @@
         "tmp%5#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "tmp%5#0"
       ]
     },
-    "2231": {
-      "op": "bnz _set_metadata_payload_bool_false@14",
+    "2232": {
+      "op": "bnz _set_metadata_payload_bool_false@15",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ]
     },
-    "2234": {
-      "op": "frame_dig 1",
+    "2235": {
+      "op": "frame_dig 2",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "idx#0"
       ]
     },
-    "2236": {
+    "2237": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -17632,13 +17673,14 @@
         "idx#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "idx#0",
         "0"
       ]
     },
-    "2237": {
+    "2238": {
       "op": "gtxnsas ApplicationArgs",
       "defined_out": [
         "group_size#0",
@@ -17646,12 +17688,13 @@
         "tmp%7#1"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "tmp%7#1"
       ]
     },
-    "2239": {
+    "2240": {
       "op": "bytec_3 // method \"arc89_extra_payload(uint64,byte[])void\"",
       "defined_out": [
         "Method(arc89_extra_payload(uint64,byte[])void)",
@@ -17660,13 +17703,14 @@
         "tmp%7#1"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "tmp%7#1",
         "Method(arc89_extra_payload(uint64,byte[])void)"
       ]
     },
-    "2240": {
+    "2241": {
       "op": "==",
       "defined_out": [
         "group_size#0",
@@ -17674,34 +17718,116 @@
         "tmp%8#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "tmp%8#0"
       ]
     },
-    "2241": {
-      "op": "bz _set_metadata_payload_bool_false@14",
+    "2242": {
+      "op": "bz _set_metadata_payload_bool_false@15",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ]
     },
-    "2244": {
+    "2245": {
+      "op": "frame_dig 2",
+      "stack_out": [
+        "encoded_value%0#0",
+        "group_size#0",
+        "idx#0",
+        "idx#0"
+      ]
+    },
+    "2247": {
       "op": "intc_0 // 1",
       "defined_out": [
-        "and_result%0#0",
+        "1",
         "group_size#0",
         "idx#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
+        "group_size#0",
+        "idx#0",
+        "idx#0",
+        "1"
+      ]
+    },
+    "2248": {
+      "op": "gtxnsas ApplicationArgs",
+      "defined_out": [
+        "group_size#0",
+        "idx#0",
+        "tmp%9#1"
+      ],
+      "stack_out": [
+        "encoded_value%0#0",
+        "group_size#0",
+        "idx#0",
+        "tmp%9#1"
+      ]
+    },
+    "2250": {
+      "op": "frame_dig 0",
+      "defined_out": [
+        "encoded_value%0#0",
+        "group_size#0",
+        "idx#0",
+        "tmp%9#1"
+      ],
+      "stack_out": [
+        "encoded_value%0#0",
+        "group_size#0",
+        "idx#0",
+        "tmp%9#1",
+        "encoded_value%0#0"
+      ]
+    },
+    "2252": {
+      "op": "==",
+      "defined_out": [
+        "encoded_value%0#0",
+        "group_size#0",
+        "idx#0",
+        "tmp%11#0"
+      ],
+      "stack_out": [
+        "encoded_value%0#0",
+        "group_size#0",
+        "idx#0",
+        "tmp%11#0"
+      ]
+    },
+    "2253": {
+      "op": "bz _set_metadata_payload_bool_false@15",
+      "stack_out": [
+        "encoded_value%0#0",
+        "group_size#0",
+        "idx#0"
+      ]
+    },
+    "2256": {
+      "op": "intc_0 // 1",
+      "defined_out": [
+        "and_result%0#0",
+        "encoded_value%0#0",
+        "group_size#0",
+        "idx#0"
+      ],
+      "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "and_result%0#0"
       ]
     },
-    "2245": {
-      "block": "_set_metadata_payload_bool_merge@15",
+    "2257": {
+      "block": "_set_metadata_payload_bool_merge@16",
       "stack_in": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "and_result%0#0"
@@ -17709,59 +17835,64 @@
       "op": "bz _set_metadata_payload_after_if_else@4",
       "defined_out": [],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ]
     },
-    "2248": {
-      "op": "frame_dig 1",
+    "2260": {
+      "op": "frame_dig 2",
       "defined_out": [
         "idx#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "idx#0"
       ]
     },
-    "2250": {
+    "2262": {
       "op": "intc_3 // 2",
       "defined_out": [
         "2",
         "idx#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "idx#0",
         "2"
       ]
     },
-    "2251": {
+    "2263": {
       "op": "gtxnsas ApplicationArgs",
       "defined_out": [
         "idx#0",
         "reinterpret_Encoded(len+uint8[])%0#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "reinterpret_Encoded(len+uint8[])%0#0"
       ]
     },
-    "2253": {
+    "2265": {
       "op": "extract 2 0",
       "defined_out": [
         "extra_payload#0",
         "idx#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "extra_payload#0"
       ]
     },
-    "2256": {
+    "2268": {
       "op": "frame_dig -3",
       "defined_out": [
         "asa#0 (copy)",
@@ -17769,13 +17900,14 @@
         "idx#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "extra_payload#0",
         "asa#0 (copy)"
       ]
     },
-    "2258": {
+    "2270": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -17784,13 +17916,14 @@
         "tmp%5#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "extra_payload#0",
         "tmp%5#0"
       ]
     },
-    "2261": {
+    "2273": {
       "op": "dig 1",
       "defined_out": [
         "extra_payload#0",
@@ -17799,6 +17932,7 @@
         "tmp%5#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "extra_payload#0",
@@ -17806,7 +17940,7 @@
         "extra_payload#0 (copy)"
       ]
     },
-    "2263": {
+    "2275": {
       "op": "len",
       "defined_out": [
         "extra_payload#0",
@@ -17815,6 +17949,7 @@
         "tmp%6#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "extra_payload#0",
@@ -17822,7 +17957,7 @@
         "tmp%6#0"
       ]
     },
-    "2264": {
+    "2276": {
       "op": "+",
       "defined_out": [
         "extra_payload#0",
@@ -17830,13 +17965,14 @@
         "tmp%7#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "extra_payload#0",
         "tmp%7#0"
       ]
     },
-    "2265": {
+    "2277": {
       "op": "frame_dig -2",
       "defined_out": [
         "extra_payload#0",
@@ -17845,6 +17981,7 @@
         "tmp%7#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "extra_payload#0",
@@ -17852,7 +17989,7 @@
         "metadata_size#0 (copy)"
       ]
     },
-    "2267": {
+    "2279": {
       "op": "<=",
       "defined_out": [
         "extra_payload#0",
@@ -17860,100 +17997,111 @@
         "tmp%8#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "extra_payload#0",
         "tmp%8#0"
       ]
     },
-    "2268": {
+    "2280": {
       "error": "Payload overflow, exceeds metadata size",
       "op": "assert // Payload overflow, exceeds metadata size",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "extra_payload#0"
       ]
     },
-    "2269": {
+    "2281": {
       "op": "frame_dig -3",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "extra_payload#0",
         "asa#0 (copy)"
       ]
     },
-    "2271": {
+    "2283": {
       "op": "swap",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "asa#0 (copy)",
         "extra_payload#0"
       ]
     },
-    "2272": {
+    "2284": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._append_payload",
       "op": "callsub _append_payload",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ]
     },
-    "2275": {
+    "2287": {
       "block": "_set_metadata_payload_after_if_else@4",
       "stack_in": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ],
-      "op": "frame_dig 1",
+      "op": "frame_dig 2",
       "defined_out": [
         "idx#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "idx#0"
       ]
     },
-    "2277": {
+    "2289": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
         "idx#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "idx#0",
         "1"
       ]
     },
-    "2278": {
+    "2290": {
       "op": "+",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "idx#0"
       ]
     },
-    "2279": {
-      "op": "frame_bury 1",
+    "2291": {
+      "op": "frame_bury 2",
       "defined_out": [
         "idx#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ]
     },
-    "2281": {
+    "2293": {
       "op": "b _set_metadata_payload_for_header@1"
     },
-    "2284": {
-      "block": "_set_metadata_payload_bool_false@14",
+    "2296": {
+      "block": "_set_metadata_payload_bool_false@15",
       "stack_in": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ],
@@ -17962,17 +18110,19 @@
         "and_result%0#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "and_result%0#0"
       ]
     },
-    "2285": {
-      "op": "b _set_metadata_payload_bool_merge@15"
+    "2297": {
+      "op": "b _set_metadata_payload_bool_merge@16"
     },
-    "2288": {
+    "2300": {
       "block": "_set_metadata_payload_after_for@6",
       "stack_in": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ],
@@ -17981,60 +18131,65 @@
         "asa#0 (copy)"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "asa#0 (copy)"
       ]
     },
-    "2290": {
+    "2302": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
         "tmp%9#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "tmp%9#0"
       ]
     },
-    "2293": {
+    "2305": {
       "op": "frame_dig -2",
       "defined_out": [
         "metadata_size#0 (copy)",
         "tmp%9#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "tmp%9#0",
         "metadata_size#0 (copy)"
       ]
     },
-    "2295": {
+    "2307": {
       "op": "==",
       "defined_out": [
         "tmp%10#0"
       ],
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0",
         "tmp%10#0"
       ]
     },
-    "2296": {
+    "2308": {
       "error": "Metadata size mismatch, must be exactly equal to declared size",
       "op": "assert // Metadata size mismatch, must be exactly equal to declared size",
       "stack_out": [
+        "encoded_value%0#0",
         "group_size#0",
         "idx#0"
       ]
     },
-    "2297": {
+    "2309": {
       "retsub": true,
       "op": "retsub"
     },
-    "2298": {
+    "2310": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_page",
       "params": {
         "asa#0": "uint64",
@@ -18044,7 +18199,7 @@
       "stack_in": [],
       "op": "proto 2 1"
     },
-    "2301": {
+    "2313": {
       "op": "frame_dig -2",
       "defined_out": [
         "asa#0 (copy)"
@@ -18053,7 +18208,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2303": {
+    "2315": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -18063,7 +18218,7 @@
         "n#0"
       ]
     },
-    "2306": {
+    "2318": {
       "op": "dup",
       "defined_out": [
         "n#0"
@@ -18073,7 +18228,7 @@
         "n#0"
       ]
     },
-    "2307": {
+    "2319": {
       "op": "frame_dig -1",
       "defined_out": [
         "n#0",
@@ -18085,7 +18240,7 @@
         "page_index#0 (copy)"
       ]
     },
-    "2309": {
+    "2321": {
       "op": "intc 4 // 1007",
       "defined_out": [
         "1007",
@@ -18099,7 +18254,7 @@
         "1007"
       ]
     },
-    "2311": {
+    "2323": {
       "op": "*",
       "defined_out": [
         "n#0",
@@ -18111,10 +18266,10 @@
         "start#0"
       ]
     },
-    "2312": {
+    "2324": {
       "op": "dup"
     },
-    "2313": {
+    "2325": {
       "op": "uncover 2",
       "defined_out": [
         "n#0",
@@ -18127,7 +18282,7 @@
         "n#0"
       ]
     },
-    "2315": {
+    "2327": {
       "op": ">=",
       "defined_out": [
         "n#0",
@@ -18140,14 +18295,14 @@
         "tmp%2#0"
       ]
     },
-    "2316": {
+    "2328": {
       "op": "bz _get_metadata_page_after_if_else@2",
       "stack_out": [
         "n#0",
         "start#0"
       ]
     },
-    "2319": {
+    "2331": {
       "op": "bytec_1 // 0x",
       "defined_out": [
         "0x",
@@ -18160,14 +18315,14 @@
         "0x"
       ]
     },
-    "2320": {
+    "2332": {
       "op": "frame_bury 0"
     },
-    "2322": {
+    "2334": {
       "retsub": true,
       "op": "retsub"
     },
-    "2323": {
+    "2335": {
       "block": "_get_metadata_page_after_if_else@2",
       "stack_in": [
         "n#0",
@@ -18183,7 +18338,7 @@
         "n#0"
       ]
     },
-    "2325": {
+    "2337": {
       "op": "frame_dig 1",
       "defined_out": [
         "n#0",
@@ -18196,7 +18351,7 @@
         "start#0"
       ]
     },
-    "2327": {
+    "2339": {
       "op": "dup",
       "defined_out": [
         "n#0",
@@ -18211,7 +18366,7 @@
         "start#0 (copy)"
       ]
     },
-    "2328": {
+    "2340": {
       "op": "cover 2",
       "stack_out": [
         "n#0",
@@ -18221,7 +18376,7 @@
         "start#0 (copy)"
       ]
     },
-    "2330": {
+    "2342": {
       "op": "-",
       "defined_out": [
         "n#0",
@@ -18235,7 +18390,7 @@
         "remaining#0"
       ]
     },
-    "2331": {
+    "2343": {
       "op": "intc 4 // 1007",
       "defined_out": [
         "1007",
@@ -18251,7 +18406,7 @@
         "1007"
       ]
     },
-    "2333": {
+    "2345": {
       "op": "dig 1",
       "defined_out": [
         "1007",
@@ -18269,7 +18424,7 @@
         "remaining#0 (copy)"
       ]
     },
-    "2335": {
+    "2347": {
       "op": "<",
       "defined_out": [
         "n#0",
@@ -18285,10 +18440,10 @@
         "tmp%0#1"
       ]
     },
-    "2336": {
+    "2348": {
       "op": "intc 4 // 1007"
     },
-    "2338": {
+    "2350": {
       "op": "swap",
       "stack_out": [
         "n#0",
@@ -18299,7 +18454,7 @@
         "tmp%0#1"
       ]
     },
-    "2339": {
+    "2351": {
       "op": "select",
       "defined_out": [
         "length#0",
@@ -18313,7 +18468,7 @@
         "length#0"
       ]
     },
-    "2340": {
+    "2352": {
       "op": "frame_dig -2",
       "defined_out": [
         "asa#0 (copy)",
@@ -18329,7 +18484,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2342": {
+    "2354": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0",
@@ -18345,7 +18500,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2343": {
+    "2355": {
       "op": "pushint 42",
       "defined_out": [
         "42",
@@ -18363,7 +18518,7 @@
         "42"
       ]
     },
-    "2345": {
+    "2357": {
       "op": "uncover 3",
       "stack_out": [
         "n#0",
@@ -18374,7 +18529,7 @@
         "start#0"
       ]
     },
-    "2347": {
+    "2359": {
       "op": "+",
       "defined_out": [
         "encoded_value%0#0",
@@ -18391,7 +18546,7 @@
         "tmp%5#0"
       ]
     },
-    "2348": {
+    "2360": {
       "op": "uncover 2",
       "stack_out": [
         "n#0",
@@ -18401,7 +18556,7 @@
         "length#0"
       ]
     },
-    "2350": {
+    "2362": {
       "op": "box_extract",
       "defined_out": [
         "n#0",
@@ -18414,14 +18569,14 @@
         "tmp%6#0"
       ]
     },
-    "2351": {
+    "2363": {
       "op": "frame_bury 0"
     },
-    "2353": {
+    "2365": {
       "retsub": true,
       "op": "retsub"
     },
-    "2354": {
+    "2366": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._identify_metadata",
       "params": {
         "asa#0": "uint64"
@@ -18430,7 +18585,7 @@
       "stack_in": [],
       "op": "proto 1 0"
     },
-    "2357": {
+    "2369": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)"
@@ -18439,7 +18594,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2359": {
+    "2371": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -18449,14 +18604,14 @@
         "metadata_size#0"
       ]
     },
-    "2362": {
+    "2374": {
       "op": "frame_dig -1",
       "stack_out": [
         "metadata_size#0",
         "asa#0 (copy)"
       ]
     },
-    "2364": {
+    "2376": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#1",
@@ -18467,7 +18622,7 @@
         "encoded_value%0#1"
       ]
     },
-    "2365": {
+    "2377": {
       "op": "dup",
       "defined_out": [
         "encoded_value%0#1",
@@ -18480,7 +18635,7 @@
         "encoded_value%0#1 (copy)"
       ]
     },
-    "2366": {
+    "2378": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -18495,7 +18650,7 @@
         "0"
       ]
     },
-    "2367": {
+    "2379": {
       "op": "intc_0 // 1",
       "defined_out": [
         "0",
@@ -18512,7 +18667,7 @@
         "1"
       ]
     },
-    "2368": {
+    "2380": {
       "op": "box_extract",
       "defined_out": [
         "encoded_value%0#1",
@@ -18525,7 +18680,7 @@
         "tmp%0#2"
       ]
     },
-    "2369": {
+    "2381": {
       "op": "uncover 2",
       "stack_out": [
         "encoded_value%0#1",
@@ -18533,7 +18688,7 @@
         "metadata_size#0"
       ]
     },
-    "2371": {
+    "2383": {
       "op": "pushint 4096",
       "defined_out": [
         "4096",
@@ -18548,7 +18703,7 @@
         "4096"
       ]
     },
-    "2374": {
+    "2386": {
       "op": "<=",
       "defined_out": [
         "encoded_value%0#1",
@@ -18561,10 +18716,10 @@
         "tmp%0#1"
       ]
     },
-    "2375": {
+    "2387": {
       "op": "intc_1 // 0"
     },
-    "2376": {
+    "2388": {
       "op": "swap",
       "stack_out": [
         "encoded_value%0#1",
@@ -18573,7 +18728,7 @@
         "tmp%0#1"
       ]
     },
-    "2377": {
+    "2389": {
       "op": "setbit",
       "defined_out": [
         "encoded_value%0#1",
@@ -18584,10 +18739,10 @@
         "identifiers#0"
       ]
     },
-    "2378": {
+    "2390": {
       "op": "intc_1 // 0"
     },
-    "2379": {
+    "2391": {
       "op": "swap",
       "stack_out": [
         "encoded_value%0#1",
@@ -18595,15 +18750,15 @@
         "identifiers#0"
       ]
     },
-    "2380": {
+    "2392": {
       "op": "box_replace",
       "stack_out": []
     },
-    "2381": {
+    "2393": {
       "retsub": true,
       "op": "retsub"
     },
-    "2382": {
+    "2394": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._compute_header_hash",
       "params": {
         "asa#0": "uint64"
@@ -18612,7 +18767,7 @@
       "stack_in": [],
       "op": "proto 1 1"
     },
-    "2385": {
+    "2397": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)"
@@ -18621,7 +18776,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2387": {
+    "2399": {
       "op": "itob",
       "defined_out": [
         "asset_id#0"
@@ -18630,7 +18785,7 @@
         "asset_id#0"
       ]
     },
-    "2388": {
+    "2400": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -18641,7 +18796,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "2389": {
+    "2401": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -18654,7 +18809,7 @@
         "0"
       ]
     },
-    "2390": {
+    "2402": {
       "op": "intc_0 // 1",
       "defined_out": [
         "0",
@@ -18669,7 +18824,7 @@
         "1"
       ]
     },
-    "2391": {
+    "2403": {
       "op": "box_extract",
       "defined_out": [
         "asset_id#0",
@@ -18680,7 +18835,7 @@
         "metadata_identifiers#0"
       ]
     },
-    "2392": {
+    "2404": {
       "op": "dig 1",
       "stack_out": [
         "asset_id#0",
@@ -18688,7 +18843,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "2394": {
+    "2406": {
       "op": "intc_0 // 1",
       "stack_out": [
         "asset_id#0",
@@ -18697,7 +18852,7 @@
         "1"
       ]
     },
-    "2395": {
+    "2407": {
       "op": "dup",
       "stack_out": [
         "asset_id#0",
@@ -18707,7 +18862,7 @@
         "1"
       ]
     },
-    "2396": {
+    "2408": {
       "op": "box_extract",
       "defined_out": [
         "asset_id#0",
@@ -18720,7 +18875,7 @@
         "metadata_flags#0"
       ]
     },
-    "2397": {
+    "2409": {
       "op": "frame_dig -1",
       "stack_out": [
         "asset_id#0",
@@ -18729,7 +18884,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2399": {
+    "2411": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -18745,7 +18900,7 @@
         "uint#0"
       ]
     },
-    "2402": {
+    "2414": {
       "op": "itob",
       "defined_out": [
         "asset_id#0",
@@ -18760,7 +18915,7 @@
         "tmp%1#0"
       ]
     },
-    "2403": {
+    "2415": {
       "op": "extract 6 2",
       "defined_out": [
         "asset_id#0",
@@ -18775,7 +18930,7 @@
         "metadata_size#0"
       ]
     },
-    "2406": {
+    "2418": {
       "op": "pushbytes 0x617263303038392f686561646572",
       "defined_out": [
         "0x617263303038392f686561646572",
@@ -18792,7 +18947,7 @@
         "0x617263303038392f686561646572"
       ]
     },
-    "2422": {
+    "2434": {
       "op": "uncover 4",
       "stack_out": [
         "metadata_identifiers#0",
@@ -18802,7 +18957,7 @@
         "asset_id#0"
       ]
     },
-    "2424": {
+    "2436": {
       "op": "concat",
       "defined_out": [
         "metadata_flags#0",
@@ -18817,7 +18972,7 @@
         "tmp%5#0"
       ]
     },
-    "2425": {
+    "2437": {
       "op": "uncover 3",
       "stack_out": [
         "metadata_flags#0",
@@ -18826,7 +18981,7 @@
         "metadata_identifiers#0"
       ]
     },
-    "2427": {
+    "2439": {
       "op": "concat",
       "defined_out": [
         "metadata_flags#0",
@@ -18839,7 +18994,7 @@
         "tmp%6#0"
       ]
     },
-    "2428": {
+    "2440": {
       "op": "uncover 2",
       "stack_out": [
         "metadata_size#0",
@@ -18847,7 +19002,7 @@
         "metadata_flags#0"
       ]
     },
-    "2430": {
+    "2442": {
       "op": "concat",
       "defined_out": [
         "metadata_size#0",
@@ -18858,14 +19013,14 @@
         "tmp%7#0"
       ]
     },
-    "2431": {
+    "2443": {
       "op": "swap",
       "stack_out": [
         "tmp%7#0",
         "metadata_size#0"
       ]
     },
-    "2432": {
+    "2444": {
       "op": "concat",
       "defined_out": [
         "tmp%8#0"
@@ -18874,7 +19029,7 @@
         "tmp%8#0"
       ]
     },
-    "2433": {
+    "2445": {
       "op": "sha512_256",
       "defined_out": [
         "tmp%9#0"
@@ -18883,11 +19038,11 @@
         "tmp%9#0"
       ]
     },
-    "2434": {
+    "2446": {
       "retsub": true,
       "op": "retsub"
     },
-    "2435": {
+    "2447": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._compute_page_hash",
       "params": {
         "asa#0": "uint64",
@@ -18898,7 +19053,7 @@
       "stack_in": [],
       "op": "proto 3 1"
     },
-    "2438": {
+    "2450": {
       "op": "frame_dig -3",
       "defined_out": [
         "asa#0 (copy)"
@@ -18907,7 +19062,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2440": {
+    "2452": {
       "op": "itob",
       "defined_out": [
         "asset_id#0"
@@ -18916,7 +19071,7 @@
         "asset_id#0"
       ]
     },
-    "2441": {
+    "2453": {
       "op": "frame_dig -2",
       "defined_out": [
         "asset_id#0",
@@ -18927,7 +19082,7 @@
         "page_index#0 (copy)"
       ]
     },
-    "2443": {
+    "2455": {
       "op": "itob",
       "defined_out": [
         "asset_id#0",
@@ -18938,7 +19093,7 @@
         "tmp%1#0"
       ]
     },
-    "2444": {
+    "2456": {
       "op": "extract 7 1",
       "defined_out": [
         "asset_id#0",
@@ -18949,7 +19104,7 @@
         "page_idx#0"
       ]
     },
-    "2447": {
+    "2459": {
       "op": "frame_dig -1",
       "defined_out": [
         "asset_id#0",
@@ -18962,7 +19117,7 @@
         "page_content#0 (copy)"
       ]
     },
-    "2449": {
+    "2461": {
       "op": "len",
       "defined_out": [
         "asset_id#0",
@@ -18975,7 +19130,7 @@
         "uint#1"
       ]
     },
-    "2450": {
+    "2462": {
       "op": "itob",
       "stack_out": [
         "asset_id#0",
@@ -18983,7 +19138,7 @@
         "tmp%1#0"
       ]
     },
-    "2451": {
+    "2463": {
       "op": "extract 6 2",
       "defined_out": [
         "asset_id#0",
@@ -18996,7 +19151,7 @@
         "page_size#0"
       ]
     },
-    "2454": {
+    "2466": {
       "op": "pushbytes 0x617263303038392f70616765",
       "defined_out": [
         "0x617263303038392f70616765",
@@ -19011,7 +19166,7 @@
         "0x617263303038392f70616765"
       ]
     },
-    "2468": {
+    "2480": {
       "op": "uncover 3",
       "stack_out": [
         "page_idx#0",
@@ -19020,7 +19175,7 @@
         "asset_id#0"
       ]
     },
-    "2470": {
+    "2482": {
       "op": "concat",
       "defined_out": [
         "page_idx#0",
@@ -19033,7 +19188,7 @@
         "tmp%4#0"
       ]
     },
-    "2471": {
+    "2483": {
       "op": "uncover 2",
       "stack_out": [
         "page_size#0",
@@ -19041,7 +19196,7 @@
         "page_idx#0"
       ]
     },
-    "2473": {
+    "2485": {
       "op": "concat",
       "defined_out": [
         "page_size#0",
@@ -19052,14 +19207,14 @@
         "tmp%5#0"
       ]
     },
-    "2474": {
+    "2486": {
       "op": "swap",
       "stack_out": [
         "tmp%5#0",
         "page_size#0"
       ]
     },
-    "2475": {
+    "2487": {
       "op": "concat",
       "defined_out": [
         "tmp%6#0"
@@ -19068,14 +19223,14 @@
         "tmp%6#0"
       ]
     },
-    "2476": {
+    "2488": {
       "op": "frame_dig -1",
       "stack_out": [
         "tmp%6#0",
         "page_content#0 (copy)"
       ]
     },
-    "2478": {
+    "2490": {
       "op": "concat",
       "defined_out": [
         "tmp%7#0"
@@ -19084,7 +19239,7 @@
         "tmp%7#0"
       ]
     },
-    "2479": {
+    "2491": {
       "op": "sha512_256",
       "defined_out": [
         "tmp%8#0"
@@ -19093,11 +19248,11 @@
         "tmp%8#0"
       ]
     },
-    "2480": {
+    "2492": {
       "retsub": true,
       "op": "retsub"
     },
-    "2481": {
+    "2493": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._compute_metadata_hash",
       "params": {
         "asa#0": "uint64"
@@ -19106,13 +19261,13 @@
       "stack_in": [],
       "op": "proto 1 1"
     },
-    "2484": {
+    "2496": {
       "op": "bytec_1 // \"\"",
       "stack_out": [
         "page_index#0"
       ]
     },
-    "2485": {
+    "2497": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)"
@@ -19122,7 +19277,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2487": {
+    "2499": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._compute_header_hash",
       "op": "callsub _compute_header_hash",
       "defined_out": [
@@ -19133,7 +19288,7 @@
         "hh#0"
       ]
     },
-    "2490": {
+    "2502": {
       "op": "frame_dig -1",
       "stack_out": [
         "page_index#0",
@@ -19141,7 +19296,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2492": {
+    "2504": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -19154,7 +19309,7 @@
         "n#0"
       ]
     },
-    "2495": {
+    "2507": {
       "op": "intc 5 // 1006",
       "defined_out": [
         "1006",
@@ -19168,7 +19323,7 @@
         "1006"
       ]
     },
-    "2497": {
+    "2509": {
       "op": "+",
       "defined_out": [
         "hh#0",
@@ -19180,7 +19335,7 @@
         "tmp%1#1"
       ]
     },
-    "2498": {
+    "2510": {
       "op": "intc 4 // 1007",
       "defined_out": [
         "1007",
@@ -19194,7 +19349,7 @@
         "1007"
       ]
     },
-    "2500": {
+    "2512": {
       "op": "/",
       "defined_out": [
         "hh#0",
@@ -19206,7 +19361,7 @@
         "total_pages#0"
       ]
     },
-    "2501": {
+    "2513": {
       "op": "dup",
       "defined_out": [
         "hh#0",
@@ -19219,7 +19374,7 @@
         "total_pages#0"
       ]
     },
-    "2502": {
+    "2514": {
       "op": "bytec_1 // 0x",
       "defined_out": [
         "concatenated_ph#0",
@@ -19234,7 +19389,7 @@
         "concatenated_ph#0"
       ]
     },
-    "2503": {
+    "2515": {
       "op": "swap",
       "defined_out": [
         "concatenated_ph#0",
@@ -19249,7 +19404,7 @@
         "total_pages#0"
       ]
     },
-    "2504": {
+    "2516": {
       "op": "bz _compute_metadata_hash_after_if_else@6",
       "stack_out": [
         "page_index#0",
@@ -19258,7 +19413,7 @@
         "concatenated_ph#0"
       ]
     },
-    "2507": {
+    "2519": {
       "op": "intc_1 // 0",
       "defined_out": [
         "concatenated_ph#0",
@@ -19274,7 +19429,7 @@
         "page_index#0"
       ]
     },
-    "2508": {
+    "2520": {
       "op": "frame_bury 0",
       "defined_out": [
         "concatenated_ph#0",
@@ -19289,7 +19444,7 @@
         "concatenated_ph#0"
       ]
     },
-    "2510": {
+    "2522": {
       "block": "_compute_metadata_hash_for_header@2",
       "stack_in": [
         "page_index#0",
@@ -19309,7 +19464,7 @@
         "page_index#0"
       ]
     },
-    "2512": {
+    "2524": {
       "op": "frame_dig 2",
       "defined_out": [
         "page_index#0",
@@ -19324,7 +19479,7 @@
         "total_pages#0"
       ]
     },
-    "2514": {
+    "2526": {
       "op": "<",
       "defined_out": [
         "continue_looping%0#0",
@@ -19339,7 +19494,7 @@
         "continue_looping%0#0"
       ]
     },
-    "2515": {
+    "2527": {
       "op": "bz _compute_metadata_hash_after_if_else@6",
       "stack_out": [
         "page_index#0",
@@ -19348,7 +19503,7 @@
         "concatenated_ph#0"
       ]
     },
-    "2518": {
+    "2530": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)",
@@ -19363,7 +19518,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2520": {
+    "2532": {
       "op": "frame_dig 0",
       "stack_out": [
         "page_index#0",
@@ -19374,7 +19529,7 @@
         "page_index#0"
       ]
     },
-    "2522": {
+    "2534": {
       "op": "dup",
       "defined_out": [
         "asa#0 (copy)",
@@ -19392,7 +19547,7 @@
         "page_index#0 (copy)"
       ]
     },
-    "2523": {
+    "2535": {
       "op": "cover 2",
       "stack_out": [
         "page_index#0",
@@ -19404,7 +19559,7 @@
         "page_index#0 (copy)"
       ]
     },
-    "2525": {
+    "2537": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_page",
       "op": "callsub _get_metadata_page",
       "defined_out": [
@@ -19421,7 +19576,7 @@
         "page_content#0"
       ]
     },
-    "2528": {
+    "2540": {
       "op": "frame_dig -1",
       "stack_out": [
         "page_index#0",
@@ -19433,7 +19588,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2530": {
+    "2542": {
       "op": "dig 2",
       "stack_out": [
         "page_index#0",
@@ -19446,7 +19601,7 @@
         "page_index#0 (copy)"
       ]
     },
-    "2532": {
+    "2544": {
       "op": "uncover 2",
       "stack_out": [
         "page_index#0",
@@ -19459,7 +19614,7 @@
         "page_content#0"
       ]
     },
-    "2534": {
+    "2546": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._compute_page_hash",
       "op": "callsub _compute_page_hash",
       "defined_out": [
@@ -19476,7 +19631,7 @@
         "ph#0"
       ]
     },
-    "2537": {
+    "2549": {
       "op": "frame_dig 3",
       "defined_out": [
         "concatenated_ph#0",
@@ -19494,7 +19649,7 @@
         "concatenated_ph#0"
       ]
     },
-    "2539": {
+    "2551": {
       "op": "swap",
       "stack_out": [
         "page_index#0",
@@ -19506,7 +19661,7 @@
         "ph#0"
       ]
     },
-    "2540": {
+    "2552": {
       "op": "concat",
       "stack_out": [
         "page_index#0",
@@ -19517,7 +19672,7 @@
         "concatenated_ph#0"
       ]
     },
-    "2541": {
+    "2553": {
       "op": "frame_bury 3",
       "defined_out": [
         "concatenated_ph#0",
@@ -19532,7 +19687,7 @@
         "page_index#0"
       ]
     },
-    "2543": {
+    "2555": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
@@ -19549,7 +19704,7 @@
         "1"
       ]
     },
-    "2544": {
+    "2556": {
       "op": "+",
       "stack_out": [
         "page_index#0",
@@ -19559,7 +19714,7 @@
         "page_index#0"
       ]
     },
-    "2545": {
+    "2557": {
       "op": "frame_bury 0",
       "defined_out": [
         "concatenated_ph#0",
@@ -19573,10 +19728,10 @@
         "concatenated_ph#0"
       ]
     },
-    "2547": {
+    "2559": {
       "op": "b _compute_metadata_hash_for_header@2"
     },
-    "2550": {
+    "2562": {
       "block": "_compute_metadata_hash_after_if_else@6",
       "stack_in": [
         "page_index#0",
@@ -19596,7 +19751,7 @@
         "0x617263303038392f616d"
       ]
     },
-    "2562": {
+    "2574": {
       "op": "frame_dig 1",
       "defined_out": [
         "0x617263303038392f616d",
@@ -19611,7 +19766,7 @@
         "hh#0"
       ]
     },
-    "2564": {
+    "2576": {
       "op": "concat",
       "defined_out": [
         "hh#0",
@@ -19625,7 +19780,7 @@
         "tmp%6#0"
       ]
     },
-    "2565": {
+    "2577": {
       "op": "frame_dig 3",
       "defined_out": [
         "concatenated_ph#0",
@@ -19641,7 +19796,7 @@
         "concatenated_ph#0"
       ]
     },
-    "2567": {
+    "2579": {
       "op": "concat",
       "defined_out": [
         "concatenated_ph#0",
@@ -19656,7 +19811,7 @@
         "tmp%7#0"
       ]
     },
-    "2568": {
+    "2580": {
       "op": "sha512_256",
       "defined_out": [
         "concatenated_ph#0",
@@ -19671,14 +19826,14 @@
         "tmp%8#0"
       ]
     },
-    "2569": {
+    "2581": {
       "op": "frame_bury 0"
     },
-    "2571": {
+    "2583": {
       "retsub": true,
       "op": "retsub"
     },
-    "2572": {
+    "2584": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_base_preconditions",
       "params": {
         "asa#0": "uint64",
@@ -19688,7 +19843,7 @@
       "stack_in": [],
       "op": "proto 2 0"
     },
-    "2575": {
+    "2587": {
       "op": "frame_dig -2",
       "defined_out": [
         "asa#0 (copy)"
@@ -19697,7 +19852,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2577": {
+    "2589": {
       "op": "asset_params_get AssetCreator",
       "defined_out": [
         "_creator#0",
@@ -19708,24 +19863,24 @@
         "exists#0"
       ]
     },
-    "2579": {
+    "2591": {
       "op": "bury 1",
       "stack_out": [
         "exists#0"
       ]
     },
-    "2581": {
+    "2593": {
       "error": "The specified ASA does not exist",
       "op": "assert // The specified ASA does not exist",
       "stack_out": []
     },
-    "2582": {
+    "2594": {
       "op": "frame_dig -2",
       "stack_out": [
         "asa#0 (copy)"
       ]
     },
-    "2584": {
+    "2596": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._is_asa_manager",
       "op": "callsub _is_asa_manager",
       "defined_out": [
@@ -19735,12 +19890,12 @@
         "tmp%1#0"
       ]
     },
-    "2587": {
+    "2599": {
       "error": "Unauthorized, must be the Asset Manager",
       "op": "assert // Unauthorized, must be the Asset Manager",
       "stack_out": []
     },
-    "2588": {
+    "2600": {
       "op": "frame_dig -1",
       "defined_out": [
         "metadata_size#0 (copy)"
@@ -19749,7 +19904,7 @@
         "metadata_size#0 (copy)"
       ]
     },
-    "2590": {
+    "2602": {
       "op": "intc 6 // 30507",
       "defined_out": [
         "30507",
@@ -19760,7 +19915,7 @@
         "30507"
       ]
     },
-    "2592": {
+    "2604": {
       "op": "<=",
       "defined_out": [
         "tmp%0#1"
@@ -19769,16 +19924,16 @@
         "tmp%0#1"
       ]
     },
-    "2593": {
+    "2605": {
       "error": "Invalid Metadata size, exceeds maximum allowed size",
       "op": "assert // Invalid Metadata size, exceeds maximum allowed size",
       "stack_out": []
     },
-    "2594": {
+    "2606": {
       "retsub": true,
       "op": "retsub"
     },
-    "2595": {
+    "2607": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_update_preconditions",
       "params": {
         "asa#0": "uint64",
@@ -19788,7 +19943,7 @@
       "stack_in": [],
       "op": "proto 2 0"
     },
-    "2598": {
+    "2610": {
       "op": "frame_dig -2",
       "defined_out": [
         "asa#0 (copy)"
@@ -19797,7 +19952,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2600": {
+    "2612": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)",
@@ -19808,18 +19963,18 @@
         "metadata_size#0 (copy)"
       ]
     },
-    "2602": {
+    "2614": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_base_preconditions",
       "op": "callsub _check_base_preconditions",
       "stack_out": []
     },
-    "2605": {
+    "2617": {
       "op": "frame_dig -2",
       "stack_out": [
         "asa#0 (copy)"
       ]
     },
-    "2607": {
+    "2619": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0"
@@ -19828,7 +19983,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2608": {
+    "2620": {
       "op": "dup",
       "defined_out": [
         "encoded_value%0#0",
@@ -19839,7 +19994,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "2609": {
+    "2621": {
       "op": "box_len",
       "defined_out": [
         "_%0#0",
@@ -19852,21 +20007,21 @@
         "maybe_exists%0#0"
       ]
     },
-    "2610": {
+    "2622": {
       "op": "bury 1",
       "stack_out": [
         "encoded_value%0#0",
         "maybe_exists%0#0"
       ]
     },
-    "2612": {
+    "2624": {
       "error": "Asset Metadata does not exist for the specified ASA",
       "op": "assert // Asset Metadata does not exist for the specified ASA",
       "stack_out": [
         "encoded_value%0#0"
       ]
     },
-    "2613": {
+    "2625": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
@@ -19877,7 +20032,7 @@
         "1"
       ]
     },
-    "2614": {
+    "2626": {
       "op": "dup",
       "stack_out": [
         "encoded_value%0#0",
@@ -19885,7 +20040,7 @@
         "1"
       ]
     },
-    "2615": {
+    "2627": {
       "op": "box_extract",
       "defined_out": [
         "tmp%0#2"
@@ -19894,7 +20049,7 @@
         "tmp%0#2"
       ]
     },
-    "2616": {
+    "2628": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -19905,7 +20060,7 @@
         "0"
       ]
     },
-    "2617": {
+    "2629": {
       "op": "getbit",
       "defined_out": [
         "tmp%1#1"
@@ -19914,7 +20069,7 @@
         "tmp%1#1"
       ]
     },
-    "2618": {
+    "2630": {
       "op": "!",
       "defined_out": [
         "tmp%2#0"
@@ -19923,16 +20078,16 @@
         "tmp%2#0"
       ]
     },
-    "2619": {
+    "2631": {
       "error": "Metadata is immutable",
       "op": "assert // Metadata is immutable",
       "stack_out": []
     },
-    "2620": {
+    "2632": {
       "retsub": true,
       "op": "retsub"
     },
-    "2621": {
+    "2633": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "params": {
         "asa#0": "uint64"
@@ -19941,7 +20096,7 @@
       "stack_in": [],
       "op": "proto 1 0"
     },
-    "2624": {
+    "2636": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)"
@@ -19950,7 +20105,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2626": {
+    "2638": {
       "op": "asset_params_get AssetCreator",
       "defined_out": [
         "_creator#0",
@@ -19961,24 +20116,24 @@
         "exists#0"
       ]
     },
-    "2628": {
+    "2640": {
       "op": "bury 1",
       "stack_out": [
         "exists#0"
       ]
     },
-    "2630": {
+    "2642": {
       "error": "The specified ASA does not exist",
       "op": "assert // The specified ASA does not exist",
       "stack_out": []
     },
-    "2631": {
+    "2643": {
       "op": "frame_dig -1",
       "stack_out": [
         "asa#0 (copy)"
       ]
     },
-    "2633": {
+    "2645": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0"
@@ -19987,7 +20142,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2634": {
+    "2646": {
       "op": "box_len",
       "defined_out": [
         "_%0#0",
@@ -19998,22 +20153,22 @@
         "maybe_exists%0#0"
       ]
     },
-    "2635": {
+    "2647": {
       "op": "bury 1",
       "stack_out": [
         "maybe_exists%0#0"
       ]
     },
-    "2637": {
+    "2649": {
       "error": "Asset Metadata does not exist for the specified ASA",
       "op": "assert // Asset Metadata does not exist for the specified ASA",
       "stack_out": []
     },
-    "2638": {
+    "2650": {
       "retsub": true,
       "op": "retsub"
     },
-    "2639": {
+    "2651": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_set_flag_preconditions",
       "params": {
         "asa#0": "uint64"
@@ -20022,7 +20177,7 @@
       "stack_in": [],
       "op": "proto 1 0"
     },
-    "2642": {
+    "2654": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)"
@@ -20031,18 +20186,18 @@
         "asa#0 (copy)"
       ]
     },
-    "2644": {
+    "2656": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "op": "callsub _check_existence_preconditions",
       "stack_out": []
     },
-    "2647": {
+    "2659": {
       "op": "frame_dig -1",
       "stack_out": [
         "asa#0 (copy)"
       ]
     },
-    "2649": {
+    "2661": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0"
@@ -20051,7 +20206,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2650": {
+    "2662": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
@@ -20062,7 +20217,7 @@
         "1"
       ]
     },
-    "2651": {
+    "2663": {
       "op": "dup",
       "stack_out": [
         "encoded_value%0#0",
@@ -20070,7 +20225,7 @@
         "1"
       ]
     },
-    "2652": {
+    "2664": {
       "op": "box_extract",
       "defined_out": [
         "tmp%0#2"
@@ -20079,7 +20234,7 @@
         "tmp%0#2"
       ]
     },
-    "2653": {
+    "2665": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -20090,7 +20245,7 @@
         "0"
       ]
     },
-    "2654": {
+    "2666": {
       "op": "getbit",
       "defined_out": [
         "tmp%1#0"
@@ -20099,21 +20254,21 @@
         "tmp%1#0"
       ]
     },
-    "2655": {
+    "2667": {
       "op": "!"
     },
-    "2656": {
+    "2668": {
       "error": "Metadata is immutable",
       "op": "assert // Metadata is immutable",
       "stack_out": []
     },
-    "2657": {
+    "2669": {
       "op": "frame_dig -1",
       "stack_out": [
         "asa#0 (copy)"
       ]
     },
-    "2659": {
+    "2671": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._is_asa_manager",
       "op": "callsub _is_asa_manager",
       "defined_out": [
@@ -20123,16 +20278,16 @@
         "tmp%2#0"
       ]
     },
-    "2662": {
+    "2674": {
       "error": "Unauthorized, must be the Asset Manager",
       "op": "assert // Unauthorized, must be the Asset Manager",
       "stack_out": []
     },
-    "2663": {
+    "2675": {
       "retsub": true,
       "op": "retsub"
     },
-    "2664": {
+    "2676": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._update_header_excluding_flags_and_emit",
       "params": {
         "asa#0": "uint64"
@@ -20141,7 +20296,7 @@
       "stack_in": [],
       "op": "proto 1 0"
     },
-    "2667": {
+    "2679": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)"
@@ -20150,18 +20305,18 @@
         "asa#0 (copy)"
       ]
     },
-    "2669": {
+    "2681": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._identify_metadata",
       "op": "callsub _identify_metadata",
       "stack_out": []
     },
-    "2672": {
+    "2684": {
       "op": "frame_dig -1",
       "stack_out": [
         "asa#0 (copy)"
       ]
     },
-    "2674": {
+    "2686": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._compute_metadata_hash",
       "op": "callsub _compute_metadata_hash",
       "defined_out": [
@@ -20171,14 +20326,14 @@
         "metadata_hash#0"
       ]
     },
-    "2677": {
+    "2689": {
       "op": "frame_dig -1",
       "stack_out": [
         "metadata_hash#0",
         "asa#0 (copy)"
       ]
     },
-    "2679": {
+    "2691": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0",
@@ -20189,7 +20344,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2680": {
+    "2692": {
       "op": "dup",
       "defined_out": [
         "encoded_value%0#0",
@@ -20202,7 +20357,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "2681": {
+    "2693": {
       "op": "intc_3 // 2",
       "defined_out": [
         "2",
@@ -20217,7 +20372,7 @@
         "2"
       ]
     },
-    "2682": {
+    "2694": {
       "op": "dig 3",
       "defined_out": [
         "2",
@@ -20234,14 +20389,14 @@
         "metadata_hash#0 (copy)"
       ]
     },
-    "2684": {
+    "2696": {
       "op": "box_replace",
       "stack_out": [
         "metadata_hash#0",
         "encoded_value%0#0"
       ]
     },
-    "2685": {
+    "2697": {
       "op": "global Round",
       "defined_out": [
         "encoded_value%0#0",
@@ -20254,7 +20409,7 @@
         "last_modified_round#0"
       ]
     },
-    "2687": {
+    "2699": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0",
@@ -20267,7 +20422,7 @@
         "tmp%0#0"
       ]
     },
-    "2688": {
+    "2700": {
       "op": "dig 1",
       "stack_out": [
         "metadata_hash#0",
@@ -20276,7 +20431,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "2690": {
+    "2702": {
       "op": "pushint 34",
       "defined_out": [
         "34",
@@ -20293,7 +20448,7 @@
         "34"
       ]
     },
-    "2692": {
+    "2704": {
       "op": "uncover 2",
       "stack_out": [
         "metadata_hash#0",
@@ -20303,14 +20458,14 @@
         "tmp%0#0"
       ]
     },
-    "2694": {
+    "2706": {
       "op": "box_replace",
       "stack_out": [
         "metadata_hash#0",
         "encoded_value%0#0"
       ]
     },
-    "2695": {
+    "2707": {
       "op": "global Round",
       "defined_out": [
         "encoded_value%0#0",
@@ -20323,7 +20478,7 @@
         "tmp%3#0"
       ]
     },
-    "2697": {
+    "2709": {
       "op": "itob",
       "defined_out": [
         "aggregate%val_as_bytes%1#0",
@@ -20336,7 +20491,7 @@
         "aggregate%val_as_bytes%1#0"
       ]
     },
-    "2698": {
+    "2710": {
       "op": "global LatestTimestamp",
       "defined_out": [
         "aggregate%val_as_bytes%1#0",
@@ -20351,7 +20506,7 @@
         "tmp%5#0"
       ]
     },
-    "2700": {
+    "2712": {
       "op": "itob",
       "defined_out": [
         "aggregate%val_as_bytes%1#0",
@@ -20366,7 +20521,7 @@
         "aggregate%val_as_bytes%2#0"
       ]
     },
-    "2701": {
+    "2713": {
       "op": "dig 2",
       "stack_out": [
         "metadata_hash#0",
@@ -20376,7 +20531,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "2703": {
+    "2715": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
@@ -20395,7 +20550,7 @@
         "1"
       ]
     },
-    "2704": {
+    "2716": {
       "op": "dup",
       "stack_out": [
         "metadata_hash#0",
@@ -20407,7 +20562,7 @@
         "1"
       ]
     },
-    "2705": {
+    "2717": {
       "op": "box_extract",
       "stack_out": [
         "metadata_hash#0",
@@ -20417,7 +20572,7 @@
         "tmp%0#0"
       ]
     },
-    "2706": {
+    "2718": {
       "op": "btoi",
       "defined_out": [
         "aggregate%val_as_bytes%1#0",
@@ -20434,7 +20589,7 @@
         "tmp%8#0"
       ]
     },
-    "2707": {
+    "2719": {
       "op": "itob",
       "defined_out": [
         "aggregate%val_as_bytes%1#0",
@@ -20451,7 +20606,7 @@
         "aggregate%val_as_bytes%3#0"
       ]
     },
-    "2708": {
+    "2720": {
       "op": "dup",
       "defined_out": [
         "aggregate%val_as_bytes%1#0",
@@ -20470,7 +20625,7 @@
         "aggregate%val_as_bytes%3#0 (copy)"
       ]
     },
-    "2709": {
+    "2721": {
       "op": "bitlen",
       "defined_out": [
         "aggregate%bitlen%0#0",
@@ -20489,7 +20644,7 @@
         "aggregate%bitlen%0#0"
       ]
     },
-    "2710": {
+    "2722": {
       "op": "intc_2 // 8",
       "defined_out": [
         "8",
@@ -20510,7 +20665,7 @@
         "8"
       ]
     },
-    "2711": {
+    "2723": {
       "op": "<=",
       "defined_out": [
         "aggregate%no_overflow%0#0",
@@ -20529,7 +20684,7 @@
         "aggregate%no_overflow%0#0"
       ]
     },
-    "2712": {
+    "2724": {
       "error": "overflow",
       "op": "assert // overflow",
       "stack_out": [
@@ -20540,7 +20695,7 @@
         "aggregate%val_as_bytes%3#0"
       ]
     },
-    "2713": {
+    "2725": {
       "op": "extract 7 1",
       "defined_out": [
         "aggregate%uint8%0#0",
@@ -20557,7 +20712,7 @@
         "aggregate%uint8%0#0"
       ]
     },
-    "2716": {
+    "2728": {
       "op": "dig 3",
       "stack_out": [
         "metadata_hash#0",
@@ -20568,7 +20723,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "2718": {
+    "2730": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -20589,7 +20744,7 @@
         "0"
       ]
     },
-    "2719": {
+    "2731": {
       "op": "intc_0 // 1",
       "stack_out": [
         "metadata_hash#0",
@@ -20602,7 +20757,7 @@
         "1"
       ]
     },
-    "2720": {
+    "2732": {
       "op": "box_extract",
       "stack_out": [
         "metadata_hash#0",
@@ -20613,7 +20768,7 @@
         "tmp%0#0"
       ]
     },
-    "2721": {
+    "2733": {
       "op": "intc_1 // 0",
       "stack_out": [
         "metadata_hash#0",
@@ -20625,7 +20780,7 @@
         "0"
       ]
     },
-    "2722": {
+    "2734": {
       "op": "getbit",
       "defined_out": [
         "aggregate%uint8%0#0",
@@ -20644,7 +20799,7 @@
         "tmp%1#1"
       ]
     },
-    "2723": {
+    "2735": {
       "op": "bytec_2 // 0x00",
       "defined_out": [
         "0x00",
@@ -20665,7 +20820,7 @@
         "0x00"
       ]
     },
-    "2724": {
+    "2736": {
       "op": "intc_1 // 0",
       "stack_out": [
         "metadata_hash#0",
@@ -20678,7 +20833,7 @@
         "0"
       ]
     },
-    "2725": {
+    "2737": {
       "op": "uncover 2",
       "stack_out": [
         "metadata_hash#0",
@@ -20691,7 +20846,7 @@
         "tmp%1#1"
       ]
     },
-    "2727": {
+    "2739": {
       "op": "setbit",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -20710,7 +20865,7 @@
         "aggregate%encoded_bool%0#0"
       ]
     },
-    "2728": {
+    "2740": {
       "op": "uncover 4",
       "stack_out": [
         "metadata_hash#0",
@@ -20721,7 +20876,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2730": {
+    "2742": {
       "op": "uncover 4",
       "stack_out": [
         "metadata_hash#0",
@@ -20732,7 +20887,7 @@
         "aggregate%val_as_bytes%1#0"
       ]
     },
-    "2732": {
+    "2744": {
       "op": "concat",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -20749,7 +20904,7 @@
         "aggregate%head%1#0"
       ]
     },
-    "2733": {
+    "2745": {
       "op": "uncover 3",
       "stack_out": [
         "metadata_hash#0",
@@ -20759,7 +20914,7 @@
         "aggregate%val_as_bytes%2#0"
       ]
     },
-    "2735": {
+    "2747": {
       "op": "concat",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -20774,7 +20929,7 @@
         "aggregate%head%2#0"
       ]
     },
-    "2736": {
+    "2748": {
       "op": "uncover 2",
       "stack_out": [
         "metadata_hash#0",
@@ -20783,7 +20938,7 @@
         "aggregate%uint8%0#0"
       ]
     },
-    "2738": {
+    "2750": {
       "op": "concat",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -20796,7 +20951,7 @@
         "aggregate%head%3#0"
       ]
     },
-    "2739": {
+    "2751": {
       "op": "swap",
       "stack_out": [
         "metadata_hash#0",
@@ -20804,7 +20959,7 @@
         "aggregate%encoded_bool%0#0"
       ]
     },
-    "2740": {
+    "2752": {
       "op": "concat",
       "defined_out": [
         "aggregate%head%4#0",
@@ -20815,14 +20970,14 @@
         "aggregate%head%4#0"
       ]
     },
-    "2741": {
+    "2753": {
       "op": "swap",
       "stack_out": [
         "aggregate%head%4#0",
         "metadata_hash#0"
       ]
     },
-    "2742": {
+    "2754": {
       "op": "concat",
       "defined_out": [
         "aggregate%head%5#0"
@@ -20831,7 +20986,7 @@
         "aggregate%head%5#0"
       ]
     },
-    "2743": {
+    "2755": {
       "op": "bytec 5 // method \"Arc89MetadataUpdated(uint64,uint64,uint64,byte,bool,byte[32])\"",
       "defined_out": [
         "Method(Arc89MetadataUpdated(uint64,uint64,uint64,byte,bool,byte[32]))",
@@ -20842,14 +20997,14 @@
         "Method(Arc89MetadataUpdated(uint64,uint64,uint64,byte,bool,byte[32]))"
       ]
     },
-    "2745": {
+    "2757": {
       "op": "swap",
       "stack_out": [
         "Method(Arc89MetadataUpdated(uint64,uint64,uint64,byte,bool,byte[32]))",
         "aggregate%head%5#0"
       ]
     },
-    "2746": {
+    "2758": {
       "op": "concat",
       "defined_out": [
         "event%0#0"
@@ -20858,11 +21013,11 @@
         "event%0#0"
       ]
     },
-    "2747": {
+    "2759": {
       "op": "log",
       "stack_out": []
     },
-    "2748": {
+    "2760": {
       "retsub": true,
       "op": "retsub"
     }
