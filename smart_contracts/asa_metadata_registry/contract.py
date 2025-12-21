@@ -388,6 +388,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             assert (
                 asa_url[: arc_89_uri.length] == arc_89_uri
             ), err.ASA_URL_INVALID_ARC89_URI
+
         mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
         assert (
             mbr_delta_payment.amount >= mbr_delta_amount
@@ -435,6 +436,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert (
             self._get_metadata_size(asset_id) == metadata_size.as_uint64()
         ), err.METADATA_SIZE_MISMATCH
+
         mbr_delta_amount = mbr_i - Global.current_application_address.min_balance
         if mbr_delta_amount == 0:
             sign = UInt64(enums.MBR_DELTA_NULL)
@@ -487,6 +489,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert (
             self._get_metadata_size(asset_id) == metadata_size.as_uint64()
         ), err.METADATA_SIZE_MISMATCH
+
         mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
         assert (
             mbr_delta_payment.amount >= mbr_delta_amount
