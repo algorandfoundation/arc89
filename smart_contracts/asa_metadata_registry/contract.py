@@ -337,8 +337,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         # Preconditions
         self._check_base_preconditions(asset_id, metadata_size.as_uint64())
         assert not self._metadata_exists(asset_id), err.ASSET_METADATA_EXIST
-
-        # MBR Payment pre-validation
         assert (
             mbr_delta_payment.receiver == Global.current_application_address
         ), err.MBR_DELTA_RECEIVER_INVALID
@@ -478,6 +476,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert metadata_size.as_uint64() > self._get_metadata_size(
             asset_id
         ), err.SMALLER_METADATA_SIZE
+        assert (
+            mbr_delta_payment.receiver == Global.current_application_address
+        ), err.MBR_DELTA_RECEIVER_INVALID
 
         # Update Metadata Body
         mbr_i = Global.current_application_address.min_balance
