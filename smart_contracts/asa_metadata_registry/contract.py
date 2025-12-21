@@ -773,7 +773,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
-        return arc4.Bool(self._is_immutable(asset_id))
+        return arc4.Bool(
+            self._is_immutable(asset_id) or asset_id.manager == Global.zero_address
+        )
 
     @arc4.abimethod(readonly=True)
     def arc89_is_metadata_short(
