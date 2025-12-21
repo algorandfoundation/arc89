@@ -134,13 +134,14 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             start_index=old_asset_metadata_box_size, value=payload
         )
 
-    def _is_extra_payload_txn(self, txn: gtxn.Transaction) -> bool:
+    def _is_extra_payload_txn(self, asa: Asset, txn: gtxn.Transaction) -> bool:
         return (
             txn.type == TransactionType.ApplicationCall
             and txn.app_id == Global.current_application_id
             and txn.on_completion == OnCompleteAction.NoOp
-            and txn.app_args(0)
+            and txn.app_args(const.ARC4_ARG_METHOD_SELECTOR)
             == arc4.arc4_signature(AsaMetadataRegistryInterface.arc89_extra_payload)
+            and txn.app_args(const.ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID) == op.itob(asa.id)
         )
 
     def _read_extra_payload(self, txn: gtxn.Transaction) -> Bytes:
@@ -163,7 +164,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         group_index = Txn.group_index
         for idx in urange(group_index + 1, group_size):
             txn = gtxn.Transaction(idx)
-            if self._is_extra_payload_txn(txn):
+            if self._is_extra_payload_txn(asa, txn):
                 extra_payload = self._read_extra_payload(txn)
                 assert (
                     self._get_metadata_size(asa) + extra_payload.length <= metadata_size
