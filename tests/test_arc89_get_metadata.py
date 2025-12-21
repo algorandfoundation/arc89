@@ -31,7 +31,11 @@ def test_get_metadata(
             args=Arc89GetMetadataArgs(asset_id=metadata.asset_id, page=p),
         ).abi_return
         assert bytes(page.page_content).decode() == metadata.get_page(p).decode()
-        assert page.has_next_page if p < metadata.total_pages - 1 else not page.has_next_page
+        assert (
+            page.has_next_page
+            if p < metadata.total_pages - 1
+            else not page.has_next_page
+        )
 
 
 # TODO: Test failing conditions
