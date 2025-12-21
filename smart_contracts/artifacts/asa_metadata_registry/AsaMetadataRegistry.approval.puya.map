@@ -4,7 +4,7 @@
     "../../asa_metadata_registry/contract.py",
     "../../avm_common.py"
   ],
-  "mappings": "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",
+  "mappings": "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",
   "op_pc_offset": 2,
   "pc_events": {
     "0": {
@@ -12460,155 +12460,285 @@
       ]
     },
     "1539": {
-      "op": "dup",
+      "op": "dupn 2",
       "defined_out": [
         "asset_id#0",
         "asset_id#0 (copy)"
       ],
       "stack_out": [
         "asset_id#0",
+        "asset_id#0",
         "asset_id#0 (copy)"
       ]
     },
-    "1540": {
+    "1541": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "op": "callsub _check_existence_preconditions",
       "stack_out": [
+        "asset_id#0",
         "asset_id#0"
       ]
     },
-    "1543": {
+    "1544": {
       "op": "itob",
       "defined_out": [
+        "asset_id#0",
         "encoded_value%0#0"
       ],
       "stack_out": [
+        "asset_id#0",
         "encoded_value%0#0"
-      ]
-    },
-    "1544": {
-      "op": "intc_0 // 1",
-      "defined_out": [
-        "1",
-        "encoded_value%0#0"
-      ],
-      "stack_out": [
-        "encoded_value%0#0",
-        "1"
       ]
     },
     "1545": {
-      "op": "dup",
-      "stack_out": [
-        "encoded_value%0#0",
+      "op": "intc_0 // 1",
+      "defined_out": [
         "1",
+        "asset_id#0",
+        "encoded_value%0#0"
+      ],
+      "stack_out": [
+        "asset_id#0",
+        "encoded_value%0#0",
         "1"
       ]
     },
     "1546": {
-      "op": "box_extract",
+      "op": "dup",
       "stack_out": [
-        "tmp%0#0"
+        "asset_id#0",
+        "encoded_value%0#0",
+        "1",
+        "1"
       ]
     },
     "1547": {
-      "op": "intc_1 // 0",
-      "defined_out": [
-        "0",
-        "tmp%0#0"
-      ],
+      "op": "box_extract",
       "stack_out": [
+        "asset_id#0",
+        "tmp%0#0"
+      ]
+    },
+    "1548": {
+      "op": "intc_1 // 0",
+      "stack_out": [
+        "asset_id#0",
         "tmp%0#0",
         "0"
       ]
     },
-    "1548": {
+    "1549": {
       "op": "getbit",
       "defined_out": [
+        "asset_id#0",
         "tmp%1#2"
       ],
       "stack_out": [
+        "asset_id#0",
         "tmp%1#2"
-      ]
-    },
-    "1549": {
-      "op": "bytec_2 // 0x00",
-      "defined_out": [
-        "0x00",
-        "tmp%1#2"
-      ],
-      "stack_out": [
-        "tmp%1#2",
-        "0x00"
       ]
     },
     "1550": {
-      "op": "intc_1 // 0",
+      "op": "bnz arc89_is_metadata_immutable_bool_true@3",
       "stack_out": [
-        "tmp%1#2",
+        "asset_id#0"
+      ]
+    },
+    "1553": {
+      "op": "dup",
+      "stack_out": [
+        "asset_id#0",
+        "asset_id#0"
+      ]
+    },
+    "1554": {
+      "op": "asset_params_get AssetManager",
+      "defined_out": [
+        "asset_id#0",
+        "check%0#0",
+        "value%0#0"
+      ],
+      "stack_out": [
+        "asset_id#0",
+        "value%0#0",
+        "check%0#0"
+      ]
+    },
+    "1556": {
+      "error": "asset exists",
+      "op": "assert // asset exists",
+      "stack_out": [
+        "asset_id#0",
+        "value%0#0"
+      ]
+    },
+    "1557": {
+      "op": "global ZeroAddress",
+      "defined_out": [
+        "asset_id#0",
+        "tmp%1#1",
+        "value%0#0"
+      ],
+      "stack_out": [
+        "asset_id#0",
+        "value%0#0",
+        "tmp%1#1"
+      ]
+    },
+    "1559": {
+      "op": "==",
+      "defined_out": [
+        "asset_id#0",
+        "tmp%2#1"
+      ],
+      "stack_out": [
+        "asset_id#0",
+        "tmp%2#1"
+      ]
+    },
+    "1560": {
+      "op": "bz arc89_is_metadata_immutable_bool_false@4",
+      "stack_out": [
+        "asset_id#0"
+      ]
+    },
+    "1563": {
+      "block": "arc89_is_metadata_immutable_bool_true@3",
+      "stack_in": [
+        "asset_id#0"
+      ],
+      "op": "intc_0 // 1",
+      "defined_out": [
+        "or_result%0#0"
+      ],
+      "stack_out": [
+        "asset_id#0",
+        "or_result%0#0"
+      ]
+    },
+    "1564": {
+      "block": "arc89_is_metadata_immutable_bool_merge@5",
+      "stack_in": [
+        "asset_id#0",
+        "or_result%0#0"
+      ],
+      "op": "bytec_2 // 0x00",
+      "defined_out": [
+        "0x00"
+      ],
+      "stack_out": [
+        "asset_id#0",
+        "or_result%0#0",
+        "0x00"
+      ]
+    },
+    "1565": {
+      "op": "intc_1 // 0",
+      "defined_out": [
+        "0",
+        "0x00"
+      ],
+      "stack_out": [
+        "asset_id#0",
+        "or_result%0#0",
         "0x00",
         "0"
       ]
     },
-    "1551": {
+    "1566": {
       "op": "uncover 2",
+      "defined_out": [
+        "0",
+        "0x00",
+        "or_result%0#0"
+      ],
       "stack_out": [
+        "asset_id#0",
         "0x00",
         "0",
-        "tmp%1#2"
+        "or_result%0#0"
       ]
     },
-    "1553": {
+    "1568": {
       "op": "setbit",
       "defined_out": [
         "aggregate%encoded_bool%0#0"
       ],
       "stack_out": [
+        "asset_id#0",
         "aggregate%encoded_bool%0#0"
       ]
     },
-    "1554": {
+    "1569": {
       "op": "bytec_0 // 0x151f7c75",
       "defined_out": [
         "0x151f7c75",
         "aggregate%encoded_bool%0#0"
       ],
       "stack_out": [
+        "asset_id#0",
         "aggregate%encoded_bool%0#0",
         "0x151f7c75"
       ]
     },
-    "1555": {
+    "1570": {
       "op": "swap",
       "stack_out": [
+        "asset_id#0",
         "0x151f7c75",
         "aggregate%encoded_bool%0#0"
       ]
     },
-    "1556": {
+    "1571": {
       "op": "concat",
       "defined_out": [
         "tmp%3#0"
       ],
       "stack_out": [
+        "asset_id#0",
         "tmp%3#0"
       ]
     },
-    "1557": {
+    "1572": {
       "op": "log",
-      "stack_out": []
-    },
-    "1558": {
-      "op": "intc_0 // 1",
       "stack_out": [
+        "asset_id#0"
+      ]
+    },
+    "1573": {
+      "op": "intc_0 // 1",
+      "defined_out": [
+        "1"
+      ],
+      "stack_out": [
+        "asset_id#0",
         "1"
       ]
     },
-    "1559": {
+    "1574": {
       "op": "return",
-      "stack_out": []
+      "stack_out": [
+        "asset_id#0"
+      ]
     },
-    "1560": {
+    "1575": {
+      "block": "arc89_is_metadata_immutable_bool_false@4",
+      "stack_in": [
+        "asset_id#0"
+      ],
+      "op": "intc_1 // 0",
+      "defined_out": [
+        "or_result%0#0"
+      ],
+      "stack_out": [
+        "asset_id#0",
+        "or_result%0#0"
+      ]
+    },
+    "1576": {
+      "op": "b arc89_is_metadata_immutable_bool_merge@5"
+    },
+    "1579": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_is_metadata_short[routing]",
       "params": {},
       "block": "arc89_is_metadata_short",
@@ -12621,7 +12751,7 @@
         "tmp%0#0"
       ]
     },
-    "1563": {
+    "1582": {
       "op": "dup",
       "defined_out": [
         "tmp%0#0",
@@ -12632,7 +12762,7 @@
         "tmp%0#0 (copy)"
       ]
     },
-    "1564": {
+    "1583": {
       "op": "len",
       "defined_out": [
         "len%0#0",
@@ -12643,7 +12773,7 @@
         "len%0#0"
       ]
     },
-    "1565": {
+    "1584": {
       "op": "intc_2 // 8",
       "defined_out": [
         "8",
@@ -12656,7 +12786,7 @@
         "8"
       ]
     },
-    "1566": {
+    "1585": {
       "op": "==",
       "defined_out": [
         "eq%0#0",
@@ -12667,14 +12797,14 @@
         "eq%0#0"
       ]
     },
-    "1567": {
+    "1586": {
       "error": "invalid number of bytes for arc4.uint64",
       "op": "assert // invalid number of bytes for arc4.uint64",
       "stack_out": [
         "tmp%0#0"
       ]
     },
-    "1568": {
+    "1587": {
       "op": "btoi",
       "defined_out": [
         "asset_id#0"
@@ -12683,7 +12813,7 @@
         "asset_id#0"
       ]
     },
-    "1569": {
+    "1588": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -12694,14 +12824,14 @@
         "asset_id#0 (copy)"
       ]
     },
-    "1570": {
+    "1589": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "op": "callsub _check_existence_preconditions",
       "stack_out": [
         "asset_id#0"
       ]
     },
-    "1573": {
+    "1592": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#1"
@@ -12710,7 +12840,7 @@
         "encoded_value%0#1"
       ]
     },
-    "1574": {
+    "1593": {
       "op": "dup",
       "defined_out": [
         "encoded_value%0#1",
@@ -12721,7 +12851,7 @@
         "encoded_value%0#1 (copy)"
       ]
     },
-    "1575": {
+    "1594": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -12734,7 +12864,7 @@
         "0"
       ]
     },
-    "1576": {
+    "1595": {
       "op": "intc_0 // 1",
       "defined_out": [
         "0",
@@ -12749,14 +12879,14 @@
         "1"
       ]
     },
-    "1577": {
+    "1596": {
       "op": "box_extract",
       "stack_out": [
         "encoded_value%0#1",
         "tmp%0#0"
       ]
     },
-    "1578": {
+    "1597": {
       "op": "intc_1 // 0",
       "stack_out": [
         "encoded_value%0#1",
@@ -12764,7 +12894,7 @@
         "0"
       ]
     },
-    "1579": {
+    "1598": {
       "op": "getbit",
       "defined_out": [
         "encoded_value%0#1",
@@ -12775,7 +12905,7 @@
         "tmp%1#2"
       ]
     },
-    "1580": {
+    "1599": {
       "op": "bytec_2 // 0x00",
       "defined_out": [
         "0x00",
@@ -12788,7 +12918,7 @@
         "0x00"
       ]
     },
-    "1581": {
+    "1600": {
       "op": "intc_1 // 0",
       "stack_out": [
         "encoded_value%0#1",
@@ -12797,7 +12927,7 @@
         "0"
       ]
     },
-    "1582": {
+    "1601": {
       "op": "uncover 2",
       "stack_out": [
         "encoded_value%0#1",
@@ -12806,7 +12936,7 @@
         "tmp%1#2"
       ]
     },
-    "1584": {
+    "1603": {
       "op": "setbit",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -12817,14 +12947,14 @@
         "aggregate%encoded_bool%0#0"
       ]
     },
-    "1585": {
+    "1604": {
       "op": "swap",
       "stack_out": [
         "aggregate%encoded_bool%0#0",
         "encoded_value%0#1"
       ]
     },
-    "1586": {
+    "1605": {
       "op": "pushint 34",
       "defined_out": [
         "34",
@@ -12837,7 +12967,7 @@
         "34"
       ]
     },
-    "1588": {
+    "1607": {
       "op": "intc_2 // 8",
       "stack_out": [
         "aggregate%encoded_bool%0#0",
@@ -12846,14 +12976,14 @@
         "8"
       ]
     },
-    "1589": {
+    "1608": {
       "op": "box_extract",
       "stack_out": [
         "aggregate%encoded_bool%0#0",
         "tmp%0#0"
       ]
     },
-    "1590": {
+    "1609": {
       "op": "btoi",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -12864,7 +12994,7 @@
         "tmp%1#3"
       ]
     },
-    "1591": {
+    "1610": {
       "op": "itob",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -12875,7 +13005,7 @@
         "aggregate%val_as_bytes%0#0"
       ]
     },
-    "1592": {
+    "1611": {
       "op": "concat",
       "defined_out": [
         "aggregate%head%1#0"
@@ -12884,7 +13014,7 @@
         "aggregate%head%1#0"
       ]
     },
-    "1593": {
+    "1612": {
       "op": "bytec_0 // 0x151f7c75",
       "defined_out": [
         "0x151f7c75",
@@ -12895,14 +13025,14 @@
         "0x151f7c75"
       ]
     },
-    "1594": {
+    "1613": {
       "op": "swap",
       "stack_out": [
         "0x151f7c75",
         "aggregate%head%1#0"
       ]
     },
-    "1595": {
+    "1614": {
       "op": "concat",
       "defined_out": [
         "tmp%3#0"
@@ -12911,21 +13041,21 @@
         "tmp%3#0"
       ]
     },
-    "1596": {
+    "1615": {
       "op": "log",
       "stack_out": []
     },
-    "1597": {
+    "1616": {
       "op": "intc_0 // 1",
       "stack_out": [
         "1"
       ]
     },
-    "1598": {
+    "1617": {
       "op": "return",
       "stack_out": []
     },
-    "1599": {
+    "1618": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_get_metadata_header[routing]",
       "params": {},
       "block": "arc89_get_metadata_header",
@@ -12938,7 +13068,7 @@
         "tmp%0#0"
       ]
     },
-    "1602": {
+    "1621": {
       "op": "dup",
       "defined_out": [
         "tmp%0#0",
@@ -12949,7 +13079,7 @@
         "tmp%0#0 (copy)"
       ]
     },
-    "1603": {
+    "1622": {
       "op": "len",
       "defined_out": [
         "len%0#0",
@@ -12960,7 +13090,7 @@
         "len%0#0"
       ]
     },
-    "1604": {
+    "1623": {
       "op": "intc_2 // 8",
       "defined_out": [
         "8",
@@ -12973,7 +13103,7 @@
         "8"
       ]
     },
-    "1605": {
+    "1624": {
       "op": "==",
       "defined_out": [
         "eq%0#0",
@@ -12984,14 +13114,14 @@
         "eq%0#0"
       ]
     },
-    "1606": {
+    "1625": {
       "error": "invalid number of bytes for arc4.uint64",
       "op": "assert // invalid number of bytes for arc4.uint64",
       "stack_out": [
         "tmp%0#0"
       ]
     },
-    "1607": {
+    "1626": {
       "op": "btoi",
       "defined_out": [
         "asset_id#0"
@@ -13000,7 +13130,7 @@
         "asset_id#0"
       ]
     },
-    "1608": {
+    "1627": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -13011,14 +13141,14 @@
         "asset_id#0 (copy)"
       ]
     },
-    "1609": {
+    "1628": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "op": "callsub _check_existence_preconditions",
       "stack_out": [
         "asset_id#0"
       ]
     },
-    "1612": {
+    "1631": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0"
@@ -13027,7 +13157,7 @@
         "encoded_value%0#0"
       ]
     },
-    "1613": {
+    "1632": {
       "op": "dup",
       "defined_out": [
         "encoded_value%0#0",
@@ -13038,7 +13168,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "1614": {
+    "1633": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -13051,7 +13181,7 @@
         "0"
       ]
     },
-    "1615": {
+    "1634": {
       "op": "intc_0 // 1",
       "defined_out": [
         "0",
@@ -13066,14 +13196,14 @@
         "1"
       ]
     },
-    "1616": {
+    "1635": {
       "op": "box_extract",
       "stack_out": [
         "encoded_value%0#0",
         "tmp%0#0"
       ]
     },
-    "1617": {
+    "1636": {
       "op": "dig 1",
       "stack_out": [
         "encoded_value%0#0",
@@ -13081,7 +13211,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "1619": {
+    "1638": {
       "op": "intc_0 // 1",
       "stack_out": [
         "encoded_value%0#0",
@@ -13090,7 +13220,7 @@
         "1"
       ]
     },
-    "1620": {
+    "1639": {
       "op": "dup",
       "stack_out": [
         "encoded_value%0#0",
@@ -13100,7 +13230,7 @@
         "1"
       ]
     },
-    "1621": {
+    "1640": {
       "op": "box_extract",
       "defined_out": [
         "encoded_value%0#0",
@@ -13113,7 +13243,7 @@
         "tmp%0#3"
       ]
     },
-    "1622": {
+    "1641": {
       "op": "dig 2",
       "stack_out": [
         "encoded_value%0#0",
@@ -13122,7 +13252,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "1624": {
+    "1643": {
       "op": "intc_3 // 2",
       "defined_out": [
         "2",
@@ -13139,7 +13269,7 @@
         "2"
       ]
     },
-    "1625": {
+    "1644": {
       "op": "pushint 32",
       "defined_out": [
         "2",
@@ -13158,7 +13288,7 @@
         "32"
       ]
     },
-    "1627": {
+    "1646": {
       "op": "box_extract",
       "defined_out": [
         "encoded_value%0#0",
@@ -13173,7 +13303,7 @@
         "tmp%0#4"
       ]
     },
-    "1628": {
+    "1647": {
       "op": "uncover 3",
       "stack_out": [
         "tmp%0#0",
@@ -13182,7 +13312,7 @@
         "encoded_value%0#0"
       ]
     },
-    "1630": {
+    "1649": {
       "op": "pushint 34",
       "defined_out": [
         "34",
@@ -13199,7 +13329,7 @@
         "34"
       ]
     },
-    "1632": {
+    "1651": {
       "op": "intc_2 // 8",
       "stack_out": [
         "tmp%0#0",
@@ -13210,7 +13340,7 @@
         "8"
       ]
     },
-    "1633": {
+    "1652": {
       "op": "box_extract",
       "defined_out": [
         "tmp%0#0",
@@ -13225,7 +13355,7 @@
         "tmp%0#5"
       ]
     },
-    "1634": {
+    "1653": {
       "op": "btoi",
       "defined_out": [
         "tmp%0#0",
@@ -13240,7 +13370,7 @@
         "tmp%1#2"
       ]
     },
-    "1635": {
+    "1654": {
       "op": "itob",
       "defined_out": [
         "aggregate%val_as_bytes%0#0",
@@ -13255,7 +13385,7 @@
         "aggregate%val_as_bytes%0#0"
       ]
     },
-    "1636": {
+    "1655": {
       "op": "uncover 3",
       "stack_out": [
         "tmp%0#3",
@@ -13264,7 +13394,7 @@
         "tmp%0#0"
       ]
     },
-    "1638": {
+    "1657": {
       "op": "uncover 3",
       "stack_out": [
         "tmp%0#4",
@@ -13273,7 +13403,7 @@
         "tmp%0#3"
       ]
     },
-    "1640": {
+    "1659": {
       "op": "concat",
       "defined_out": [
         "aggregate%head%1#0",
@@ -13286,7 +13416,7 @@
         "aggregate%head%1#0"
       ]
     },
-    "1641": {
+    "1660": {
       "op": "uncover 2",
       "stack_out": [
         "aggregate%val_as_bytes%0#0",
@@ -13294,7 +13424,7 @@
         "tmp%0#4"
       ]
     },
-    "1643": {
+    "1662": {
       "op": "concat",
       "defined_out": [
         "aggregate%head%2#0",
@@ -13305,14 +13435,14 @@
         "aggregate%head%2#0"
       ]
     },
-    "1644": {
+    "1663": {
       "op": "swap",
       "stack_out": [
         "aggregate%head%2#0",
         "aggregate%val_as_bytes%0#0"
       ]
     },
-    "1645": {
+    "1664": {
       "op": "concat",
       "defined_out": [
         "aggregate%head%3#0"
@@ -13321,7 +13451,7 @@
         "aggregate%head%3#0"
       ]
     },
-    "1646": {
+    "1665": {
       "op": "bytec_0 // 0x151f7c75",
       "defined_out": [
         "0x151f7c75",
@@ -13332,14 +13462,14 @@
         "0x151f7c75"
       ]
     },
-    "1647": {
+    "1666": {
       "op": "swap",
       "stack_out": [
         "0x151f7c75",
         "aggregate%head%3#0"
       ]
     },
-    "1648": {
+    "1667": {
       "op": "concat",
       "defined_out": [
         "tmp%3#0"
@@ -13348,21 +13478,21 @@
         "tmp%3#0"
       ]
     },
-    "1649": {
+    "1668": {
       "op": "log",
       "stack_out": []
     },
-    "1650": {
+    "1669": {
       "op": "intc_0 // 1",
       "stack_out": [
         "1"
       ]
     },
-    "1651": {
+    "1670": {
       "op": "return",
       "stack_out": []
     },
-    "1652": {
+    "1671": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_get_metadata_pagination[routing]",
       "params": {},
       "block": "arc89_get_metadata_pagination",
@@ -13375,7 +13505,7 @@
         "tmp%0#0"
       ]
     },
-    "1655": {
+    "1674": {
       "op": "dup",
       "defined_out": [
         "tmp%0#0",
@@ -13386,7 +13516,7 @@
         "tmp%0#0 (copy)"
       ]
     },
-    "1656": {
+    "1675": {
       "op": "len",
       "defined_out": [
         "len%0#0",
@@ -13397,7 +13527,7 @@
         "len%0#0"
       ]
     },
-    "1657": {
+    "1676": {
       "op": "intc_2 // 8",
       "defined_out": [
         "8",
@@ -13410,7 +13540,7 @@
         "8"
       ]
     },
-    "1658": {
+    "1677": {
       "op": "==",
       "defined_out": [
         "eq%0#0",
@@ -13421,14 +13551,14 @@
         "eq%0#0"
       ]
     },
-    "1659": {
+    "1678": {
       "error": "invalid number of bytes for arc4.uint64",
       "op": "assert // invalid number of bytes for arc4.uint64",
       "stack_out": [
         "tmp%0#0"
       ]
     },
-    "1660": {
+    "1679": {
       "op": "btoi",
       "defined_out": [
         "asset_id#0"
@@ -13437,7 +13567,7 @@
         "asset_id#0"
       ]
     },
-    "1661": {
+    "1680": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -13448,21 +13578,21 @@
         "asset_id#0 (copy)"
       ]
     },
-    "1662": {
+    "1681": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "op": "callsub _check_existence_preconditions",
       "stack_out": [
         "asset_id#0"
       ]
     },
-    "1665": {
+    "1684": {
       "op": "dup",
       "stack_out": [
         "asset_id#0",
         "asset_id#0 (copy)"
       ]
     },
-    "1666": {
+    "1685": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -13474,7 +13604,7 @@
         "tmp%0#1"
       ]
     },
-    "1669": {
+    "1688": {
       "op": "itob",
       "defined_out": [
         "aggregate%val_as_bytes%0#0",
@@ -13485,7 +13615,7 @@
         "aggregate%val_as_bytes%0#0"
       ]
     },
-    "1670": {
+    "1689": {
       "op": "dup",
       "defined_out": [
         "aggregate%val_as_bytes%0#0",
@@ -13498,7 +13628,7 @@
         "aggregate%val_as_bytes%0#0 (copy)"
       ]
     },
-    "1671": {
+    "1690": {
       "op": "bitlen",
       "defined_out": [
         "aggregate%bitlen%0#0",
@@ -13511,7 +13641,7 @@
         "aggregate%bitlen%0#0"
       ]
     },
-    "1672": {
+    "1691": {
       "op": "pushint 16",
       "defined_out": [
         "16",
@@ -13526,7 +13656,7 @@
         "16"
       ]
     },
-    "1674": {
+    "1693": {
       "op": "<=",
       "defined_out": [
         "aggregate%no_overflow%0#0",
@@ -13539,7 +13669,7 @@
         "aggregate%no_overflow%0#0"
       ]
     },
-    "1675": {
+    "1694": {
       "error": "overflow",
       "op": "assert // overflow",
       "stack_out": [
@@ -13547,7 +13677,7 @@
         "aggregate%val_as_bytes%0#0"
       ]
     },
-    "1676": {
+    "1695": {
       "op": "extract 6 2",
       "defined_out": [
         "aggregate%uint16%0#0",
@@ -13558,14 +13688,14 @@
         "aggregate%uint16%0#0"
       ]
     },
-    "1679": {
+    "1698": {
       "op": "swap",
       "stack_out": [
         "aggregate%uint16%0#0",
         "asset_id#0"
       ]
     },
-    "1680": {
+    "1699": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -13577,7 +13707,7 @@
         "n#0"
       ]
     },
-    "1683": {
+    "1702": {
       "op": "intc 5 // 1006",
       "defined_out": [
         "1006",
@@ -13590,7 +13720,7 @@
         "1006"
       ]
     },
-    "1685": {
+    "1704": {
       "op": "+",
       "defined_out": [
         "aggregate%uint16%0#0",
@@ -13601,7 +13731,7 @@
         "tmp%1#3"
       ]
     },
-    "1686": {
+    "1705": {
       "op": "intc 4 // 1007",
       "defined_out": [
         "1007",
@@ -13614,7 +13744,7 @@
         "1007"
       ]
     },
-    "1688": {
+    "1707": {
       "op": "/",
       "defined_out": [
         "aggregate%uint16%0#0",
@@ -13625,7 +13755,7 @@
         "tmp%2#2"
       ]
     },
-    "1689": {
+    "1708": {
       "op": "itob",
       "defined_out": [
         "aggregate%uint16%0#0",
@@ -13636,7 +13766,7 @@
         "aggregate%val_as_bytes%1#0"
       ]
     },
-    "1690": {
+    "1709": {
       "op": "dup",
       "defined_out": [
         "aggregate%uint16%0#0",
@@ -13649,7 +13779,7 @@
         "aggregate%val_as_bytes%1#0 (copy)"
       ]
     },
-    "1691": {
+    "1710": {
       "op": "bitlen",
       "defined_out": [
         "aggregate%bitlen%1#0",
@@ -13662,7 +13792,7 @@
         "aggregate%bitlen%1#0"
       ]
     },
-    "1692": {
+    "1711": {
       "op": "intc_2 // 8",
       "stack_out": [
         "aggregate%uint16%0#0",
@@ -13671,7 +13801,7 @@
         "8"
       ]
     },
-    "1693": {
+    "1712": {
       "op": "<=",
       "defined_out": [
         "aggregate%no_overflow%1#0",
@@ -13684,7 +13814,7 @@
         "aggregate%no_overflow%1#0"
       ]
     },
-    "1694": {
+    "1713": {
       "error": "overflow",
       "op": "assert // overflow",
       "stack_out": [
@@ -13692,7 +13822,7 @@
         "aggregate%val_as_bytes%1#0"
       ]
     },
-    "1695": {
+    "1714": {
       "op": "extract 7 1",
       "defined_out": [
         "aggregate%uint16%0#0",
@@ -13703,14 +13833,14 @@
         "aggregate%uint8%0#0"
       ]
     },
-    "1698": {
+    "1717": {
       "op": "swap",
       "stack_out": [
         "aggregate%uint8%0#0",
         "aggregate%uint16%0#0"
       ]
     },
-    "1699": {
+    "1718": {
       "op": "pushbytes 0x03ef",
       "defined_out": [
         "0x03ef",
@@ -13723,7 +13853,7 @@
         "0x03ef"
       ]
     },
-    "1703": {
+    "1722": {
       "op": "concat",
       "defined_out": [
         "aggregate%head%1#0",
@@ -13734,14 +13864,14 @@
         "aggregate%head%1#0"
       ]
     },
-    "1704": {
+    "1723": {
       "op": "swap",
       "stack_out": [
         "aggregate%head%1#0",
         "aggregate%uint8%0#0"
       ]
     },
-    "1705": {
+    "1724": {
       "op": "concat",
       "defined_out": [
         "aggregate%head%2#0"
@@ -13750,7 +13880,7 @@
         "aggregate%head%2#0"
       ]
     },
-    "1706": {
+    "1725": {
       "op": "bytec_0 // 0x151f7c75",
       "defined_out": [
         "0x151f7c75",
@@ -13761,14 +13891,14 @@
         "0x151f7c75"
       ]
     },
-    "1707": {
+    "1726": {
       "op": "swap",
       "stack_out": [
         "0x151f7c75",
         "aggregate%head%2#0"
       ]
     },
-    "1708": {
+    "1727": {
       "op": "concat",
       "defined_out": [
         "tmp%3#0"
@@ -13777,11 +13907,11 @@
         "tmp%3#0"
       ]
     },
-    "1709": {
+    "1728": {
       "op": "log",
       "stack_out": []
     },
-    "1710": {
+    "1729": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1"
@@ -13790,11 +13920,11 @@
         "1"
       ]
     },
-    "1711": {
+    "1730": {
       "op": "return",
       "stack_out": []
     },
-    "1712": {
+    "1731": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_get_metadata[routing]",
       "params": {},
       "block": "arc89_get_metadata",
@@ -13807,7 +13937,7 @@
         "tmp%0#0"
       ]
     },
-    "1715": {
+    "1734": {
       "op": "dup",
       "defined_out": [
         "tmp%0#0",
@@ -13818,7 +13948,7 @@
         "tmp%0#0 (copy)"
       ]
     },
-    "1716": {
+    "1735": {
       "op": "len",
       "defined_out": [
         "len%0#0",
@@ -13829,7 +13959,7 @@
         "len%0#0"
       ]
     },
-    "1717": {
+    "1736": {
       "op": "intc_2 // 8",
       "defined_out": [
         "8",
@@ -13842,7 +13972,7 @@
         "8"
       ]
     },
-    "1718": {
+    "1737": {
       "op": "==",
       "defined_out": [
         "eq%0#0",
@@ -13853,14 +13983,14 @@
         "eq%0#0"
       ]
     },
-    "1719": {
+    "1738": {
       "error": "invalid number of bytes for arc4.uint64",
       "op": "assert // invalid number of bytes for arc4.uint64",
       "stack_out": [
         "tmp%0#0"
       ]
     },
-    "1720": {
+    "1739": {
       "op": "btoi",
       "defined_out": [
         "asset_id#0"
@@ -13869,7 +13999,7 @@
         "asset_id#0"
       ]
     },
-    "1721": {
+    "1740": {
       "op": "txna ApplicationArgs 2",
       "defined_out": [
         "asset_id#0",
@@ -13880,7 +14010,7 @@
         "page#0"
       ]
     },
-    "1724": {
+    "1743": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -13893,7 +14023,7 @@
         "page#0 (copy)"
       ]
     },
-    "1725": {
+    "1744": {
       "op": "len",
       "defined_out": [
         "asset_id#0",
@@ -13906,7 +14036,7 @@
         "len%1#0"
       ]
     },
-    "1726": {
+    "1745": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
@@ -13921,7 +14051,7 @@
         "1"
       ]
     },
-    "1727": {
+    "1746": {
       "op": "==",
       "defined_out": [
         "asset_id#0",
@@ -13934,7 +14064,7 @@
         "eq%1#0"
       ]
     },
-    "1728": {
+    "1747": {
       "error": "invalid number of bytes for arc4.uint8",
       "op": "assert // invalid number of bytes for arc4.uint8",
       "stack_out": [
@@ -13942,7 +14072,7 @@
         "page#0"
       ]
     },
-    "1729": {
+    "1748": {
       "op": "dig 1",
       "defined_out": [
         "asset_id#0",
@@ -13955,7 +14085,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "1731": {
+    "1750": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "op": "callsub _check_existence_preconditions",
       "stack_out": [
@@ -13963,7 +14093,7 @@
         "page#0"
       ]
     },
-    "1734": {
+    "1753": {
       "op": "dig 1",
       "stack_out": [
         "asset_id#0",
@@ -13971,7 +14101,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "1736": {
+    "1755": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -13985,7 +14115,7 @@
         "n#0"
       ]
     },
-    "1739": {
+    "1758": {
       "op": "intc 5 // 1006",
       "defined_out": [
         "1006",
@@ -14000,7 +14130,7 @@
         "1006"
       ]
     },
-    "1741": {
+    "1760": {
       "op": "+",
       "defined_out": [
         "asset_id#0",
@@ -14013,7 +14143,7 @@
         "tmp%1#1"
       ]
     },
-    "1742": {
+    "1761": {
       "op": "intc 4 // 1007",
       "defined_out": [
         "1007",
@@ -14028,7 +14158,7 @@
         "1007"
       ]
     },
-    "1744": {
+    "1763": {
       "op": "/",
       "defined_out": [
         "asset_id#0",
@@ -14041,7 +14171,7 @@
         "total_pages#0"
       ]
     },
-    "1745": {
+    "1764": {
       "op": "swap",
       "stack_out": [
         "asset_id#0",
@@ -14049,7 +14179,7 @@
         "page#0"
       ]
     },
-    "1746": {
+    "1765": {
       "op": "btoi",
       "stack_out": [
         "asset_id#0",
@@ -14057,7 +14187,7 @@
         "tmp%1#1"
       ]
     },
-    "1747": {
+    "1766": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -14072,7 +14202,7 @@
         "tmp%1#1 (copy)"
       ]
     },
-    "1748": {
+    "1767": {
       "op": "dig 2",
       "defined_out": [
         "asset_id#0",
@@ -14089,7 +14219,7 @@
         "total_pages#0 (copy)"
       ]
     },
-    "1750": {
+    "1769": {
       "op": "<",
       "defined_out": [
         "asset_id#0",
@@ -14104,7 +14234,7 @@
         "tmp%2#1"
       ]
     },
-    "1751": {
+    "1770": {
       "error": "Invalid page index",
       "op": "assert // Invalid page index",
       "stack_out": [
@@ -14113,7 +14243,7 @@
         "tmp%1#1"
       ]
     },
-    "1752": {
+    "1771": {
       "op": "swap",
       "stack_out": [
         "asset_id#0",
@@ -14121,7 +14251,7 @@
         "total_pages#0"
       ]
     },
-    "1753": {
+    "1772": {
       "op": "intc_0 // 1",
       "stack_out": [
         "asset_id#0",
@@ -14130,7 +14260,7 @@
         "1"
       ]
     },
-    "1754": {
+    "1773": {
       "op": "-",
       "defined_out": [
         "asset_id#0",
@@ -14143,7 +14273,7 @@
         "tmp%4#1"
       ]
     },
-    "1755": {
+    "1774": {
       "op": "dig 1",
       "stack_out": [
         "asset_id#0",
@@ -14152,7 +14282,7 @@
         "tmp%1#1 (copy)"
       ]
     },
-    "1757": {
+    "1776": {
       "op": ">",
       "defined_out": [
         "asset_id#0",
@@ -14165,7 +14295,7 @@
         "tmp%5#0"
       ]
     },
-    "1758": {
+    "1777": {
       "op": "bytec_2 // 0x00",
       "defined_out": [
         "0x00",
@@ -14180,7 +14310,7 @@
         "0x00"
       ]
     },
-    "1759": {
+    "1778": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -14197,7 +14327,7 @@
         "0"
       ]
     },
-    "1760": {
+    "1779": {
       "op": "uncover 2",
       "stack_out": [
         "asset_id#0",
@@ -14207,7 +14337,7 @@
         "tmp%5#0"
       ]
     },
-    "1762": {
+    "1781": {
       "op": "setbit",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -14220,7 +14350,7 @@
         "aggregate%encoded_bool%0#0"
       ]
     },
-    "1763": {
+    "1782": {
       "op": "dig 2",
       "stack_out": [
         "asset_id#0",
@@ -14229,7 +14359,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "1765": {
+    "1784": {
       "op": "itob",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -14244,7 +14374,7 @@
         "encoded_value%0#0"
       ]
     },
-    "1766": {
+    "1785": {
       "op": "pushint 34",
       "defined_out": [
         "34",
@@ -14261,7 +14391,7 @@
         "34"
       ]
     },
-    "1768": {
+    "1787": {
       "op": "intc_2 // 8",
       "stack_out": [
         "asset_id#0",
@@ -14272,7 +14402,7 @@
         "8"
       ]
     },
-    "1769": {
+    "1788": {
       "op": "box_extract",
       "stack_out": [
         "asset_id#0",
@@ -14281,7 +14411,7 @@
         "tmp%0#0"
       ]
     },
-    "1770": {
+    "1789": {
       "op": "btoi",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -14296,7 +14426,7 @@
         "tmp%1#4"
       ]
     },
-    "1771": {
+    "1790": {
       "op": "itob",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -14311,7 +14441,7 @@
         "aggregate%val_as_bytes%0#0"
       ]
     },
-    "1772": {
+    "1791": {
       "op": "uncover 3",
       "stack_out": [
         "tmp%1#1",
@@ -14320,7 +14450,7 @@
         "asset_id#0"
       ]
     },
-    "1774": {
+    "1793": {
       "op": "uncover 3",
       "stack_out": [
         "aggregate%encoded_bool%0#0",
@@ -14329,7 +14459,7 @@
         "tmp%1#1"
       ]
     },
-    "1776": {
+    "1795": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_page",
       "op": "callsub _get_metadata_page",
       "defined_out": [
@@ -14343,7 +14473,7 @@
         "tmp%10#0"
       ]
     },
-    "1779": {
+    "1798": {
       "op": "dup",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -14358,7 +14488,7 @@
         "tmp%10#0 (copy)"
       ]
     },
-    "1780": {
+    "1799": {
       "op": "len",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -14373,7 +14503,7 @@
         "aggregate%length%0#0"
       ]
     },
-    "1781": {
+    "1800": {
       "op": "itob",
       "defined_out": [
         "aggregate%as_bytes%0#0",
@@ -14388,7 +14518,7 @@
         "aggregate%as_bytes%0#0"
       ]
     },
-    "1782": {
+    "1801": {
       "op": "extract 6 2",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -14403,7 +14533,7 @@
         "aggregate%length_uint16%0#0"
       ]
     },
-    "1785": {
+    "1804": {
       "op": "swap",
       "stack_out": [
         "aggregate%encoded_bool%0#0",
@@ -14412,7 +14542,7 @@
         "tmp%10#0"
       ]
     },
-    "1786": {
+    "1805": {
       "op": "concat",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -14425,7 +14555,7 @@
         "aggregate%encoded_value%0#0"
       ]
     },
-    "1787": {
+    "1806": {
       "op": "cover 2",
       "stack_out": [
         "aggregate%encoded_value%0#0",
@@ -14433,7 +14563,7 @@
         "aggregate%val_as_bytes%0#0"
       ]
     },
-    "1789": {
+    "1808": {
       "op": "concat",
       "defined_out": [
         "aggregate%encoded_value%0#0",
@@ -14444,7 +14574,7 @@
         "aggregate%head%1#0"
       ]
     },
-    "1790": {
+    "1809": {
       "op": "pushbytes 0x000b",
       "defined_out": [
         "0x000b",
@@ -14457,7 +14587,7 @@
         "0x000b"
       ]
     },
-    "1794": {
+    "1813": {
       "op": "concat",
       "defined_out": [
         "aggregate%encoded_value%0#0",
@@ -14468,14 +14598,14 @@
         "aggregate%head%2#0"
       ]
     },
-    "1795": {
+    "1814": {
       "op": "swap",
       "stack_out": [
         "aggregate%head%2#0",
         "aggregate%encoded_value%0#0"
       ]
     },
-    "1796": {
+    "1815": {
       "op": "concat",
       "defined_out": [
         "aggregate%concat%0#0"
@@ -14484,7 +14614,7 @@
         "aggregate%concat%0#0"
       ]
     },
-    "1797": {
+    "1816": {
       "op": "bytec_0 // 0x151f7c75",
       "defined_out": [
         "0x151f7c75",
@@ -14495,14 +14625,14 @@
         "0x151f7c75"
       ]
     },
-    "1798": {
+    "1817": {
       "op": "swap",
       "stack_out": [
         "0x151f7c75",
         "aggregate%concat%0#0"
       ]
     },
-    "1799": {
+    "1818": {
       "op": "concat",
       "defined_out": [
         "tmp%4#0"
@@ -14511,21 +14641,21 @@
         "tmp%4#0"
       ]
     },
-    "1800": {
+    "1819": {
       "op": "log",
       "stack_out": []
     },
-    "1801": {
+    "1820": {
       "op": "intc_0 // 1",
       "stack_out": [
         "1"
       ]
     },
-    "1802": {
+    "1821": {
       "op": "return",
       "stack_out": []
     },
-    "1803": {
+    "1822": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_get_metadata_slice[routing]",
       "params": {},
       "block": "arc89_get_metadata_slice",
@@ -14538,7 +14668,7 @@
         "tmp%0#0"
       ]
     },
-    "1806": {
+    "1825": {
       "op": "dup",
       "defined_out": [
         "tmp%0#0",
@@ -14549,7 +14679,7 @@
         "tmp%0#0 (copy)"
       ]
     },
-    "1807": {
+    "1826": {
       "op": "len",
       "defined_out": [
         "len%0#0",
@@ -14560,7 +14690,7 @@
         "len%0#0"
       ]
     },
-    "1808": {
+    "1827": {
       "op": "intc_2 // 8",
       "defined_out": [
         "8",
@@ -14573,7 +14703,7 @@
         "8"
       ]
     },
-    "1809": {
+    "1828": {
       "op": "==",
       "defined_out": [
         "eq%0#0",
@@ -14584,14 +14714,14 @@
         "eq%0#0"
       ]
     },
-    "1810": {
+    "1829": {
       "error": "invalid number of bytes for arc4.uint64",
       "op": "assert // invalid number of bytes for arc4.uint64",
       "stack_out": [
         "tmp%0#0"
       ]
     },
-    "1811": {
+    "1830": {
       "op": "btoi",
       "defined_out": [
         "asset_id#0"
@@ -14600,7 +14730,7 @@
         "asset_id#0"
       ]
     },
-    "1812": {
+    "1831": {
       "op": "txna ApplicationArgs 2",
       "defined_out": [
         "asset_id#0",
@@ -14611,7 +14741,7 @@
         "offset#0"
       ]
     },
-    "1815": {
+    "1834": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -14624,7 +14754,7 @@
         "offset#0 (copy)"
       ]
     },
-    "1816": {
+    "1835": {
       "op": "len",
       "defined_out": [
         "asset_id#0",
@@ -14637,7 +14767,7 @@
         "len%1#0"
       ]
     },
-    "1817": {
+    "1836": {
       "op": "intc_3 // 2",
       "defined_out": [
         "2",
@@ -14652,7 +14782,7 @@
         "2"
       ]
     },
-    "1818": {
+    "1837": {
       "op": "==",
       "defined_out": [
         "asset_id#0",
@@ -14665,7 +14795,7 @@
         "eq%1#0"
       ]
     },
-    "1819": {
+    "1838": {
       "error": "invalid number of bytes for arc4.uint16",
       "op": "assert // invalid number of bytes for arc4.uint16",
       "stack_out": [
@@ -14673,7 +14803,7 @@
         "offset#0"
       ]
     },
-    "1820": {
+    "1839": {
       "op": "txna ApplicationArgs 3",
       "defined_out": [
         "asset_id#0",
@@ -14686,7 +14816,7 @@
         "size#0"
       ]
     },
-    "1823": {
+    "1842": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -14701,7 +14831,7 @@
         "size#0 (copy)"
       ]
     },
-    "1824": {
+    "1843": {
       "op": "len",
       "defined_out": [
         "asset_id#0",
@@ -14716,7 +14846,7 @@
         "len%2#0"
       ]
     },
-    "1825": {
+    "1844": {
       "op": "intc_3 // 2",
       "stack_out": [
         "asset_id#0",
@@ -14726,7 +14856,7 @@
         "2"
       ]
     },
-    "1826": {
+    "1845": {
       "op": "==",
       "defined_out": [
         "asset_id#0",
@@ -14741,7 +14871,7 @@
         "eq%2#0"
       ]
     },
-    "1827": {
+    "1846": {
       "error": "invalid number of bytes for arc4.uint16",
       "op": "assert // invalid number of bytes for arc4.uint16",
       "stack_out": [
@@ -14750,7 +14880,7 @@
         "size#0"
       ]
     },
-    "1828": {
+    "1847": {
       "op": "dig 2",
       "defined_out": [
         "asset_id#0",
@@ -14765,7 +14895,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "1830": {
+    "1849": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "op": "callsub _check_existence_preconditions",
       "stack_out": [
@@ -14774,7 +14904,7 @@
         "size#0"
       ]
     },
-    "1833": {
+    "1852": {
       "op": "btoi",
       "defined_out": [
         "asset_id#0",
@@ -14787,7 +14917,7 @@
         "tmp%0#1"
       ]
     },
-    "1834": {
+    "1853": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -14802,7 +14932,7 @@
         "tmp%0#1 (copy)"
       ]
     },
-    "1835": {
+    "1854": {
       "op": "intc 4 // 1007",
       "defined_out": [
         "1007",
@@ -14819,7 +14949,7 @@
         "1007"
       ]
     },
-    "1837": {
+    "1856": {
       "op": "<=",
       "defined_out": [
         "asset_id#0",
@@ -14834,7 +14964,7 @@
         "tmp%1#1"
       ]
     },
-    "1838": {
+    "1857": {
       "error": "Payload exceeds page size",
       "op": "assert // Payload exceeds page size",
       "stack_out": [
@@ -14843,7 +14973,7 @@
         "tmp%0#1"
       ]
     },
-    "1839": {
+    "1858": {
       "op": "swap",
       "stack_out": [
         "asset_id#0",
@@ -14851,7 +14981,7 @@
         "offset#0"
       ]
     },
-    "1840": {
+    "1859": {
       "op": "btoi",
       "defined_out": [
         "asset_id#0",
@@ -14864,7 +14994,7 @@
         "tmp%2#1"
       ]
     },
-    "1841": {
+    "1860": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -14879,7 +15009,7 @@
         "tmp%2#1 (copy)"
       ]
     },
-    "1842": {
+    "1861": {
       "op": "dig 2",
       "stack_out": [
         "asset_id#0",
@@ -14889,7 +15019,7 @@
         "tmp%0#1 (copy)"
       ]
     },
-    "1844": {
+    "1863": {
       "op": "+",
       "defined_out": [
         "asset_id#0",
@@ -14904,7 +15034,7 @@
         "tmp%4#1"
       ]
     },
-    "1845": {
+    "1864": {
       "op": "dig 3",
       "stack_out": [
         "asset_id#0",
@@ -14914,7 +15044,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "1847": {
+    "1866": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -14932,7 +15062,7 @@
         "tmp%5#1"
       ]
     },
-    "1850": {
+    "1869": {
       "op": "<=",
       "defined_out": [
         "asset_id#0",
@@ -14947,7 +15077,7 @@
         "tmp%6#0"
       ]
     },
-    "1851": {
+    "1870": {
       "error": "Slice exceeds metadata range",
       "op": "assert // Slice exceeds metadata range",
       "stack_out": [
@@ -14956,7 +15086,7 @@
         "tmp%2#1"
       ]
     },
-    "1852": {
+    "1871": {
       "op": "uncover 2",
       "stack_out": [
         "tmp%0#1",
@@ -14964,7 +15094,7 @@
         "asset_id#0"
       ]
     },
-    "1854": {
+    "1873": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0",
@@ -14977,7 +15107,7 @@
         "encoded_value%0#0"
       ]
     },
-    "1855": {
+    "1874": {
       "op": "pushint 42",
       "defined_out": [
         "42",
@@ -14992,7 +15122,7 @@
         "42"
       ]
     },
-    "1857": {
+    "1876": {
       "op": "uncover 2",
       "stack_out": [
         "tmp%0#1",
@@ -15001,7 +15131,7 @@
         "tmp%2#1"
       ]
     },
-    "1859": {
+    "1878": {
       "op": "+",
       "defined_out": [
         "encoded_value%0#0",
@@ -15014,7 +15144,7 @@
         "tmp%8#0"
       ]
     },
-    "1860": {
+    "1879": {
       "op": "uncover 2",
       "stack_out": [
         "encoded_value%0#0",
@@ -15022,7 +15152,7 @@
         "tmp%0#1"
       ]
     },
-    "1862": {
+    "1881": {
       "op": "box_extract",
       "defined_out": [
         "metadata_slice#0"
@@ -15031,7 +15161,7 @@
         "metadata_slice#0"
       ]
     },
-    "1863": {
+    "1882": {
       "op": "bytec_0 // 0x151f7c75",
       "defined_out": [
         "0x151f7c75",
@@ -15042,14 +15172,14 @@
         "0x151f7c75"
       ]
     },
-    "1864": {
+    "1883": {
       "op": "swap",
       "stack_out": [
         "0x151f7c75",
         "metadata_slice#0"
       ]
     },
-    "1865": {
+    "1884": {
       "op": "concat",
       "defined_out": [
         "tmp%5#0"
@@ -15058,11 +15188,11 @@
         "tmp%5#0"
       ]
     },
-    "1866": {
+    "1885": {
       "op": "log",
       "stack_out": []
     },
-    "1867": {
+    "1886": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1"
@@ -15071,11 +15201,11 @@
         "1"
       ]
     },
-    "1868": {
+    "1887": {
       "op": "return",
       "stack_out": []
     },
-    "1869": {
+    "1888": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_get_metadata_header_hash[routing]",
       "params": {},
       "block": "arc89_get_metadata_header_hash",
@@ -15088,7 +15218,7 @@
         "tmp%0#0"
       ]
     },
-    "1872": {
+    "1891": {
       "op": "dup",
       "defined_out": [
         "tmp%0#0",
@@ -15099,7 +15229,7 @@
         "tmp%0#0 (copy)"
       ]
     },
-    "1873": {
+    "1892": {
       "op": "len",
       "defined_out": [
         "len%0#0",
@@ -15110,7 +15240,7 @@
         "len%0#0"
       ]
     },
-    "1874": {
+    "1893": {
       "op": "intc_2 // 8",
       "defined_out": [
         "8",
@@ -15123,7 +15253,7 @@
         "8"
       ]
     },
-    "1875": {
+    "1894": {
       "op": "==",
       "defined_out": [
         "eq%0#0",
@@ -15134,14 +15264,14 @@
         "eq%0#0"
       ]
     },
-    "1876": {
+    "1895": {
       "error": "invalid number of bytes for arc4.uint64",
       "op": "assert // invalid number of bytes for arc4.uint64",
       "stack_out": [
         "tmp%0#0"
       ]
     },
-    "1877": {
+    "1896": {
       "op": "btoi",
       "defined_out": [
         "asset_id#0"
@@ -15150,7 +15280,7 @@
         "asset_id#0"
       ]
     },
-    "1878": {
+    "1897": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -15161,14 +15291,14 @@
         "asset_id#0 (copy)"
       ]
     },
-    "1879": {
+    "1898": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "op": "callsub _check_existence_preconditions",
       "stack_out": [
         "asset_id#0"
       ]
     },
-    "1882": {
+    "1901": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._compute_header_hash",
       "op": "callsub _compute_header_hash",
       "defined_out": [
@@ -15178,7 +15308,7 @@
         "reinterpret_Encoded(uint8[32])%0#0"
       ]
     },
-    "1885": {
+    "1904": {
       "op": "bytec_0 // 0x151f7c75",
       "defined_out": [
         "0x151f7c75",
@@ -15189,14 +15319,14 @@
         "0x151f7c75"
       ]
     },
-    "1886": {
+    "1905": {
       "op": "swap",
       "stack_out": [
         "0x151f7c75",
         "reinterpret_Encoded(uint8[32])%0#0"
       ]
     },
-    "1887": {
+    "1906": {
       "op": "concat",
       "defined_out": [
         "tmp%3#0"
@@ -15205,11 +15335,11 @@
         "tmp%3#0"
       ]
     },
-    "1888": {
+    "1907": {
       "op": "log",
       "stack_out": []
     },
-    "1889": {
+    "1908": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1"
@@ -15218,11 +15348,11 @@
         "1"
       ]
     },
-    "1890": {
+    "1909": {
       "op": "return",
       "stack_out": []
     },
-    "1891": {
+    "1910": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_get_metadata_page_hash[routing]",
       "params": {},
       "block": "arc89_get_metadata_page_hash",
@@ -15235,7 +15365,7 @@
         "tmp%0#0"
       ]
     },
-    "1894": {
+    "1913": {
       "op": "dup",
       "defined_out": [
         "tmp%0#0",
@@ -15246,7 +15376,7 @@
         "tmp%0#0 (copy)"
       ]
     },
-    "1895": {
+    "1914": {
       "op": "len",
       "defined_out": [
         "len%0#0",
@@ -15257,7 +15387,7 @@
         "len%0#0"
       ]
     },
-    "1896": {
+    "1915": {
       "op": "intc_2 // 8",
       "defined_out": [
         "8",
@@ -15270,7 +15400,7 @@
         "8"
       ]
     },
-    "1897": {
+    "1916": {
       "op": "==",
       "defined_out": [
         "eq%0#0",
@@ -15281,14 +15411,14 @@
         "eq%0#0"
       ]
     },
-    "1898": {
+    "1917": {
       "error": "invalid number of bytes for arc4.uint64",
       "op": "assert // invalid number of bytes for arc4.uint64",
       "stack_out": [
         "tmp%0#0"
       ]
     },
-    "1899": {
+    "1918": {
       "op": "btoi",
       "defined_out": [
         "asset_id#0"
@@ -15297,7 +15427,7 @@
         "asset_id#0"
       ]
     },
-    "1900": {
+    "1919": {
       "op": "txna ApplicationArgs 2",
       "defined_out": [
         "asset_id#0",
@@ -15308,7 +15438,7 @@
         "page#0"
       ]
     },
-    "1903": {
+    "1922": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -15321,7 +15451,7 @@
         "page#0 (copy)"
       ]
     },
-    "1904": {
+    "1923": {
       "op": "len",
       "defined_out": [
         "asset_id#0",
@@ -15334,7 +15464,7 @@
         "len%1#0"
       ]
     },
-    "1905": {
+    "1924": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
@@ -15349,7 +15479,7 @@
         "1"
       ]
     },
-    "1906": {
+    "1925": {
       "op": "==",
       "defined_out": [
         "asset_id#0",
@@ -15362,7 +15492,7 @@
         "eq%1#0"
       ]
     },
-    "1907": {
+    "1926": {
       "error": "invalid number of bytes for arc4.uint8",
       "op": "assert // invalid number of bytes for arc4.uint8",
       "stack_out": [
@@ -15370,7 +15500,7 @@
         "page#0"
       ]
     },
-    "1908": {
+    "1927": {
       "op": "dig 1",
       "defined_out": [
         "asset_id#0",
@@ -15383,7 +15513,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "1910": {
+    "1929": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "op": "callsub _check_existence_preconditions",
       "stack_out": [
@@ -15391,7 +15521,7 @@
         "page#0"
       ]
     },
-    "1913": {
+    "1932": {
       "op": "btoi",
       "defined_out": [
         "asset_id#0",
@@ -15402,7 +15532,7 @@
         "tmp%0#1"
       ]
     },
-    "1914": {
+    "1933": {
       "op": "dup2",
       "defined_out": [
         "asset_id#0",
@@ -15417,7 +15547,7 @@
         "tmp%0#1 (copy)"
       ]
     },
-    "1915": {
+    "1934": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_page",
       "op": "callsub _get_metadata_page",
       "defined_out": [
@@ -15431,7 +15561,7 @@
         "page_content#0"
       ]
     },
-    "1918": {
+    "1937": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._compute_page_hash",
       "op": "callsub _compute_page_hash",
       "defined_out": [
@@ -15441,7 +15571,7 @@
         "page_hash#0"
       ]
     },
-    "1921": {
+    "1940": {
       "op": "bytec_0 // 0x151f7c75",
       "defined_out": [
         "0x151f7c75",
@@ -15452,14 +15582,14 @@
         "0x151f7c75"
       ]
     },
-    "1922": {
+    "1941": {
       "op": "swap",
       "stack_out": [
         "0x151f7c75",
         "page_hash#0"
       ]
     },
-    "1923": {
+    "1942": {
       "op": "concat",
       "defined_out": [
         "tmp%4#0"
@@ -15468,21 +15598,21 @@
         "tmp%4#0"
       ]
     },
-    "1924": {
+    "1943": {
       "op": "log",
       "stack_out": []
     },
-    "1925": {
+    "1944": {
       "op": "intc_0 // 1",
       "stack_out": [
         "1"
       ]
     },
-    "1926": {
+    "1945": {
       "op": "return",
       "stack_out": []
     },
-    "1927": {
+    "1946": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_get_metadata_hash[routing]",
       "params": {},
       "block": "arc89_get_metadata_hash",
@@ -15495,7 +15625,7 @@
         "tmp%0#0"
       ]
     },
-    "1930": {
+    "1949": {
       "op": "dup",
       "defined_out": [
         "tmp%0#0",
@@ -15506,7 +15636,7 @@
         "tmp%0#0 (copy)"
       ]
     },
-    "1931": {
+    "1950": {
       "op": "len",
       "defined_out": [
         "len%0#0",
@@ -15517,7 +15647,7 @@
         "len%0#0"
       ]
     },
-    "1932": {
+    "1951": {
       "op": "intc_2 // 8",
       "defined_out": [
         "8",
@@ -15530,7 +15660,7 @@
         "8"
       ]
     },
-    "1933": {
+    "1952": {
       "op": "==",
       "defined_out": [
         "eq%0#0",
@@ -15541,14 +15671,14 @@
         "eq%0#0"
       ]
     },
-    "1934": {
+    "1953": {
       "error": "invalid number of bytes for arc4.uint64",
       "op": "assert // invalid number of bytes for arc4.uint64",
       "stack_out": [
         "tmp%0#0"
       ]
     },
-    "1935": {
+    "1954": {
       "op": "btoi",
       "defined_out": [
         "asset_id#0"
@@ -15557,7 +15687,7 @@
         "asset_id#0"
       ]
     },
-    "1936": {
+    "1955": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -15568,14 +15698,14 @@
         "asset_id#0 (copy)"
       ]
     },
-    "1937": {
+    "1956": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "op": "callsub _check_existence_preconditions",
       "stack_out": [
         "asset_id#0"
       ]
     },
-    "1940": {
+    "1959": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0"
@@ -15584,7 +15714,7 @@
         "encoded_value%0#0"
       ]
     },
-    "1941": {
+    "1960": {
       "op": "intc_3 // 2",
       "defined_out": [
         "2",
@@ -15595,7 +15725,7 @@
         "2"
       ]
     },
-    "1942": {
+    "1961": {
       "op": "pushint 32",
       "defined_out": [
         "2",
@@ -15608,13 +15738,13 @@
         "32"
       ]
     },
-    "1944": {
+    "1963": {
       "op": "box_extract",
       "stack_out": [
         "tmp%0#0"
       ]
     },
-    "1945": {
+    "1964": {
       "op": "bytec_0 // 0x151f7c75",
       "defined_out": [
         "0x151f7c75",
@@ -15625,14 +15755,14 @@
         "0x151f7c75"
       ]
     },
-    "1946": {
+    "1965": {
       "op": "swap",
       "stack_out": [
         "0x151f7c75",
         "tmp%0#0"
       ]
     },
-    "1947": {
+    "1966": {
       "op": "concat",
       "defined_out": [
         "tmp%3#0"
@@ -15641,11 +15771,11 @@
         "tmp%3#0"
       ]
     },
-    "1948": {
+    "1967": {
       "op": "log",
       "stack_out": []
     },
-    "1949": {
+    "1968": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1"
@@ -15654,11 +15784,11 @@
         "1"
       ]
     },
-    "1950": {
+    "1969": {
       "op": "return",
       "stack_out": []
     },
-    "1951": {
+    "1970": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_get_metadata_string_by_key[routing]",
       "params": {},
       "block": "arc89_get_metadata_string_by_key",
@@ -15671,7 +15801,7 @@
         "tmp%0#0"
       ]
     },
-    "1954": {
+    "1973": {
       "op": "dup",
       "defined_out": [
         "tmp%0#0",
@@ -15682,7 +15812,7 @@
         "tmp%0#0 (copy)"
       ]
     },
-    "1955": {
+    "1974": {
       "op": "len",
       "defined_out": [
         "len%0#0",
@@ -15693,7 +15823,7 @@
         "len%0#0"
       ]
     },
-    "1956": {
+    "1975": {
       "op": "intc_2 // 8",
       "defined_out": [
         "8",
@@ -15706,7 +15836,7 @@
         "8"
       ]
     },
-    "1957": {
+    "1976": {
       "op": "==",
       "defined_out": [
         "eq%0#0",
@@ -15717,14 +15847,14 @@
         "eq%0#0"
       ]
     },
-    "1958": {
+    "1977": {
       "error": "invalid number of bytes for arc4.uint64",
       "op": "assert // invalid number of bytes for arc4.uint64",
       "stack_out": [
         "tmp%0#0"
       ]
     },
-    "1959": {
+    "1978": {
       "op": "btoi",
       "defined_out": [
         "asset_id#0"
@@ -15733,7 +15863,7 @@
         "asset_id#0"
       ]
     },
-    "1960": {
+    "1979": {
       "op": "txna ApplicationArgs 2",
       "defined_out": [
         "asset_id#0",
@@ -15744,7 +15874,7 @@
         "key#0"
       ]
     },
-    "1963": {
+    "1982": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -15757,7 +15887,7 @@
         "key#0 (copy)"
       ]
     },
-    "1964": {
+    "1983": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -15772,7 +15902,7 @@
         "0"
       ]
     },
-    "1965": {
+    "1984": {
       "error": "invalid array length header",
       "op": "extract_uint16 // on error: invalid array length header",
       "defined_out": [
@@ -15786,7 +15916,7 @@
         "aggregate%array_length%0#0"
       ]
     },
-    "1966": {
+    "1985": {
       "op": "intc_3 // 2",
       "defined_out": [
         "2",
@@ -15801,7 +15931,7 @@
         "2"
       ]
     },
-    "1967": {
+    "1986": {
       "op": "+",
       "defined_out": [
         "add%0#0",
@@ -15814,7 +15944,7 @@
         "add%0#0"
       ]
     },
-    "1968": {
+    "1987": {
       "op": "dig 1",
       "stack_out": [
         "asset_id#0",
@@ -15823,7 +15953,7 @@
         "key#0 (copy)"
       ]
     },
-    "1970": {
+    "1989": {
       "op": "len",
       "defined_out": [
         "add%0#0",
@@ -15838,7 +15968,7 @@
         "len%1#0"
       ]
     },
-    "1971": {
+    "1990": {
       "op": "==",
       "defined_out": [
         "asset_id#0",
@@ -15851,7 +15981,7 @@
         "eq%1#0"
       ]
     },
-    "1972": {
+    "1991": {
       "error": "invalid number of bytes for arc4.dynamic_array<arc4.uint8>",
       "op": "assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>",
       "stack_out": [
@@ -15859,7 +15989,7 @@
         "key#0"
       ]
     },
-    "1973": {
+    "1992": {
       "op": "dig 1",
       "defined_out": [
         "asset_id#0",
@@ -15872,7 +16002,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "1975": {
+    "1994": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "op": "callsub _check_existence_preconditions",
       "stack_out": [
@@ -15880,7 +16010,7 @@
         "key#0"
       ]
     },
-    "1978": {
+    "1997": {
       "op": "dig 1",
       "stack_out": [
         "asset_id#0",
@@ -15888,7 +16018,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "1980": {
+    "1999": {
       "op": "itob",
       "defined_out": [
         "asset_id#0",
@@ -15901,7 +16031,7 @@
         "encoded_value%0#1"
       ]
     },
-    "1981": {
+    "2000": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -15916,7 +16046,7 @@
         "encoded_value%0#1 (copy)"
       ]
     },
-    "1982": {
+    "2001": {
       "op": "intc_1 // 0",
       "stack_out": [
         "asset_id#0",
@@ -15926,7 +16056,7 @@
         "0"
       ]
     },
-    "1983": {
+    "2002": {
       "op": "intc_0 // 1",
       "defined_out": [
         "0",
@@ -15945,7 +16075,7 @@
         "1"
       ]
     },
-    "1984": {
+    "2003": {
       "op": "box_extract",
       "stack_out": [
         "asset_id#0",
@@ -15954,7 +16084,7 @@
         "tmp%0#0"
       ]
     },
-    "1985": {
+    "2004": {
       "op": "intc_1 // 0",
       "stack_out": [
         "asset_id#0",
@@ -15964,7 +16094,7 @@
         "0"
       ]
     },
-    "1986": {
+    "2005": {
       "op": "getbit",
       "defined_out": [
         "asset_id#0",
@@ -15979,7 +16109,7 @@
         "tmp%1#0"
       ]
     },
-    "1987": {
+    "2006": {
       "error": "Metadata is not short",
       "op": "assert // Metadata is not short",
       "stack_out": [
@@ -15988,7 +16118,7 @@
         "encoded_value%0#1"
       ]
     },
-    "1988": {
+    "2007": {
       "op": "uncover 2",
       "stack_out": [
         "key#0",
@@ -15996,7 +16126,7 @@
         "asset_id#0"
       ]
     },
-    "1990": {
+    "2009": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -16010,10 +16140,10 @@
         "tmp%0#3"
       ]
     },
-    "1993": {
+    "2012": {
       "op": "pushint 42"
     },
-    "1995": {
+    "2014": {
       "op": "swap",
       "defined_out": [
         "42",
@@ -16028,7 +16158,7 @@
         "tmp%0#3"
       ]
     },
-    "1996": {
+    "2015": {
       "op": "box_extract",
       "defined_out": [
         "key#0",
@@ -16039,14 +16169,14 @@
         "obj#0"
       ]
     },
-    "1997": {
+    "2016": {
       "op": "swap",
       "stack_out": [
         "obj#0",
         "key#0"
       ]
     },
-    "1998": {
+    "2017": {
       "op": "extract 2 0",
       "defined_out": [
         "obj#0",
@@ -16057,7 +16187,7 @@
         "tmp%2#1"
       ]
     },
-    "2001": {
+    "2020": {
       "op": "json_ref JSONString",
       "defined_out": [
         "value#0"
@@ -16066,7 +16196,7 @@
         "value#0"
       ]
     },
-    "2003": {
+    "2022": {
       "op": "dup",
       "defined_out": [
         "value#0",
@@ -16077,7 +16207,7 @@
         "value#0 (copy)"
       ]
     },
-    "2004": {
+    "2023": {
       "op": "len",
       "defined_out": [
         "tmp%4#1",
@@ -16088,7 +16218,7 @@
         "tmp%4#1"
       ]
     },
-    "2005": {
+    "2024": {
       "op": "intc 4 // 1007",
       "defined_out": [
         "1007",
@@ -16101,7 +16231,7 @@
         "1007"
       ]
     },
-    "2007": {
+    "2026": {
       "op": "<=",
       "defined_out": [
         "tmp%5#0",
@@ -16112,14 +16242,14 @@
         "tmp%5#0"
       ]
     },
-    "2008": {
+    "2027": {
       "error": "Payload exceeds page size",
       "op": "assert // Payload exceeds page size",
       "stack_out": [
         "value#0"
       ]
     },
-    "2009": {
+    "2028": {
       "op": "bytec_0 // 0x151f7c75",
       "defined_out": [
         "0x151f7c75",
@@ -16130,14 +16260,14 @@
         "0x151f7c75"
       ]
     },
-    "2010": {
+    "2029": {
       "op": "swap",
       "stack_out": [
         "0x151f7c75",
         "value#0"
       ]
     },
-    "2011": {
+    "2030": {
       "op": "concat",
       "defined_out": [
         "tmp%4#0"
@@ -16146,21 +16276,21 @@
         "tmp%4#0"
       ]
     },
-    "2012": {
+    "2031": {
       "op": "log",
       "stack_out": []
     },
-    "2013": {
+    "2032": {
       "op": "intc_0 // 1",
       "stack_out": [
         "1"
       ]
     },
-    "2014": {
+    "2033": {
       "op": "return",
       "stack_out": []
     },
-    "2015": {
+    "2034": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_get_metadata_uint64_by_key[routing]",
       "params": {},
       "block": "arc89_get_metadata_uint64_by_key",
@@ -16173,7 +16303,7 @@
         "tmp%0#0"
       ]
     },
-    "2018": {
+    "2037": {
       "op": "dup",
       "defined_out": [
         "tmp%0#0",
@@ -16184,7 +16314,7 @@
         "tmp%0#0 (copy)"
       ]
     },
-    "2019": {
+    "2038": {
       "op": "len",
       "defined_out": [
         "len%0#0",
@@ -16195,7 +16325,7 @@
         "len%0#0"
       ]
     },
-    "2020": {
+    "2039": {
       "op": "intc_2 // 8",
       "defined_out": [
         "8",
@@ -16208,7 +16338,7 @@
         "8"
       ]
     },
-    "2021": {
+    "2040": {
       "op": "==",
       "defined_out": [
         "eq%0#0",
@@ -16219,14 +16349,14 @@
         "eq%0#0"
       ]
     },
-    "2022": {
+    "2041": {
       "error": "invalid number of bytes for arc4.uint64",
       "op": "assert // invalid number of bytes for arc4.uint64",
       "stack_out": [
         "tmp%0#0"
       ]
     },
-    "2023": {
+    "2042": {
       "op": "btoi",
       "defined_out": [
         "asset_id#0"
@@ -16235,7 +16365,7 @@
         "asset_id#0"
       ]
     },
-    "2024": {
+    "2043": {
       "op": "txna ApplicationArgs 2",
       "defined_out": [
         "asset_id#0",
@@ -16246,7 +16376,7 @@
         "key#0"
       ]
     },
-    "2027": {
+    "2046": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -16259,7 +16389,7 @@
         "key#0 (copy)"
       ]
     },
-    "2028": {
+    "2047": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -16274,7 +16404,7 @@
         "0"
       ]
     },
-    "2029": {
+    "2048": {
       "error": "invalid array length header",
       "op": "extract_uint16 // on error: invalid array length header",
       "defined_out": [
@@ -16288,7 +16418,7 @@
         "aggregate%array_length%0#0"
       ]
     },
-    "2030": {
+    "2049": {
       "op": "intc_3 // 2",
       "defined_out": [
         "2",
@@ -16303,7 +16433,7 @@
         "2"
       ]
     },
-    "2031": {
+    "2050": {
       "op": "+",
       "defined_out": [
         "add%0#0",
@@ -16316,7 +16446,7 @@
         "add%0#0"
       ]
     },
-    "2032": {
+    "2051": {
       "op": "dig 1",
       "stack_out": [
         "asset_id#0",
@@ -16325,7 +16455,7 @@
         "key#0 (copy)"
       ]
     },
-    "2034": {
+    "2053": {
       "op": "len",
       "defined_out": [
         "add%0#0",
@@ -16340,7 +16470,7 @@
         "len%1#0"
       ]
     },
-    "2035": {
+    "2054": {
       "op": "==",
       "defined_out": [
         "asset_id#0",
@@ -16353,7 +16483,7 @@
         "eq%1#0"
       ]
     },
-    "2036": {
+    "2055": {
       "error": "invalid number of bytes for arc4.dynamic_array<arc4.uint8>",
       "op": "assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>",
       "stack_out": [
@@ -16361,7 +16491,7 @@
         "key#0"
       ]
     },
-    "2037": {
+    "2056": {
       "op": "dig 1",
       "defined_out": [
         "asset_id#0",
@@ -16374,7 +16504,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "2039": {
+    "2058": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "op": "callsub _check_existence_preconditions",
       "stack_out": [
@@ -16382,7 +16512,7 @@
         "key#0"
       ]
     },
-    "2042": {
+    "2061": {
       "op": "dig 1",
       "stack_out": [
         "asset_id#0",
@@ -16390,7 +16520,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "2044": {
+    "2063": {
       "op": "itob",
       "defined_out": [
         "asset_id#0",
@@ -16403,7 +16533,7 @@
         "encoded_value%0#1"
       ]
     },
-    "2045": {
+    "2064": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -16418,7 +16548,7 @@
         "encoded_value%0#1 (copy)"
       ]
     },
-    "2046": {
+    "2065": {
       "op": "intc_1 // 0",
       "stack_out": [
         "asset_id#0",
@@ -16428,7 +16558,7 @@
         "0"
       ]
     },
-    "2047": {
+    "2066": {
       "op": "intc_0 // 1",
       "defined_out": [
         "0",
@@ -16447,7 +16577,7 @@
         "1"
       ]
     },
-    "2048": {
+    "2067": {
       "op": "box_extract",
       "stack_out": [
         "asset_id#0",
@@ -16456,7 +16586,7 @@
         "tmp%0#0"
       ]
     },
-    "2049": {
+    "2068": {
       "op": "intc_1 // 0",
       "stack_out": [
         "asset_id#0",
@@ -16466,7 +16596,7 @@
         "0"
       ]
     },
-    "2050": {
+    "2069": {
       "op": "getbit",
       "defined_out": [
         "asset_id#0",
@@ -16481,7 +16611,7 @@
         "tmp%1#0"
       ]
     },
-    "2051": {
+    "2070": {
       "error": "Metadata is not short",
       "op": "assert // Metadata is not short",
       "stack_out": [
@@ -16490,7 +16620,7 @@
         "encoded_value%0#1"
       ]
     },
-    "2052": {
+    "2071": {
       "op": "uncover 2",
       "stack_out": [
         "key#0",
@@ -16498,7 +16628,7 @@
         "asset_id#0"
       ]
     },
-    "2054": {
+    "2073": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -16512,10 +16642,10 @@
         "tmp%0#3"
       ]
     },
-    "2057": {
+    "2076": {
       "op": "pushint 42"
     },
-    "2059": {
+    "2078": {
       "op": "swap",
       "defined_out": [
         "42",
@@ -16530,7 +16660,7 @@
         "tmp%0#3"
       ]
     },
-    "2060": {
+    "2079": {
       "op": "box_extract",
       "defined_out": [
         "key#0",
@@ -16541,14 +16671,14 @@
         "obj#0"
       ]
     },
-    "2061": {
+    "2080": {
       "op": "swap",
       "stack_out": [
         "obj#0",
         "key#0"
       ]
     },
-    "2062": {
+    "2081": {
       "op": "extract 2 0",
       "defined_out": [
         "obj#0",
@@ -16559,7 +16689,7 @@
         "tmp%2#1"
       ]
     },
-    "2065": {
+    "2084": {
       "op": "json_ref JSONUint64",
       "defined_out": [
         "value#0"
@@ -16568,7 +16698,7 @@
         "value#0"
       ]
     },
-    "2067": {
+    "2086": {
       "op": "itob",
       "defined_out": [
         "aggregate%val_as_bytes%0#0"
@@ -16577,7 +16707,7 @@
         "aggregate%val_as_bytes%0#0"
       ]
     },
-    "2068": {
+    "2087": {
       "op": "bytec_0 // 0x151f7c75",
       "defined_out": [
         "0x151f7c75",
@@ -16588,14 +16718,14 @@
         "0x151f7c75"
       ]
     },
-    "2069": {
+    "2088": {
       "op": "swap",
       "stack_out": [
         "0x151f7c75",
         "aggregate%val_as_bytes%0#0"
       ]
     },
-    "2070": {
+    "2089": {
       "op": "concat",
       "defined_out": [
         "tmp%4#0"
@@ -16604,21 +16734,21 @@
         "tmp%4#0"
       ]
     },
-    "2071": {
+    "2090": {
       "op": "log",
       "stack_out": []
     },
-    "2072": {
+    "2091": {
       "op": "intc_0 // 1",
       "stack_out": [
         "1"
       ]
     },
-    "2073": {
+    "2092": {
       "op": "return",
       "stack_out": []
     },
-    "2074": {
+    "2093": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_get_metadata_object_by_key[routing]",
       "params": {},
       "block": "arc89_get_metadata_object_by_key",
@@ -16631,7 +16761,7 @@
         "tmp%0#0"
       ]
     },
-    "2077": {
+    "2096": {
       "op": "dup",
       "defined_out": [
         "tmp%0#0",
@@ -16642,7 +16772,7 @@
         "tmp%0#0 (copy)"
       ]
     },
-    "2078": {
+    "2097": {
       "op": "len",
       "defined_out": [
         "len%0#0",
@@ -16653,7 +16783,7 @@
         "len%0#0"
       ]
     },
-    "2079": {
+    "2098": {
       "op": "intc_2 // 8",
       "defined_out": [
         "8",
@@ -16666,7 +16796,7 @@
         "8"
       ]
     },
-    "2080": {
+    "2099": {
       "op": "==",
       "defined_out": [
         "eq%0#0",
@@ -16677,14 +16807,14 @@
         "eq%0#0"
       ]
     },
-    "2081": {
+    "2100": {
       "error": "invalid number of bytes for arc4.uint64",
       "op": "assert // invalid number of bytes for arc4.uint64",
       "stack_out": [
         "tmp%0#0"
       ]
     },
-    "2082": {
+    "2101": {
       "op": "btoi",
       "defined_out": [
         "asset_id#0"
@@ -16693,7 +16823,7 @@
         "asset_id#0"
       ]
     },
-    "2083": {
+    "2102": {
       "op": "txna ApplicationArgs 2",
       "defined_out": [
         "asset_id#0",
@@ -16704,7 +16834,7 @@
         "key#0"
       ]
     },
-    "2086": {
+    "2105": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -16717,7 +16847,7 @@
         "key#0 (copy)"
       ]
     },
-    "2087": {
+    "2106": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -16732,7 +16862,7 @@
         "0"
       ]
     },
-    "2088": {
+    "2107": {
       "error": "invalid array length header",
       "op": "extract_uint16 // on error: invalid array length header",
       "defined_out": [
@@ -16746,7 +16876,7 @@
         "aggregate%array_length%0#0"
       ]
     },
-    "2089": {
+    "2108": {
       "op": "intc_3 // 2",
       "defined_out": [
         "2",
@@ -16761,7 +16891,7 @@
         "2"
       ]
     },
-    "2090": {
+    "2109": {
       "op": "+",
       "defined_out": [
         "add%0#0",
@@ -16774,7 +16904,7 @@
         "add%0#0"
       ]
     },
-    "2091": {
+    "2110": {
       "op": "dig 1",
       "stack_out": [
         "asset_id#0",
@@ -16783,7 +16913,7 @@
         "key#0 (copy)"
       ]
     },
-    "2093": {
+    "2112": {
       "op": "len",
       "defined_out": [
         "add%0#0",
@@ -16798,7 +16928,7 @@
         "len%1#0"
       ]
     },
-    "2094": {
+    "2113": {
       "op": "==",
       "defined_out": [
         "asset_id#0",
@@ -16811,7 +16941,7 @@
         "eq%1#0"
       ]
     },
-    "2095": {
+    "2114": {
       "error": "invalid number of bytes for arc4.dynamic_array<arc4.uint8>",
       "op": "assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>",
       "stack_out": [
@@ -16819,7 +16949,7 @@
         "key#0"
       ]
     },
-    "2096": {
+    "2115": {
       "op": "dig 1",
       "defined_out": [
         "asset_id#0",
@@ -16832,7 +16962,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "2098": {
+    "2117": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "op": "callsub _check_existence_preconditions",
       "stack_out": [
@@ -16840,7 +16970,7 @@
         "key#0"
       ]
     },
-    "2101": {
+    "2120": {
       "op": "dig 1",
       "stack_out": [
         "asset_id#0",
@@ -16848,7 +16978,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "2103": {
+    "2122": {
       "op": "itob",
       "defined_out": [
         "asset_id#0",
@@ -16861,7 +16991,7 @@
         "encoded_value%0#1"
       ]
     },
-    "2104": {
+    "2123": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -16876,7 +17006,7 @@
         "encoded_value%0#1 (copy)"
       ]
     },
-    "2105": {
+    "2124": {
       "op": "intc_1 // 0",
       "stack_out": [
         "asset_id#0",
@@ -16886,7 +17016,7 @@
         "0"
       ]
     },
-    "2106": {
+    "2125": {
       "op": "intc_0 // 1",
       "defined_out": [
         "0",
@@ -16905,7 +17035,7 @@
         "1"
       ]
     },
-    "2107": {
+    "2126": {
       "op": "box_extract",
       "stack_out": [
         "asset_id#0",
@@ -16914,7 +17044,7 @@
         "tmp%0#0"
       ]
     },
-    "2108": {
+    "2127": {
       "op": "intc_1 // 0",
       "stack_out": [
         "asset_id#0",
@@ -16924,7 +17054,7 @@
         "0"
       ]
     },
-    "2109": {
+    "2128": {
       "op": "getbit",
       "defined_out": [
         "asset_id#0",
@@ -16939,7 +17069,7 @@
         "tmp%1#0"
       ]
     },
-    "2110": {
+    "2129": {
       "error": "Metadata is not short",
       "op": "assert // Metadata is not short",
       "stack_out": [
@@ -16948,7 +17078,7 @@
         "encoded_value%0#1"
       ]
     },
-    "2111": {
+    "2130": {
       "op": "uncover 2",
       "stack_out": [
         "key#0",
@@ -16956,7 +17086,7 @@
         "asset_id#0"
       ]
     },
-    "2113": {
+    "2132": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -16970,10 +17100,10 @@
         "tmp%0#3"
       ]
     },
-    "2116": {
+    "2135": {
       "op": "pushint 42"
     },
-    "2118": {
+    "2137": {
       "op": "swap",
       "defined_out": [
         "42",
@@ -16988,7 +17118,7 @@
         "tmp%0#3"
       ]
     },
-    "2119": {
+    "2138": {
       "op": "box_extract",
       "defined_out": [
         "key#0",
@@ -16999,14 +17129,14 @@
         "obj#0"
       ]
     },
-    "2120": {
+    "2139": {
       "op": "swap",
       "stack_out": [
         "obj#0",
         "key#0"
       ]
     },
-    "2121": {
+    "2140": {
       "op": "extract 2 0",
       "defined_out": [
         "obj#0",
@@ -17017,7 +17147,7 @@
         "tmp%2#1"
       ]
     },
-    "2124": {
+    "2143": {
       "op": "json_ref JSONObject",
       "defined_out": [
         "value#0"
@@ -17026,7 +17156,7 @@
         "value#0"
       ]
     },
-    "2126": {
+    "2145": {
       "op": "dup",
       "defined_out": [
         "value#0",
@@ -17037,7 +17167,7 @@
         "value#0 (copy)"
       ]
     },
-    "2127": {
+    "2146": {
       "op": "len",
       "defined_out": [
         "tmp%4#1",
@@ -17048,7 +17178,7 @@
         "tmp%4#1"
       ]
     },
-    "2128": {
+    "2147": {
       "op": "intc 4 // 1007",
       "defined_out": [
         "1007",
@@ -17061,7 +17191,7 @@
         "1007"
       ]
     },
-    "2130": {
+    "2149": {
       "op": "<=",
       "defined_out": [
         "tmp%5#0",
@@ -17072,14 +17202,14 @@
         "tmp%5#0"
       ]
     },
-    "2131": {
+    "2150": {
       "error": "Payload exceeds page size",
       "op": "assert // Payload exceeds page size",
       "stack_out": [
         "value#0"
       ]
     },
-    "2132": {
+    "2151": {
       "op": "bytec_0 // 0x151f7c75",
       "defined_out": [
         "0x151f7c75",
@@ -17090,14 +17220,14 @@
         "0x151f7c75"
       ]
     },
-    "2133": {
+    "2152": {
       "op": "swap",
       "stack_out": [
         "0x151f7c75",
         "value#0"
       ]
     },
-    "2134": {
+    "2153": {
       "op": "concat",
       "defined_out": [
         "tmp%4#0"
@@ -17106,21 +17236,21 @@
         "tmp%4#0"
       ]
     },
-    "2135": {
+    "2154": {
       "op": "log",
       "stack_out": []
     },
-    "2136": {
+    "2155": {
       "op": "intc_0 // 1",
       "stack_out": [
         "1"
       ]
     },
-    "2137": {
+    "2156": {
       "op": "return",
       "stack_out": []
     },
-    "2138": {
+    "2157": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._is_asa_manager",
       "params": {
         "asa#0": "uint64"
@@ -17129,7 +17259,7 @@
       "stack_in": [],
       "op": "proto 1 1"
     },
-    "2141": {
+    "2160": {
       "op": "txn Sender",
       "defined_out": [
         "tmp%0#0"
@@ -17138,7 +17268,7 @@
         "tmp%0#0"
       ]
     },
-    "2143": {
+    "2162": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)",
@@ -17149,7 +17279,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2145": {
+    "2164": {
       "op": "asset_params_get AssetManager",
       "defined_out": [
         "check%0#0",
@@ -17162,7 +17292,7 @@
         "check%0#0"
       ]
     },
-    "2147": {
+    "2166": {
       "error": "asset exists",
       "op": "assert // asset exists",
       "stack_out": [
@@ -17170,7 +17300,7 @@
         "value%0#0"
       ]
     },
-    "2148": {
+    "2167": {
       "op": "==",
       "defined_out": [
         "tmp%1#0"
@@ -17179,11 +17309,11 @@
         "tmp%1#0"
       ]
     },
-    "2149": {
+    "2168": {
       "retsub": true,
       "op": "retsub"
     },
-    "2150": {
+    "2169": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "params": {
         "asa#0": "uint64"
@@ -17192,7 +17322,7 @@
       "stack_in": [],
       "op": "proto 1 1"
     },
-    "2153": {
+    "2172": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)"
@@ -17201,7 +17331,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2155": {
+    "2174": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0"
@@ -17210,7 +17340,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2156": {
+    "2175": {
       "op": "box_len",
       "defined_out": [
         "check%0#0",
@@ -17221,14 +17351,14 @@
         "check%0#0"
       ]
     },
-    "2157": {
+    "2176": {
       "error": "check Box exists",
       "op": "assert // check Box exists",
       "stack_out": [
         "value%0#0"
       ]
     },
-    "2158": {
+    "2177": {
       "op": "pushint 42",
       "defined_out": [
         "42",
@@ -17239,7 +17369,7 @@
         "42"
       ]
     },
-    "2160": {
+    "2179": {
       "op": "-",
       "defined_out": [
         "tmp%0#0"
@@ -17248,11 +17378,11 @@
         "tmp%0#0"
       ]
     },
-    "2161": {
+    "2180": {
       "retsub": true,
       "op": "retsub"
     },
-    "2162": {
+    "2181": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._append_payload",
       "params": {
         "asa#0": "uint64",
@@ -17262,7 +17392,7 @@
       "stack_in": [],
       "op": "proto 2 0"
     },
-    "2165": {
+    "2184": {
       "op": "frame_dig -2",
       "defined_out": [
         "asa#0 (copy)"
@@ -17271,7 +17401,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2167": {
+    "2186": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0"
@@ -17280,7 +17410,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2168": {
+    "2187": {
       "op": "dup",
       "defined_out": [
         "encoded_value%0#0",
@@ -17291,7 +17421,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "2169": {
+    "2188": {
       "op": "box_len",
       "defined_out": [
         "check%0#0",
@@ -17304,7 +17434,7 @@
         "check%0#0"
       ]
     },
-    "2170": {
+    "2189": {
       "error": "check Box exists",
       "op": "assert // check Box exists",
       "stack_out": [
@@ -17312,7 +17442,7 @@
         "old_asset_metadata_box_size#0"
       ]
     },
-    "2171": {
+    "2190": {
       "op": "frame_dig -1",
       "defined_out": [
         "encoded_value%0#0",
@@ -17325,7 +17455,7 @@
         "payload#0 (copy)"
       ]
     },
-    "2173": {
+    "2192": {
       "op": "len",
       "defined_out": [
         "encoded_value%0#0",
@@ -17338,7 +17468,7 @@
         "tmp%0#0"
       ]
     },
-    "2174": {
+    "2193": {
       "op": "dig 1",
       "defined_out": [
         "encoded_value%0#0",
@@ -17353,7 +17483,7 @@
         "old_asset_metadata_box_size#0 (copy)"
       ]
     },
-    "2176": {
+    "2195": {
       "op": "+",
       "defined_out": [
         "encoded_value%0#0",
@@ -17366,7 +17496,7 @@
         "tmp%1#0"
       ]
     },
-    "2177": {
+    "2196": {
       "op": "dig 2",
       "stack_out": [
         "encoded_value%0#0",
@@ -17375,7 +17505,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "2179": {
+    "2198": {
       "op": "swap",
       "stack_out": [
         "encoded_value%0#0",
@@ -17384,14 +17514,14 @@
         "tmp%1#0"
       ]
     },
-    "2180": {
+    "2199": {
       "op": "box_resize",
       "stack_out": [
         "encoded_value%0#0",
         "old_asset_metadata_box_size#0"
       ]
     },
-    "2181": {
+    "2200": {
       "op": "frame_dig -1",
       "stack_out": [
         "encoded_value%0#0",
@@ -17399,15 +17529,15 @@
         "payload#0 (copy)"
       ]
     },
-    "2183": {
+    "2202": {
       "op": "box_replace",
       "stack_out": []
     },
-    "2184": {
+    "2203": {
       "retsub": true,
       "op": "retsub"
     },
-    "2185": {
+    "2204": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._set_metadata_payload",
       "params": {
         "asa#0": "uint64",
@@ -17418,7 +17548,7 @@
       "stack_in": [],
       "op": "proto 3 0"
     },
-    "2188": {
+    "2207": {
       "op": "frame_dig -3",
       "defined_out": [
         "asa#0 (copy)"
@@ -17427,7 +17557,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2190": {
+    "2209": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0"
@@ -17436,7 +17566,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2191": {
+    "2210": {
       "op": "dup",
       "defined_out": [
         "encoded_value%0#0"
@@ -17446,7 +17576,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2192": {
+    "2211": {
       "op": "pushint 42",
       "defined_out": [
         "42",
@@ -17458,20 +17588,20 @@
         "42"
       ]
     },
-    "2194": {
+    "2213": {
       "op": "box_resize",
       "stack_out": [
         "encoded_value%0#0"
       ]
     },
-    "2195": {
+    "2214": {
       "op": "frame_dig -3",
       "stack_out": [
         "encoded_value%0#0",
         "asa#0 (copy)"
       ]
     },
-    "2197": {
+    "2216": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)",
@@ -17484,20 +17614,20 @@
         "payload#0 (copy)"
       ]
     },
-    "2199": {
+    "2218": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._append_payload",
       "op": "callsub _append_payload",
       "stack_out": [
         "encoded_value%0#0"
       ]
     },
-    "2202": {
+    "2221": {
       "op": "global GroupSize"
     },
-    "2204": {
+    "2223": {
       "op": "txn GroupIndex"
     },
-    "2206": {
+    "2225": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
@@ -17512,7 +17642,7 @@
         "1"
       ]
     },
-    "2207": {
+    "2226": {
       "op": "+",
       "defined_out": [
         "encoded_value%0#0",
@@ -17525,7 +17655,7 @@
         "idx#0"
       ]
     },
-    "2208": {
+    "2227": {
       "block": "_set_metadata_payload_for_header@1",
       "stack_in": [
         "encoded_value%0#0",
@@ -17543,7 +17673,7 @@
         "idx#0"
       ]
     },
-    "2210": {
+    "2229": {
       "op": "frame_dig 1",
       "defined_out": [
         "group_size#0",
@@ -17557,7 +17687,7 @@
         "group_size#0"
       ]
     },
-    "2212": {
+    "2231": {
       "op": "<",
       "defined_out": [
         "continue_looping%0#0",
@@ -17571,7 +17701,7 @@
         "continue_looping%0#0"
       ]
     },
-    "2213": {
+    "2232": {
       "op": "bz _set_metadata_payload_after_for@6",
       "stack_out": [
         "encoded_value%0#0",
@@ -17579,7 +17709,7 @@
         "idx#0"
       ]
     },
-    "2216": {
+    "2235": {
       "op": "frame_dig 2",
       "stack_out": [
         "encoded_value%0#0",
@@ -17588,7 +17718,7 @@
         "idx#0"
       ]
     },
-    "2218": {
+    "2237": {
       "op": "gtxns TypeEnum",
       "defined_out": [
         "group_size#0",
@@ -17602,7 +17732,7 @@
         "tmp%0#2"
       ]
     },
-    "2220": {
+    "2239": {
       "op": "pushint 6 // appl",
       "defined_out": [
         "appl",
@@ -17618,7 +17748,7 @@
         "appl"
       ]
     },
-    "2222": {
+    "2241": {
       "op": "==",
       "defined_out": [
         "group_size#0",
@@ -17632,7 +17762,7 @@
         "tmp%1#1"
       ]
     },
-    "2223": {
+    "2242": {
       "op": "bz _set_metadata_payload_bool_false@15",
       "stack_out": [
         "encoded_value%0#0",
@@ -17640,7 +17770,7 @@
         "idx#0"
       ]
     },
-    "2226": {
+    "2245": {
       "op": "frame_dig 2",
       "stack_out": [
         "encoded_value%0#0",
@@ -17649,7 +17779,7 @@
         "idx#0"
       ]
     },
-    "2228": {
+    "2247": {
       "op": "gtxns ApplicationID",
       "defined_out": [
         "group_size#0",
@@ -17663,7 +17793,7 @@
         "tmp%2#0"
       ]
     },
-    "2230": {
+    "2249": {
       "op": "global CurrentApplicationID",
       "defined_out": [
         "group_size#0",
@@ -17679,7 +17809,7 @@
         "tmp%3#1"
       ]
     },
-    "2232": {
+    "2251": {
       "op": "==",
       "defined_out": [
         "group_size#0",
@@ -17693,7 +17823,7 @@
         "tmp%4#1"
       ]
     },
-    "2233": {
+    "2252": {
       "op": "bz _set_metadata_payload_bool_false@15",
       "stack_out": [
         "encoded_value%0#0",
@@ -17701,7 +17831,7 @@
         "idx#0"
       ]
     },
-    "2236": {
+    "2255": {
       "op": "frame_dig 2",
       "stack_out": [
         "encoded_value%0#0",
@@ -17710,7 +17840,7 @@
         "idx#0"
       ]
     },
-    "2238": {
+    "2257": {
       "op": "gtxns OnCompletion",
       "defined_out": [
         "group_size#0",
@@ -17724,7 +17854,7 @@
         "tmp%5#0"
       ]
     },
-    "2240": {
+    "2259": {
       "op": "bnz _set_metadata_payload_bool_false@15",
       "stack_out": [
         "encoded_value%0#0",
@@ -17732,7 +17862,7 @@
         "idx#0"
       ]
     },
-    "2243": {
+    "2262": {
       "op": "frame_dig 2",
       "stack_out": [
         "encoded_value%0#0",
@@ -17741,7 +17871,7 @@
         "idx#0"
       ]
     },
-    "2245": {
+    "2264": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -17756,7 +17886,7 @@
         "0"
       ]
     },
-    "2246": {
+    "2265": {
       "op": "gtxnsas ApplicationArgs",
       "defined_out": [
         "group_size#0",
@@ -17770,7 +17900,7 @@
         "tmp%7#1"
       ]
     },
-    "2248": {
+    "2267": {
       "op": "bytec_3 // method \"arc89_extra_payload(uint64,byte[])void\"",
       "defined_out": [
         "Method(arc89_extra_payload(uint64,byte[])void)",
@@ -17786,7 +17916,7 @@
         "Method(arc89_extra_payload(uint64,byte[])void)"
       ]
     },
-    "2249": {
+    "2268": {
       "op": "==",
       "defined_out": [
         "group_size#0",
@@ -17800,7 +17930,7 @@
         "tmp%8#0"
       ]
     },
-    "2250": {
+    "2269": {
       "op": "bz _set_metadata_payload_bool_false@15",
       "stack_out": [
         "encoded_value%0#0",
@@ -17808,7 +17938,7 @@
         "idx#0"
       ]
     },
-    "2253": {
+    "2272": {
       "op": "frame_dig 2",
       "stack_out": [
         "encoded_value%0#0",
@@ -17817,7 +17947,7 @@
         "idx#0"
       ]
     },
-    "2255": {
+    "2274": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
@@ -17832,7 +17962,7 @@
         "1"
       ]
     },
-    "2256": {
+    "2275": {
       "op": "gtxnsas ApplicationArgs",
       "defined_out": [
         "group_size#0",
@@ -17846,7 +17976,7 @@
         "tmp%9#1"
       ]
     },
-    "2258": {
+    "2277": {
       "op": "frame_dig 0",
       "defined_out": [
         "encoded_value%0#0",
@@ -17862,7 +17992,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2260": {
+    "2279": {
       "op": "==",
       "defined_out": [
         "encoded_value%0#0",
@@ -17877,7 +18007,7 @@
         "tmp%11#0"
       ]
     },
-    "2261": {
+    "2280": {
       "op": "bz _set_metadata_payload_bool_false@15",
       "stack_out": [
         "encoded_value%0#0",
@@ -17885,7 +18015,7 @@
         "idx#0"
       ]
     },
-    "2264": {
+    "2283": {
       "op": "intc_0 // 1",
       "defined_out": [
         "and_result%0#0",
@@ -17900,7 +18030,7 @@
         "and_result%0#0"
       ]
     },
-    "2265": {
+    "2284": {
       "block": "_set_metadata_payload_bool_merge@16",
       "stack_in": [
         "encoded_value%0#0",
@@ -17916,7 +18046,7 @@
         "idx#0"
       ]
     },
-    "2268": {
+    "2287": {
       "op": "frame_dig 2",
       "defined_out": [
         "idx#0"
@@ -17928,7 +18058,7 @@
         "idx#0"
       ]
     },
-    "2270": {
+    "2289": {
       "op": "intc_3 // 2",
       "defined_out": [
         "2",
@@ -17942,7 +18072,7 @@
         "2"
       ]
     },
-    "2271": {
+    "2290": {
       "op": "gtxnsas ApplicationArgs",
       "defined_out": [
         "idx#0",
@@ -17955,7 +18085,7 @@
         "reinterpret_Encoded(len+uint8[])%0#0"
       ]
     },
-    "2273": {
+    "2292": {
       "op": "extract 2 0",
       "defined_out": [
         "extra_payload#0",
@@ -17968,7 +18098,7 @@
         "extra_payload#0"
       ]
     },
-    "2276": {
+    "2295": {
       "op": "frame_dig -3",
       "defined_out": [
         "asa#0 (copy)",
@@ -17983,7 +18113,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2278": {
+    "2297": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -17999,7 +18129,7 @@
         "tmp%5#0"
       ]
     },
-    "2281": {
+    "2300": {
       "op": "dig 1",
       "defined_out": [
         "extra_payload#0",
@@ -18016,7 +18146,7 @@
         "extra_payload#0 (copy)"
       ]
     },
-    "2283": {
+    "2302": {
       "op": "len",
       "defined_out": [
         "extra_payload#0",
@@ -18033,7 +18163,7 @@
         "tmp%6#0"
       ]
     },
-    "2284": {
+    "2303": {
       "op": "+",
       "defined_out": [
         "extra_payload#0",
@@ -18048,7 +18178,7 @@
         "tmp%7#0"
       ]
     },
-    "2285": {
+    "2304": {
       "op": "frame_dig -2",
       "defined_out": [
         "extra_payload#0",
@@ -18065,7 +18195,7 @@
         "metadata_size#0 (copy)"
       ]
     },
-    "2287": {
+    "2306": {
       "op": "<=",
       "defined_out": [
         "extra_payload#0",
@@ -18080,7 +18210,7 @@
         "tmp%8#0"
       ]
     },
-    "2288": {
+    "2307": {
       "error": "Payload overflow, exceeds metadata size",
       "op": "assert // Payload overflow, exceeds metadata size",
       "stack_out": [
@@ -18090,7 +18220,7 @@
         "extra_payload#0"
       ]
     },
-    "2289": {
+    "2308": {
       "op": "frame_dig -3",
       "stack_out": [
         "encoded_value%0#0",
@@ -18100,7 +18230,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2291": {
+    "2310": {
       "op": "swap",
       "stack_out": [
         "encoded_value%0#0",
@@ -18110,7 +18240,7 @@
         "extra_payload#0"
       ]
     },
-    "2292": {
+    "2311": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._append_payload",
       "op": "callsub _append_payload",
       "stack_out": [
@@ -18119,7 +18249,7 @@
         "idx#0"
       ]
     },
-    "2295": {
+    "2314": {
       "block": "_set_metadata_payload_after_if_else@4",
       "stack_in": [
         "encoded_value%0#0",
@@ -18137,7 +18267,7 @@
         "idx#0"
       ]
     },
-    "2297": {
+    "2316": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
@@ -18151,7 +18281,7 @@
         "1"
       ]
     },
-    "2298": {
+    "2317": {
       "op": "+",
       "stack_out": [
         "encoded_value%0#0",
@@ -18160,7 +18290,7 @@
         "idx#0"
       ]
     },
-    "2299": {
+    "2318": {
       "op": "frame_bury 2",
       "defined_out": [
         "idx#0"
@@ -18171,10 +18301,10 @@
         "idx#0"
       ]
     },
-    "2301": {
+    "2320": {
       "op": "b _set_metadata_payload_for_header@1"
     },
-    "2304": {
+    "2323": {
       "block": "_set_metadata_payload_bool_false@15",
       "stack_in": [
         "encoded_value%0#0",
@@ -18192,10 +18322,10 @@
         "and_result%0#0"
       ]
     },
-    "2305": {
+    "2324": {
       "op": "b _set_metadata_payload_bool_merge@16"
     },
-    "2308": {
+    "2327": {
       "block": "_set_metadata_payload_after_for@6",
       "stack_in": [
         "encoded_value%0#0",
@@ -18213,7 +18343,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2310": {
+    "2329": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -18226,7 +18356,7 @@
         "tmp%9#0"
       ]
     },
-    "2313": {
+    "2332": {
       "op": "frame_dig -2",
       "defined_out": [
         "metadata_size#0 (copy)",
@@ -18240,7 +18370,7 @@
         "metadata_size#0 (copy)"
       ]
     },
-    "2315": {
+    "2334": {
       "op": "==",
       "defined_out": [
         "tmp%10#0"
@@ -18252,7 +18382,7 @@
         "tmp%10#0"
       ]
     },
-    "2316": {
+    "2335": {
       "error": "Metadata size mismatch, must be exactly equal to declared size",
       "op": "assert // Metadata size mismatch, must be exactly equal to declared size",
       "stack_out": [
@@ -18261,11 +18391,11 @@
         "idx#0"
       ]
     },
-    "2317": {
+    "2336": {
       "retsub": true,
       "op": "retsub"
     },
-    "2318": {
+    "2337": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_page",
       "params": {
         "asa#0": "uint64",
@@ -18275,7 +18405,7 @@
       "stack_in": [],
       "op": "proto 2 1"
     },
-    "2321": {
+    "2340": {
       "op": "frame_dig -2",
       "defined_out": [
         "asa#0 (copy)"
@@ -18284,7 +18414,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2323": {
+    "2342": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -18294,7 +18424,7 @@
         "n#0"
       ]
     },
-    "2326": {
+    "2345": {
       "op": "dup",
       "defined_out": [
         "n#0"
@@ -18304,7 +18434,7 @@
         "n#0"
       ]
     },
-    "2327": {
+    "2346": {
       "op": "frame_dig -1",
       "defined_out": [
         "n#0",
@@ -18316,7 +18446,7 @@
         "page_index#0 (copy)"
       ]
     },
-    "2329": {
+    "2348": {
       "op": "intc 4 // 1007",
       "defined_out": [
         "1007",
@@ -18330,7 +18460,7 @@
         "1007"
       ]
     },
-    "2331": {
+    "2350": {
       "op": "*",
       "defined_out": [
         "n#0",
@@ -18342,10 +18472,10 @@
         "start#0"
       ]
     },
-    "2332": {
+    "2351": {
       "op": "dup"
     },
-    "2333": {
+    "2352": {
       "op": "uncover 2",
       "defined_out": [
         "n#0",
@@ -18358,7 +18488,7 @@
         "n#0"
       ]
     },
-    "2335": {
+    "2354": {
       "op": ">=",
       "defined_out": [
         "n#0",
@@ -18371,14 +18501,14 @@
         "tmp%2#0"
       ]
     },
-    "2336": {
+    "2355": {
       "op": "bz _get_metadata_page_after_if_else@2",
       "stack_out": [
         "n#0",
         "start#0"
       ]
     },
-    "2339": {
+    "2358": {
       "op": "bytec_1 // 0x",
       "defined_out": [
         "0x",
@@ -18391,14 +18521,14 @@
         "0x"
       ]
     },
-    "2340": {
+    "2359": {
       "op": "frame_bury 0"
     },
-    "2342": {
+    "2361": {
       "retsub": true,
       "op": "retsub"
     },
-    "2343": {
+    "2362": {
       "block": "_get_metadata_page_after_if_else@2",
       "stack_in": [
         "n#0",
@@ -18414,7 +18544,7 @@
         "n#0"
       ]
     },
-    "2345": {
+    "2364": {
       "op": "frame_dig 1",
       "defined_out": [
         "n#0",
@@ -18427,7 +18557,7 @@
         "start#0"
       ]
     },
-    "2347": {
+    "2366": {
       "op": "dup",
       "defined_out": [
         "n#0",
@@ -18442,7 +18572,7 @@
         "start#0 (copy)"
       ]
     },
-    "2348": {
+    "2367": {
       "op": "cover 2",
       "stack_out": [
         "n#0",
@@ -18452,7 +18582,7 @@
         "start#0 (copy)"
       ]
     },
-    "2350": {
+    "2369": {
       "op": "-",
       "defined_out": [
         "n#0",
@@ -18466,7 +18596,7 @@
         "remaining#0"
       ]
     },
-    "2351": {
+    "2370": {
       "op": "intc 4 // 1007",
       "defined_out": [
         "1007",
@@ -18482,7 +18612,7 @@
         "1007"
       ]
     },
-    "2353": {
+    "2372": {
       "op": "dig 1",
       "defined_out": [
         "1007",
@@ -18500,7 +18630,7 @@
         "remaining#0 (copy)"
       ]
     },
-    "2355": {
+    "2374": {
       "op": "<",
       "defined_out": [
         "n#0",
@@ -18516,10 +18646,10 @@
         "tmp%0#1"
       ]
     },
-    "2356": {
+    "2375": {
       "op": "intc 4 // 1007"
     },
-    "2358": {
+    "2377": {
       "op": "swap",
       "stack_out": [
         "n#0",
@@ -18530,7 +18660,7 @@
         "tmp%0#1"
       ]
     },
-    "2359": {
+    "2378": {
       "op": "select",
       "defined_out": [
         "length#0",
@@ -18544,7 +18674,7 @@
         "length#0"
       ]
     },
-    "2360": {
+    "2379": {
       "op": "frame_dig -2",
       "defined_out": [
         "asa#0 (copy)",
@@ -18560,7 +18690,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2362": {
+    "2381": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0",
@@ -18576,7 +18706,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2363": {
+    "2382": {
       "op": "pushint 42",
       "defined_out": [
         "42",
@@ -18594,7 +18724,7 @@
         "42"
       ]
     },
-    "2365": {
+    "2384": {
       "op": "uncover 3",
       "stack_out": [
         "n#0",
@@ -18605,7 +18735,7 @@
         "start#0"
       ]
     },
-    "2367": {
+    "2386": {
       "op": "+",
       "defined_out": [
         "encoded_value%0#0",
@@ -18622,7 +18752,7 @@
         "tmp%5#0"
       ]
     },
-    "2368": {
+    "2387": {
       "op": "uncover 2",
       "stack_out": [
         "n#0",
@@ -18632,7 +18762,7 @@
         "length#0"
       ]
     },
-    "2370": {
+    "2389": {
       "op": "box_extract",
       "defined_out": [
         "n#0",
@@ -18645,14 +18775,14 @@
         "tmp%6#0"
       ]
     },
-    "2371": {
+    "2390": {
       "op": "frame_bury 0"
     },
-    "2373": {
+    "2392": {
       "retsub": true,
       "op": "retsub"
     },
-    "2374": {
+    "2393": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._identify_metadata",
       "params": {
         "asa#0": "uint64"
@@ -18661,7 +18791,7 @@
       "stack_in": [],
       "op": "proto 1 0"
     },
-    "2377": {
+    "2396": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)"
@@ -18670,7 +18800,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2379": {
+    "2398": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -18680,14 +18810,14 @@
         "metadata_size#0"
       ]
     },
-    "2382": {
+    "2401": {
       "op": "frame_dig -1",
       "stack_out": [
         "metadata_size#0",
         "asa#0 (copy)"
       ]
     },
-    "2384": {
+    "2403": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#1",
@@ -18698,7 +18828,7 @@
         "encoded_value%0#1"
       ]
     },
-    "2385": {
+    "2404": {
       "op": "dup",
       "defined_out": [
         "encoded_value%0#1",
@@ -18711,7 +18841,7 @@
         "encoded_value%0#1 (copy)"
       ]
     },
-    "2386": {
+    "2405": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -18726,7 +18856,7 @@
         "0"
       ]
     },
-    "2387": {
+    "2406": {
       "op": "intc_0 // 1",
       "defined_out": [
         "0",
@@ -18743,7 +18873,7 @@
         "1"
       ]
     },
-    "2388": {
+    "2407": {
       "op": "box_extract",
       "defined_out": [
         "encoded_value%0#1",
@@ -18756,7 +18886,7 @@
         "tmp%0#2"
       ]
     },
-    "2389": {
+    "2408": {
       "op": "uncover 2",
       "stack_out": [
         "encoded_value%0#1",
@@ -18764,7 +18894,7 @@
         "metadata_size#0"
       ]
     },
-    "2391": {
+    "2410": {
       "op": "pushint 4096",
       "defined_out": [
         "4096",
@@ -18779,7 +18909,7 @@
         "4096"
       ]
     },
-    "2394": {
+    "2413": {
       "op": "<=",
       "defined_out": [
         "encoded_value%0#1",
@@ -18792,10 +18922,10 @@
         "tmp%0#1"
       ]
     },
-    "2395": {
+    "2414": {
       "op": "intc_1 // 0"
     },
-    "2396": {
+    "2415": {
       "op": "swap",
       "stack_out": [
         "encoded_value%0#1",
@@ -18804,7 +18934,7 @@
         "tmp%0#1"
       ]
     },
-    "2397": {
+    "2416": {
       "op": "setbit",
       "defined_out": [
         "encoded_value%0#1",
@@ -18815,10 +18945,10 @@
         "identifiers#0"
       ]
     },
-    "2398": {
+    "2417": {
       "op": "intc_1 // 0"
     },
-    "2399": {
+    "2418": {
       "op": "swap",
       "stack_out": [
         "encoded_value%0#1",
@@ -18826,15 +18956,15 @@
         "identifiers#0"
       ]
     },
-    "2400": {
+    "2419": {
       "op": "box_replace",
       "stack_out": []
     },
-    "2401": {
+    "2420": {
       "retsub": true,
       "op": "retsub"
     },
-    "2402": {
+    "2421": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._compute_header_hash",
       "params": {
         "asa#0": "uint64"
@@ -18843,7 +18973,7 @@
       "stack_in": [],
       "op": "proto 1 1"
     },
-    "2405": {
+    "2424": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)"
@@ -18852,7 +18982,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2407": {
+    "2426": {
       "op": "itob",
       "defined_out": [
         "asset_id#0"
@@ -18861,7 +18991,7 @@
         "asset_id#0"
       ]
     },
-    "2408": {
+    "2427": {
       "op": "dup",
       "defined_out": [
         "asset_id#0",
@@ -18872,7 +19002,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "2409": {
+    "2428": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -18885,7 +19015,7 @@
         "0"
       ]
     },
-    "2410": {
+    "2429": {
       "op": "intc_0 // 1",
       "defined_out": [
         "0",
@@ -18900,7 +19030,7 @@
         "1"
       ]
     },
-    "2411": {
+    "2430": {
       "op": "box_extract",
       "defined_out": [
         "asset_id#0",
@@ -18911,7 +19041,7 @@
         "metadata_identifiers#0"
       ]
     },
-    "2412": {
+    "2431": {
       "op": "dig 1",
       "stack_out": [
         "asset_id#0",
@@ -18919,7 +19049,7 @@
         "asset_id#0 (copy)"
       ]
     },
-    "2414": {
+    "2433": {
       "op": "intc_0 // 1",
       "stack_out": [
         "asset_id#0",
@@ -18928,7 +19058,7 @@
         "1"
       ]
     },
-    "2415": {
+    "2434": {
       "op": "dup",
       "stack_out": [
         "asset_id#0",
@@ -18938,7 +19068,7 @@
         "1"
       ]
     },
-    "2416": {
+    "2435": {
       "op": "box_extract",
       "defined_out": [
         "asset_id#0",
@@ -18951,7 +19081,7 @@
         "metadata_flags#0"
       ]
     },
-    "2417": {
+    "2436": {
       "op": "frame_dig -1",
       "stack_out": [
         "asset_id#0",
@@ -18960,7 +19090,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2419": {
+    "2438": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -18976,7 +19106,7 @@
         "uint#0"
       ]
     },
-    "2422": {
+    "2441": {
       "op": "itob",
       "defined_out": [
         "asset_id#0",
@@ -18991,7 +19121,7 @@
         "tmp%1#0"
       ]
     },
-    "2423": {
+    "2442": {
       "op": "extract 6 2",
       "defined_out": [
         "asset_id#0",
@@ -19006,7 +19136,7 @@
         "metadata_size#0"
       ]
     },
-    "2426": {
+    "2445": {
       "op": "pushbytes 0x617263303038392f686561646572",
       "defined_out": [
         "0x617263303038392f686561646572",
@@ -19023,7 +19153,7 @@
         "0x617263303038392f686561646572"
       ]
     },
-    "2442": {
+    "2461": {
       "op": "uncover 4",
       "stack_out": [
         "metadata_identifiers#0",
@@ -19033,7 +19163,7 @@
         "asset_id#0"
       ]
     },
-    "2444": {
+    "2463": {
       "op": "concat",
       "defined_out": [
         "metadata_flags#0",
@@ -19048,7 +19178,7 @@
         "tmp%5#0"
       ]
     },
-    "2445": {
+    "2464": {
       "op": "uncover 3",
       "stack_out": [
         "metadata_flags#0",
@@ -19057,7 +19187,7 @@
         "metadata_identifiers#0"
       ]
     },
-    "2447": {
+    "2466": {
       "op": "concat",
       "defined_out": [
         "metadata_flags#0",
@@ -19070,7 +19200,7 @@
         "tmp%6#0"
       ]
     },
-    "2448": {
+    "2467": {
       "op": "uncover 2",
       "stack_out": [
         "metadata_size#0",
@@ -19078,7 +19208,7 @@
         "metadata_flags#0"
       ]
     },
-    "2450": {
+    "2469": {
       "op": "concat",
       "defined_out": [
         "metadata_size#0",
@@ -19089,14 +19219,14 @@
         "tmp%7#0"
       ]
     },
-    "2451": {
+    "2470": {
       "op": "swap",
       "stack_out": [
         "tmp%7#0",
         "metadata_size#0"
       ]
     },
-    "2452": {
+    "2471": {
       "op": "concat",
       "defined_out": [
         "tmp%8#0"
@@ -19105,7 +19235,7 @@
         "tmp%8#0"
       ]
     },
-    "2453": {
+    "2472": {
       "op": "sha512_256",
       "defined_out": [
         "tmp%9#0"
@@ -19114,11 +19244,11 @@
         "tmp%9#0"
       ]
     },
-    "2454": {
+    "2473": {
       "retsub": true,
       "op": "retsub"
     },
-    "2455": {
+    "2474": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._compute_page_hash",
       "params": {
         "asa#0": "uint64",
@@ -19129,7 +19259,7 @@
       "stack_in": [],
       "op": "proto 3 1"
     },
-    "2458": {
+    "2477": {
       "op": "frame_dig -3",
       "defined_out": [
         "asa#0 (copy)"
@@ -19138,7 +19268,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2460": {
+    "2479": {
       "op": "itob",
       "defined_out": [
         "asset_id#0"
@@ -19147,7 +19277,7 @@
         "asset_id#0"
       ]
     },
-    "2461": {
+    "2480": {
       "op": "frame_dig -2",
       "defined_out": [
         "asset_id#0",
@@ -19158,7 +19288,7 @@
         "page_index#0 (copy)"
       ]
     },
-    "2463": {
+    "2482": {
       "op": "itob",
       "defined_out": [
         "asset_id#0",
@@ -19169,7 +19299,7 @@
         "tmp%1#0"
       ]
     },
-    "2464": {
+    "2483": {
       "op": "extract 7 1",
       "defined_out": [
         "asset_id#0",
@@ -19180,7 +19310,7 @@
         "page_idx#0"
       ]
     },
-    "2467": {
+    "2486": {
       "op": "frame_dig -1",
       "defined_out": [
         "asset_id#0",
@@ -19193,7 +19323,7 @@
         "page_content#0 (copy)"
       ]
     },
-    "2469": {
+    "2488": {
       "op": "len",
       "defined_out": [
         "asset_id#0",
@@ -19206,7 +19336,7 @@
         "uint#1"
       ]
     },
-    "2470": {
+    "2489": {
       "op": "itob",
       "stack_out": [
         "asset_id#0",
@@ -19214,7 +19344,7 @@
         "tmp%1#0"
       ]
     },
-    "2471": {
+    "2490": {
       "op": "extract 6 2",
       "defined_out": [
         "asset_id#0",
@@ -19227,7 +19357,7 @@
         "page_size#0"
       ]
     },
-    "2474": {
+    "2493": {
       "op": "pushbytes 0x617263303038392f70616765",
       "defined_out": [
         "0x617263303038392f70616765",
@@ -19242,7 +19372,7 @@
         "0x617263303038392f70616765"
       ]
     },
-    "2488": {
+    "2507": {
       "op": "uncover 3",
       "stack_out": [
         "page_idx#0",
@@ -19251,7 +19381,7 @@
         "asset_id#0"
       ]
     },
-    "2490": {
+    "2509": {
       "op": "concat",
       "defined_out": [
         "page_idx#0",
@@ -19264,7 +19394,7 @@
         "tmp%4#0"
       ]
     },
-    "2491": {
+    "2510": {
       "op": "uncover 2",
       "stack_out": [
         "page_size#0",
@@ -19272,7 +19402,7 @@
         "page_idx#0"
       ]
     },
-    "2493": {
+    "2512": {
       "op": "concat",
       "defined_out": [
         "page_size#0",
@@ -19283,14 +19413,14 @@
         "tmp%5#0"
       ]
     },
-    "2494": {
+    "2513": {
       "op": "swap",
       "stack_out": [
         "tmp%5#0",
         "page_size#0"
       ]
     },
-    "2495": {
+    "2514": {
       "op": "concat",
       "defined_out": [
         "tmp%6#0"
@@ -19299,14 +19429,14 @@
         "tmp%6#0"
       ]
     },
-    "2496": {
+    "2515": {
       "op": "frame_dig -1",
       "stack_out": [
         "tmp%6#0",
         "page_content#0 (copy)"
       ]
     },
-    "2498": {
+    "2517": {
       "op": "concat",
       "defined_out": [
         "tmp%7#0"
@@ -19315,7 +19445,7 @@
         "tmp%7#0"
       ]
     },
-    "2499": {
+    "2518": {
       "op": "sha512_256",
       "defined_out": [
         "tmp%8#0"
@@ -19324,11 +19454,11 @@
         "tmp%8#0"
       ]
     },
-    "2500": {
+    "2519": {
       "retsub": true,
       "op": "retsub"
     },
-    "2501": {
+    "2520": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._compute_metadata_hash",
       "params": {
         "asa#0": "uint64"
@@ -19337,13 +19467,13 @@
       "stack_in": [],
       "op": "proto 1 1"
     },
-    "2504": {
+    "2523": {
       "op": "bytec_1 // \"\"",
       "stack_out": [
         "page_index#0"
       ]
     },
-    "2505": {
+    "2524": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)"
@@ -19353,7 +19483,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2507": {
+    "2526": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._compute_header_hash",
       "op": "callsub _compute_header_hash",
       "defined_out": [
@@ -19364,7 +19494,7 @@
         "hh#0"
       ]
     },
-    "2510": {
+    "2529": {
       "op": "frame_dig -1",
       "stack_out": [
         "page_index#0",
@@ -19372,7 +19502,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2512": {
+    "2531": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_size",
       "op": "callsub _get_metadata_size",
       "defined_out": [
@@ -19385,7 +19515,7 @@
         "n#0"
       ]
     },
-    "2515": {
+    "2534": {
       "op": "intc 5 // 1006",
       "defined_out": [
         "1006",
@@ -19399,7 +19529,7 @@
         "1006"
       ]
     },
-    "2517": {
+    "2536": {
       "op": "+",
       "defined_out": [
         "hh#0",
@@ -19411,7 +19541,7 @@
         "tmp%1#1"
       ]
     },
-    "2518": {
+    "2537": {
       "op": "intc 4 // 1007",
       "defined_out": [
         "1007",
@@ -19425,7 +19555,7 @@
         "1007"
       ]
     },
-    "2520": {
+    "2539": {
       "op": "/",
       "defined_out": [
         "hh#0",
@@ -19437,7 +19567,7 @@
         "total_pages#0"
       ]
     },
-    "2521": {
+    "2540": {
       "op": "dup",
       "defined_out": [
         "hh#0",
@@ -19450,7 +19580,7 @@
         "total_pages#0"
       ]
     },
-    "2522": {
+    "2541": {
       "op": "bytec_1 // 0x",
       "defined_out": [
         "concatenated_ph#0",
@@ -19465,7 +19595,7 @@
         "concatenated_ph#0"
       ]
     },
-    "2523": {
+    "2542": {
       "op": "swap",
       "defined_out": [
         "concatenated_ph#0",
@@ -19480,7 +19610,7 @@
         "total_pages#0"
       ]
     },
-    "2524": {
+    "2543": {
       "op": "bz _compute_metadata_hash_after_if_else@6",
       "stack_out": [
         "page_index#0",
@@ -19489,7 +19619,7 @@
         "concatenated_ph#0"
       ]
     },
-    "2527": {
+    "2546": {
       "op": "intc_1 // 0",
       "defined_out": [
         "concatenated_ph#0",
@@ -19505,7 +19635,7 @@
         "page_index#0"
       ]
     },
-    "2528": {
+    "2547": {
       "op": "frame_bury 0",
       "defined_out": [
         "concatenated_ph#0",
@@ -19520,7 +19650,7 @@
         "concatenated_ph#0"
       ]
     },
-    "2530": {
+    "2549": {
       "block": "_compute_metadata_hash_for_header@2",
       "stack_in": [
         "page_index#0",
@@ -19540,7 +19670,7 @@
         "page_index#0"
       ]
     },
-    "2532": {
+    "2551": {
       "op": "frame_dig 2",
       "defined_out": [
         "page_index#0",
@@ -19555,7 +19685,7 @@
         "total_pages#0"
       ]
     },
-    "2534": {
+    "2553": {
       "op": "<",
       "defined_out": [
         "continue_looping%0#0",
@@ -19570,7 +19700,7 @@
         "continue_looping%0#0"
       ]
     },
-    "2535": {
+    "2554": {
       "op": "bz _compute_metadata_hash_after_if_else@6",
       "stack_out": [
         "page_index#0",
@@ -19579,7 +19709,7 @@
         "concatenated_ph#0"
       ]
     },
-    "2538": {
+    "2557": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)",
@@ -19594,7 +19724,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2540": {
+    "2559": {
       "op": "frame_dig 0",
       "stack_out": [
         "page_index#0",
@@ -19605,7 +19735,7 @@
         "page_index#0"
       ]
     },
-    "2542": {
+    "2561": {
       "op": "dup",
       "defined_out": [
         "asa#0 (copy)",
@@ -19623,7 +19753,7 @@
         "page_index#0 (copy)"
       ]
     },
-    "2543": {
+    "2562": {
       "op": "cover 2",
       "stack_out": [
         "page_index#0",
@@ -19635,7 +19765,7 @@
         "page_index#0 (copy)"
       ]
     },
-    "2545": {
+    "2564": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._get_metadata_page",
       "op": "callsub _get_metadata_page",
       "defined_out": [
@@ -19652,7 +19782,7 @@
         "page_content#0"
       ]
     },
-    "2548": {
+    "2567": {
       "op": "frame_dig -1",
       "stack_out": [
         "page_index#0",
@@ -19664,7 +19794,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2550": {
+    "2569": {
       "op": "dig 2",
       "stack_out": [
         "page_index#0",
@@ -19677,7 +19807,7 @@
         "page_index#0 (copy)"
       ]
     },
-    "2552": {
+    "2571": {
       "op": "uncover 2",
       "stack_out": [
         "page_index#0",
@@ -19690,7 +19820,7 @@
         "page_content#0"
       ]
     },
-    "2554": {
+    "2573": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._compute_page_hash",
       "op": "callsub _compute_page_hash",
       "defined_out": [
@@ -19707,7 +19837,7 @@
         "ph#0"
       ]
     },
-    "2557": {
+    "2576": {
       "op": "frame_dig 3",
       "defined_out": [
         "concatenated_ph#0",
@@ -19725,7 +19855,7 @@
         "concatenated_ph#0"
       ]
     },
-    "2559": {
+    "2578": {
       "op": "swap",
       "stack_out": [
         "page_index#0",
@@ -19737,7 +19867,7 @@
         "ph#0"
       ]
     },
-    "2560": {
+    "2579": {
       "op": "concat",
       "stack_out": [
         "page_index#0",
@@ -19748,7 +19878,7 @@
         "concatenated_ph#0"
       ]
     },
-    "2561": {
+    "2580": {
       "op": "frame_bury 3",
       "defined_out": [
         "concatenated_ph#0",
@@ -19763,7 +19893,7 @@
         "page_index#0"
       ]
     },
-    "2563": {
+    "2582": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
@@ -19780,7 +19910,7 @@
         "1"
       ]
     },
-    "2564": {
+    "2583": {
       "op": "+",
       "stack_out": [
         "page_index#0",
@@ -19790,7 +19920,7 @@
         "page_index#0"
       ]
     },
-    "2565": {
+    "2584": {
       "op": "frame_bury 0",
       "defined_out": [
         "concatenated_ph#0",
@@ -19804,10 +19934,10 @@
         "concatenated_ph#0"
       ]
     },
-    "2567": {
+    "2586": {
       "op": "b _compute_metadata_hash_for_header@2"
     },
-    "2570": {
+    "2589": {
       "block": "_compute_metadata_hash_after_if_else@6",
       "stack_in": [
         "page_index#0",
@@ -19827,7 +19957,7 @@
         "0x617263303038392f616d"
       ]
     },
-    "2582": {
+    "2601": {
       "op": "frame_dig 1",
       "defined_out": [
         "0x617263303038392f616d",
@@ -19842,7 +19972,7 @@
         "hh#0"
       ]
     },
-    "2584": {
+    "2603": {
       "op": "concat",
       "defined_out": [
         "hh#0",
@@ -19856,7 +19986,7 @@
         "tmp%6#0"
       ]
     },
-    "2585": {
+    "2604": {
       "op": "frame_dig 3",
       "defined_out": [
         "concatenated_ph#0",
@@ -19872,7 +20002,7 @@
         "concatenated_ph#0"
       ]
     },
-    "2587": {
+    "2606": {
       "op": "concat",
       "defined_out": [
         "concatenated_ph#0",
@@ -19887,7 +20017,7 @@
         "tmp%7#0"
       ]
     },
-    "2588": {
+    "2607": {
       "op": "sha512_256",
       "defined_out": [
         "concatenated_ph#0",
@@ -19902,14 +20032,14 @@
         "tmp%8#0"
       ]
     },
-    "2589": {
+    "2608": {
       "op": "frame_bury 0"
     },
-    "2591": {
+    "2610": {
       "retsub": true,
       "op": "retsub"
     },
-    "2592": {
+    "2611": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_base_preconditions",
       "params": {
         "asa#0": "uint64",
@@ -19919,7 +20049,7 @@
       "stack_in": [],
       "op": "proto 2 0"
     },
-    "2595": {
+    "2614": {
       "op": "frame_dig -2",
       "defined_out": [
         "asa#0 (copy)"
@@ -19928,7 +20058,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2597": {
+    "2616": {
       "op": "asset_params_get AssetCreator",
       "defined_out": [
         "_creator#0",
@@ -19939,24 +20069,24 @@
         "exists#0"
       ]
     },
-    "2599": {
+    "2618": {
       "op": "bury 1",
       "stack_out": [
         "exists#0"
       ]
     },
-    "2601": {
+    "2620": {
       "error": "The specified ASA does not exist",
       "op": "assert // The specified ASA does not exist",
       "stack_out": []
     },
-    "2602": {
+    "2621": {
       "op": "frame_dig -2",
       "stack_out": [
         "asa#0 (copy)"
       ]
     },
-    "2604": {
+    "2623": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._is_asa_manager",
       "op": "callsub _is_asa_manager",
       "defined_out": [
@@ -19966,12 +20096,12 @@
         "tmp%1#0"
       ]
     },
-    "2607": {
+    "2626": {
       "error": "Unauthorized, must be the Asset Manager",
       "op": "assert // Unauthorized, must be the Asset Manager",
       "stack_out": []
     },
-    "2608": {
+    "2627": {
       "op": "frame_dig -1",
       "defined_out": [
         "metadata_size#0 (copy)"
@@ -19980,7 +20110,7 @@
         "metadata_size#0 (copy)"
       ]
     },
-    "2610": {
+    "2629": {
       "op": "intc 6 // 30507",
       "defined_out": [
         "30507",
@@ -19991,7 +20121,7 @@
         "30507"
       ]
     },
-    "2612": {
+    "2631": {
       "op": "<=",
       "defined_out": [
         "tmp%0#1"
@@ -20000,16 +20130,16 @@
         "tmp%0#1"
       ]
     },
-    "2613": {
+    "2632": {
       "error": "Invalid Metadata size, exceeds maximum allowed size",
       "op": "assert // Invalid Metadata size, exceeds maximum allowed size",
       "stack_out": []
     },
-    "2614": {
+    "2633": {
       "retsub": true,
       "op": "retsub"
     },
-    "2615": {
+    "2634": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_update_preconditions",
       "params": {
         "asa#0": "uint64",
@@ -20019,7 +20149,7 @@
       "stack_in": [],
       "op": "proto 2 0"
     },
-    "2618": {
+    "2637": {
       "op": "frame_dig -2",
       "defined_out": [
         "asa#0 (copy)"
@@ -20028,7 +20158,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2620": {
+    "2639": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)",
@@ -20039,18 +20169,18 @@
         "metadata_size#0 (copy)"
       ]
     },
-    "2622": {
+    "2641": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_base_preconditions",
       "op": "callsub _check_base_preconditions",
       "stack_out": []
     },
-    "2625": {
+    "2644": {
       "op": "frame_dig -2",
       "stack_out": [
         "asa#0 (copy)"
       ]
     },
-    "2627": {
+    "2646": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0"
@@ -20059,7 +20189,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2628": {
+    "2647": {
       "op": "dup",
       "defined_out": [
         "encoded_value%0#0",
@@ -20070,7 +20200,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "2629": {
+    "2648": {
       "op": "box_len",
       "defined_out": [
         "_%0#0",
@@ -20083,21 +20213,21 @@
         "maybe_exists%0#0"
       ]
     },
-    "2630": {
+    "2649": {
       "op": "bury 1",
       "stack_out": [
         "encoded_value%0#0",
         "maybe_exists%0#0"
       ]
     },
-    "2632": {
+    "2651": {
       "error": "Asset Metadata does not exist for the specified ASA",
       "op": "assert // Asset Metadata does not exist for the specified ASA",
       "stack_out": [
         "encoded_value%0#0"
       ]
     },
-    "2633": {
+    "2652": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
@@ -20108,7 +20238,7 @@
         "1"
       ]
     },
-    "2634": {
+    "2653": {
       "op": "dup",
       "stack_out": [
         "encoded_value%0#0",
@@ -20116,7 +20246,7 @@
         "1"
       ]
     },
-    "2635": {
+    "2654": {
       "op": "box_extract",
       "defined_out": [
         "tmp%0#2"
@@ -20125,7 +20255,7 @@
         "tmp%0#2"
       ]
     },
-    "2636": {
+    "2655": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -20136,7 +20266,7 @@
         "0"
       ]
     },
-    "2637": {
+    "2656": {
       "op": "getbit",
       "defined_out": [
         "tmp%1#1"
@@ -20145,7 +20275,7 @@
         "tmp%1#1"
       ]
     },
-    "2638": {
+    "2657": {
       "op": "!",
       "defined_out": [
         "tmp%2#0"
@@ -20154,16 +20284,16 @@
         "tmp%2#0"
       ]
     },
-    "2639": {
+    "2658": {
       "error": "Metadata is immutable",
       "op": "assert // Metadata is immutable",
       "stack_out": []
     },
-    "2640": {
+    "2659": {
       "retsub": true,
       "op": "retsub"
     },
-    "2641": {
+    "2660": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "params": {
         "asa#0": "uint64"
@@ -20172,7 +20302,7 @@
       "stack_in": [],
       "op": "proto 1 0"
     },
-    "2644": {
+    "2663": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)"
@@ -20181,7 +20311,7 @@
         "asa#0 (copy)"
       ]
     },
-    "2646": {
+    "2665": {
       "op": "asset_params_get AssetCreator",
       "defined_out": [
         "_creator#0",
@@ -20192,24 +20322,24 @@
         "exists#0"
       ]
     },
-    "2648": {
+    "2667": {
       "op": "bury 1",
       "stack_out": [
         "exists#0"
       ]
     },
-    "2650": {
+    "2669": {
       "error": "The specified ASA does not exist",
       "op": "assert // The specified ASA does not exist",
       "stack_out": []
     },
-    "2651": {
+    "2670": {
       "op": "frame_dig -1",
       "stack_out": [
         "asa#0 (copy)"
       ]
     },
-    "2653": {
+    "2672": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0"
@@ -20218,7 +20348,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2654": {
+    "2673": {
       "op": "box_len",
       "defined_out": [
         "_%0#0",
@@ -20229,22 +20359,22 @@
         "maybe_exists%0#0"
       ]
     },
-    "2655": {
+    "2674": {
       "op": "bury 1",
       "stack_out": [
         "maybe_exists%0#0"
       ]
     },
-    "2657": {
+    "2676": {
       "error": "Asset Metadata does not exist for the specified ASA",
       "op": "assert // Asset Metadata does not exist for the specified ASA",
       "stack_out": []
     },
-    "2658": {
+    "2677": {
       "retsub": true,
       "op": "retsub"
     },
-    "2659": {
+    "2678": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_set_flag_preconditions",
       "params": {
         "asa#0": "uint64"
@@ -20253,7 +20383,7 @@
       "stack_in": [],
       "op": "proto 1 0"
     },
-    "2662": {
+    "2681": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)"
@@ -20262,18 +20392,18 @@
         "asa#0 (copy)"
       ]
     },
-    "2664": {
+    "2683": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._check_existence_preconditions",
       "op": "callsub _check_existence_preconditions",
       "stack_out": []
     },
-    "2667": {
+    "2686": {
       "op": "frame_dig -1",
       "stack_out": [
         "asa#0 (copy)"
       ]
     },
-    "2669": {
+    "2688": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0"
@@ -20282,7 +20412,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2670": {
+    "2689": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
@@ -20293,7 +20423,7 @@
         "1"
       ]
     },
-    "2671": {
+    "2690": {
       "op": "dup",
       "stack_out": [
         "encoded_value%0#0",
@@ -20301,7 +20431,7 @@
         "1"
       ]
     },
-    "2672": {
+    "2691": {
       "op": "box_extract",
       "defined_out": [
         "tmp%0#2"
@@ -20310,7 +20440,7 @@
         "tmp%0#2"
       ]
     },
-    "2673": {
+    "2692": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -20321,7 +20451,7 @@
         "0"
       ]
     },
-    "2674": {
+    "2693": {
       "op": "getbit",
       "defined_out": [
         "tmp%1#0"
@@ -20330,21 +20460,21 @@
         "tmp%1#0"
       ]
     },
-    "2675": {
+    "2694": {
       "op": "!"
     },
-    "2676": {
+    "2695": {
       "error": "Metadata is immutable",
       "op": "assert // Metadata is immutable",
       "stack_out": []
     },
-    "2677": {
+    "2696": {
       "op": "frame_dig -1",
       "stack_out": [
         "asa#0 (copy)"
       ]
     },
-    "2679": {
+    "2698": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._is_asa_manager",
       "op": "callsub _is_asa_manager",
       "defined_out": [
@@ -20354,16 +20484,16 @@
         "tmp%2#0"
       ]
     },
-    "2682": {
+    "2701": {
       "error": "Unauthorized, must be the Asset Manager",
       "op": "assert // Unauthorized, must be the Asset Manager",
       "stack_out": []
     },
-    "2683": {
+    "2702": {
       "retsub": true,
       "op": "retsub"
     },
-    "2684": {
+    "2703": {
       "subroutine": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._update_header_excluding_flags_and_emit",
       "params": {
         "asa#0": "uint64"
@@ -20372,7 +20502,7 @@
       "stack_in": [],
       "op": "proto 1 0"
     },
-    "2687": {
+    "2706": {
       "op": "frame_dig -1",
       "defined_out": [
         "asa#0 (copy)"
@@ -20381,18 +20511,18 @@
         "asa#0 (copy)"
       ]
     },
-    "2689": {
+    "2708": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._identify_metadata",
       "op": "callsub _identify_metadata",
       "stack_out": []
     },
-    "2692": {
+    "2711": {
       "op": "frame_dig -1",
       "stack_out": [
         "asa#0 (copy)"
       ]
     },
-    "2694": {
+    "2713": {
       "callsub": "smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry._compute_metadata_hash",
       "op": "callsub _compute_metadata_hash",
       "defined_out": [
@@ -20402,14 +20532,14 @@
         "metadata_hash#0"
       ]
     },
-    "2697": {
+    "2716": {
       "op": "frame_dig -1",
       "stack_out": [
         "metadata_hash#0",
         "asa#0 (copy)"
       ]
     },
-    "2699": {
+    "2718": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0",
@@ -20420,7 +20550,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2700": {
+    "2719": {
       "op": "dup",
       "defined_out": [
         "encoded_value%0#0",
@@ -20433,7 +20563,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "2701": {
+    "2720": {
       "op": "intc_3 // 2",
       "defined_out": [
         "2",
@@ -20448,7 +20578,7 @@
         "2"
       ]
     },
-    "2702": {
+    "2721": {
       "op": "dig 3",
       "defined_out": [
         "2",
@@ -20465,14 +20595,14 @@
         "metadata_hash#0 (copy)"
       ]
     },
-    "2704": {
+    "2723": {
       "op": "box_replace",
       "stack_out": [
         "metadata_hash#0",
         "encoded_value%0#0"
       ]
     },
-    "2705": {
+    "2724": {
       "op": "global Round",
       "defined_out": [
         "encoded_value%0#0",
@@ -20485,7 +20615,7 @@
         "last_modified_round#0"
       ]
     },
-    "2707": {
+    "2726": {
       "op": "itob",
       "defined_out": [
         "encoded_value%0#0",
@@ -20498,7 +20628,7 @@
         "tmp%0#0"
       ]
     },
-    "2708": {
+    "2727": {
       "op": "dig 1",
       "stack_out": [
         "metadata_hash#0",
@@ -20507,7 +20637,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "2710": {
+    "2729": {
       "op": "pushint 34",
       "defined_out": [
         "34",
@@ -20524,7 +20654,7 @@
         "34"
       ]
     },
-    "2712": {
+    "2731": {
       "op": "uncover 2",
       "stack_out": [
         "metadata_hash#0",
@@ -20534,14 +20664,14 @@
         "tmp%0#0"
       ]
     },
-    "2714": {
+    "2733": {
       "op": "box_replace",
       "stack_out": [
         "metadata_hash#0",
         "encoded_value%0#0"
       ]
     },
-    "2715": {
+    "2734": {
       "op": "global Round",
       "defined_out": [
         "encoded_value%0#0",
@@ -20554,7 +20684,7 @@
         "tmp%3#0"
       ]
     },
-    "2717": {
+    "2736": {
       "op": "itob",
       "defined_out": [
         "aggregate%val_as_bytes%1#0",
@@ -20567,7 +20697,7 @@
         "aggregate%val_as_bytes%1#0"
       ]
     },
-    "2718": {
+    "2737": {
       "op": "global LatestTimestamp",
       "defined_out": [
         "aggregate%val_as_bytes%1#0",
@@ -20582,7 +20712,7 @@
         "tmp%5#0"
       ]
     },
-    "2720": {
+    "2739": {
       "op": "itob",
       "defined_out": [
         "aggregate%val_as_bytes%1#0",
@@ -20597,7 +20727,7 @@
         "aggregate%val_as_bytes%2#0"
       ]
     },
-    "2721": {
+    "2740": {
       "op": "dig 2",
       "stack_out": [
         "metadata_hash#0",
@@ -20607,7 +20737,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "2723": {
+    "2742": {
       "op": "intc_0 // 1",
       "defined_out": [
         "1",
@@ -20626,7 +20756,7 @@
         "1"
       ]
     },
-    "2724": {
+    "2743": {
       "op": "dup",
       "stack_out": [
         "metadata_hash#0",
@@ -20638,7 +20768,7 @@
         "1"
       ]
     },
-    "2725": {
+    "2744": {
       "op": "box_extract",
       "stack_out": [
         "metadata_hash#0",
@@ -20648,7 +20778,7 @@
         "tmp%0#0"
       ]
     },
-    "2726": {
+    "2745": {
       "op": "btoi",
       "defined_out": [
         "aggregate%val_as_bytes%1#0",
@@ -20665,7 +20795,7 @@
         "tmp%8#0"
       ]
     },
-    "2727": {
+    "2746": {
       "op": "itob",
       "defined_out": [
         "aggregate%val_as_bytes%1#0",
@@ -20682,7 +20812,7 @@
         "aggregate%val_as_bytes%3#0"
       ]
     },
-    "2728": {
+    "2747": {
       "op": "dup",
       "defined_out": [
         "aggregate%val_as_bytes%1#0",
@@ -20701,7 +20831,7 @@
         "aggregate%val_as_bytes%3#0 (copy)"
       ]
     },
-    "2729": {
+    "2748": {
       "op": "bitlen",
       "defined_out": [
         "aggregate%bitlen%0#0",
@@ -20720,7 +20850,7 @@
         "aggregate%bitlen%0#0"
       ]
     },
-    "2730": {
+    "2749": {
       "op": "intc_2 // 8",
       "defined_out": [
         "8",
@@ -20741,7 +20871,7 @@
         "8"
       ]
     },
-    "2731": {
+    "2750": {
       "op": "<=",
       "defined_out": [
         "aggregate%no_overflow%0#0",
@@ -20760,7 +20890,7 @@
         "aggregate%no_overflow%0#0"
       ]
     },
-    "2732": {
+    "2751": {
       "error": "overflow",
       "op": "assert // overflow",
       "stack_out": [
@@ -20771,7 +20901,7 @@
         "aggregate%val_as_bytes%3#0"
       ]
     },
-    "2733": {
+    "2752": {
       "op": "extract 7 1",
       "defined_out": [
         "aggregate%uint8%0#0",
@@ -20788,7 +20918,7 @@
         "aggregate%uint8%0#0"
       ]
     },
-    "2736": {
+    "2755": {
       "op": "dig 3",
       "stack_out": [
         "metadata_hash#0",
@@ -20799,7 +20929,7 @@
         "encoded_value%0#0 (copy)"
       ]
     },
-    "2738": {
+    "2757": {
       "op": "intc_1 // 0",
       "defined_out": [
         "0",
@@ -20820,7 +20950,7 @@
         "0"
       ]
     },
-    "2739": {
+    "2758": {
       "op": "intc_0 // 1",
       "stack_out": [
         "metadata_hash#0",
@@ -20833,7 +20963,7 @@
         "1"
       ]
     },
-    "2740": {
+    "2759": {
       "op": "box_extract",
       "stack_out": [
         "metadata_hash#0",
@@ -20844,7 +20974,7 @@
         "tmp%0#0"
       ]
     },
-    "2741": {
+    "2760": {
       "op": "intc_1 // 0",
       "stack_out": [
         "metadata_hash#0",
@@ -20856,7 +20986,7 @@
         "0"
       ]
     },
-    "2742": {
+    "2761": {
       "op": "getbit",
       "defined_out": [
         "aggregate%uint8%0#0",
@@ -20875,7 +21005,7 @@
         "tmp%1#1"
       ]
     },
-    "2743": {
+    "2762": {
       "op": "bytec_2 // 0x00",
       "defined_out": [
         "0x00",
@@ -20896,7 +21026,7 @@
         "0x00"
       ]
     },
-    "2744": {
+    "2763": {
       "op": "intc_1 // 0",
       "stack_out": [
         "metadata_hash#0",
@@ -20909,7 +21039,7 @@
         "0"
       ]
     },
-    "2745": {
+    "2764": {
       "op": "uncover 2",
       "stack_out": [
         "metadata_hash#0",
@@ -20922,7 +21052,7 @@
         "tmp%1#1"
       ]
     },
-    "2747": {
+    "2766": {
       "op": "setbit",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -20941,7 +21071,7 @@
         "aggregate%encoded_bool%0#0"
       ]
     },
-    "2748": {
+    "2767": {
       "op": "uncover 4",
       "stack_out": [
         "metadata_hash#0",
@@ -20952,7 +21082,7 @@
         "encoded_value%0#0"
       ]
     },
-    "2750": {
+    "2769": {
       "op": "uncover 4",
       "stack_out": [
         "metadata_hash#0",
@@ -20963,7 +21093,7 @@
         "aggregate%val_as_bytes%1#0"
       ]
     },
-    "2752": {
+    "2771": {
       "op": "concat",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -20980,7 +21110,7 @@
         "aggregate%head%1#0"
       ]
     },
-    "2753": {
+    "2772": {
       "op": "uncover 3",
       "stack_out": [
         "metadata_hash#0",
@@ -20990,7 +21120,7 @@
         "aggregate%val_as_bytes%2#0"
       ]
     },
-    "2755": {
+    "2774": {
       "op": "concat",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -21005,7 +21135,7 @@
         "aggregate%head%2#0"
       ]
     },
-    "2756": {
+    "2775": {
       "op": "uncover 2",
       "stack_out": [
         "metadata_hash#0",
@@ -21014,7 +21144,7 @@
         "aggregate%uint8%0#0"
       ]
     },
-    "2758": {
+    "2777": {
       "op": "concat",
       "defined_out": [
         "aggregate%encoded_bool%0#0",
@@ -21027,7 +21157,7 @@
         "aggregate%head%3#0"
       ]
     },
-    "2759": {
+    "2778": {
       "op": "swap",
       "stack_out": [
         "metadata_hash#0",
@@ -21035,7 +21165,7 @@
         "aggregate%encoded_bool%0#0"
       ]
     },
-    "2760": {
+    "2779": {
       "op": "concat",
       "defined_out": [
         "aggregate%head%4#0",
@@ -21046,14 +21176,14 @@
         "aggregate%head%4#0"
       ]
     },
-    "2761": {
+    "2780": {
       "op": "swap",
       "stack_out": [
         "aggregate%head%4#0",
         "metadata_hash#0"
       ]
     },
-    "2762": {
+    "2781": {
       "op": "concat",
       "defined_out": [
         "aggregate%head%5#0"
@@ -21062,7 +21192,7 @@
         "aggregate%head%5#0"
       ]
     },
-    "2763": {
+    "2782": {
       "op": "bytec 5 // method \"Arc89MetadataUpdated(uint64,uint64,uint64,byte,bool,byte[32])\"",
       "defined_out": [
         "Method(Arc89MetadataUpdated(uint64,uint64,uint64,byte,bool,byte[32]))",
@@ -21073,14 +21203,14 @@
         "Method(Arc89MetadataUpdated(uint64,uint64,uint64,byte,bool,byte[32]))"
       ]
     },
-    "2765": {
+    "2784": {
       "op": "swap",
       "stack_out": [
         "Method(Arc89MetadataUpdated(uint64,uint64,uint64,byte,bool,byte[32]))",
         "aggregate%head%5#0"
       ]
     },
-    "2766": {
+    "2785": {
       "op": "concat",
       "defined_out": [
         "event%0#0"
@@ -21089,11 +21219,11 @@
         "event%0#0"
       ]
     },
-    "2767": {
+    "2786": {
       "op": "log",
       "stack_out": []
     },
-    "2768": {
+    "2787": {
       "retsub": true,
       "op": "retsub"
     }
