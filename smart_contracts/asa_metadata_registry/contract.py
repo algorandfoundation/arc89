@@ -152,6 +152,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     def _set_metadata_payload(
         self, asa: Asset, metadata_size: UInt64, payload: Bytes
     ) -> None:
+        # Erase existing metadata payload
+        self.asset_metadata.box(asa).resize(new_size=UInt64(const.METADATA_HEADER_SIZE))
+
         # Append provided payload
         self._append_payload(asa, payload)
 
@@ -339,32 +342,14 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             mbr_delta_payment.receiver == Global.current_application_address
         ), err.MBR_DELTA_RECEIVER_INVALID
 
-        # Initialize Asset Metadata Box Header
+        # Initialize empty Asset Metadata Box
         mbr_i = Global.current_application_address.min_balance
-        _exists = self.asset_metadata.box(asset_id).create(
-            size=UInt64(const.METADATA_HEADER_SIZE)
-        )
+        _exists = self.asset_metadata.box(asset_id).create(size=UInt64(0))
 
         # Set Metadata Body
         if payload.native.length > 0:
             ensure_budget(required_budget=const.APP_CALL_OP_CODE_BUDGET)
         self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload.native)
-
-        # Postconditions
-        mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
-        assert (
-            mbr_delta_payment.amount >= mbr_delta_amount
-        ), err.MBR_DELTA_AMOUNT_INVALID
-        if self._is_arc89(asset_id):
-            arc_89_uri = (
-                const.URI_ARC_89_PREFIX
-                + itoa(Global.current_application_id.id)
-                + const.URI_ARC_89_SUFFIX
-            )
-            asa_url = asset_id.url
-            assert (
-                asa_url[: arc_89_uri.length] == arc_89_uri
-            ), err.ASA_URL_INVALID_ARC89_URI
 
         # Update Metadata Header
         self._identify_metadata(asset_id)
@@ -391,6 +376,22 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             )
         )
         self._set_last_modified_round(asset_id, Global.round)
+
+        # Postconditions
+        if self._is_arc89(asset_id):
+            arc_89_uri = (
+                const.URI_ARC_89_PREFIX
+                + itoa(Global.current_application_id.id)
+                + const.URI_ARC_89_SUFFIX
+            )
+            asa_url = asset_id.url
+            assert (
+                asa_url[: arc_89_uri.length] == arc_89_uri
+            ), err.ASA_URL_INVALID_ARC89_URI
+        mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
+        assert (
+            mbr_delta_payment.amount >= mbr_delta_amount
+        ), err.MBR_DELTA_AMOUNT_INVALID
 
         return abi.MbrDelta(
             sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
@@ -425,10 +426,10 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         # Update Metadata Body
         mbr_i = Global.current_application_address.min_balance
-        self.asset_metadata.box(asset_id).resize(
-            new_size=UInt64(const.METADATA_HEADER_SIZE)
-        )
         self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload.native)
+
+        # Update Metadata Header
+        self._update_header_excluding_flags_and_emit(asset_id)
 
         # Postconditions
         assert (
@@ -443,9 +444,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
                 receiver=asset_id.manager,
                 amount=mbr_delta_amount,
             ).submit()
-
-        # Update Metadata Header
-        self._update_header_excluding_flags_and_emit(asset_id)
 
         return abi.MbrDelta(sign=arc4.UInt8(sign), amount=arc4.UInt64(mbr_delta_amount))
 
@@ -480,10 +478,10 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         # Update Metadata Body
         mbr_i = Global.current_application_address.min_balance
-        self.asset_metadata.box(asset_id).resize(
-            new_size=UInt64(const.METADATA_HEADER_SIZE)
-        )
         self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload.native)
+
+        # Update Metadata Header
+        self._update_header_excluding_flags_and_emit(asset_id)
 
         # Postconditions
         assert (
@@ -493,9 +491,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert (
             mbr_delta_payment.amount >= mbr_delta_amount
         ), err.MBR_DELTA_AMOUNT_INVALID
-
-        # Update Metadata Header
-        self._update_header_excluding_flags_and_emit(asset_id)
 
         return abi.MbrDelta(
             sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
