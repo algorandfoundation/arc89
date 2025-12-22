@@ -573,7 +573,9 @@ def create_test_metadata(
     return AssetMetadata.create(asset_id=asset_id, metadata=metadata_content, **kwargs)
 
 
-def create_metadata_with_page_count(asset_id: int, page_count: int, filler: bytes) -> AssetMetadata:
+def create_metadata_with_page_count(
+    asset_id: int, page_count: int, filler: bytes
+) -> AssetMetadata:
     if page_count < 0 or page_count > const.MAX_PAGES:
         raise ValueError(f"page_count must be between 0 and {const.MAX_PAGES}")
 

@@ -2,9 +2,10 @@ import pytest
 from algokit_utils import AlgoAmount, CommonAppCallParams, SigningAccount
 
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
+    Arc89ReplaceMetadataSliceArgs,
     Arc89SetImmutableArgs,
     Arc89SetReversibleFlagArgs,
-    AsaMetadataRegistryClient, Arc89ReplaceMetadataSliceArgs,
+    AsaMetadataRegistryClient,
 )
 from smart_contracts.asa_metadata_registry import constants as const
 from tests.helpers.factories import AssetMetadata, create_metadata_with_page_count
@@ -60,7 +61,7 @@ def test_per_page_count(
                 offset=0,
                 payload=b"y" * const.PAGE_SIZE,
             ),
-            params = CommonAppCallParams(
+            params=CommonAppCallParams(
                 sender=asset_manager.address,
                 static_fee=AlgoAmount.from_micro_algo(pages_min_fee(metadata)),
             ),
