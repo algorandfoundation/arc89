@@ -970,11 +970,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._check_existence_preconditions(asset_id)
         total_pages = self._get_total_pages(asset_id)
         if total_pages > 0:
-            assert page.as_uint64() < self._get_total_pages(
-                asset_id
-            ), err.PAGE_IDX_INVALID
+            assert page.as_uint64() < total_pages, err.PAGE_IDX_INVALID
         else:
-            op.err("Metadata is empty")
+            assert False, err.EMPTY_METADATA  # noqa: B011
 
         page_content = self._get_metadata_page(asset_id, page.as_uint64())
         page_hash = self._compute_page_hash(asset_id, page.as_uint64(), page_content)

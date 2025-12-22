@@ -7,6 +7,7 @@ ASA_URL_INVALID_ARC89_URI = "Invalid ARC-89 URI"
 ASSET_METADATA_EXIST = "Asset Metadata already exists for the specified ASA"
 ASSET_METADATA_NOT_EXIST = "Asset Metadata does not exist for the specified ASA"
 
+EMPTY_METADATA = "Metadata is empty"
 EXCEEDS_MAX_METADATA_SIZE = "Invalid Metadata size, exceeds maximum allowed size"
 EXCEEDS_METADATA_SIZE = "Slice exceeds metadata range"
 EXCEEDS_PAGE_SIZE = "Payload exceeds page size"
