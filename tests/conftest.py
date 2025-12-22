@@ -228,7 +228,8 @@ def _create_uploaded_metadata_fixture(
                     static_fee=AlgoAmount.from_micro_algo(pages_min_fee(metadata)),
                 ),
             )
-            add_extra_resources(set_immutable) if metadata.total_pages > 15 else None
+            if metadata.total_pages > 15:
+                add_extra_resources(set_immutable)
             set_immutable.send()
 
         return AssetMetadata.from_box_value(
