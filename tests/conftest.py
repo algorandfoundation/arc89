@@ -23,7 +23,7 @@ from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.asa_metadata_registry.template_vars import TRUSTED_DEPLOYER
 
 from .helpers.factories import AssetMetadata, create_arc3_metadata
-from .helpers.utils import add_extra_resources, create_metadata
+from .helpers.utils import add_extra_resources, create_metadata, pages_min_fee
 
 # Uncomment if you want to load network specific or generic .env file
 # @pytest.fixture(autouse=True, scope="session")
@@ -221,22 +221,14 @@ def _create_uploaded_metadata_fixture(
 
         if immutable:
             set_immutable = asa_metadata_registry_client.new_group()
-            min_fee = (
-                asa_metadata_registry_client.algorand.get_suggested_params().min_fee
-            )
-            # Maxed metadata needs extra AVM resources to process
-            extra_resources = 6 if "maxed" in metadata_fixture_name else 0
             set_immutable.arc89_set_immutable(
                 args=Arc89SetImmutableArgs(asset_id=asset_id),
                 params=CommonAppCallParams(
                     sender=asset_manager.address,
-                    static_fee=AlgoAmount.from_micro_algo(
-                        (1 + extra_resources) * min_fee
-                    ),
+                    static_fee=AlgoAmount.from_micro_algo(pages_min_fee(metadata)),
                 ),
             )
-            if extra_resources:
-                add_extra_resources(set_immutable, extra_resources)
+            add_extra_resources(set_immutable) if metadata.total_pages > 15 else None
             set_immutable.send()
 
         return AssetMetadata.from_box_value(
