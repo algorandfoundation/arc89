@@ -51,7 +51,7 @@ def add_extra_resources(composer: AsaMetadataRegistryComposer, count: int = 1) -
         composer.extra_resources(
             params=CommonAppCallParams(
                 note=i.to_bytes(),
-                static_fee=AlgoAmount(micro_algo=0),
+                static_fee=AlgoAmount(micro_algo=0),  # Don't charge, otherwise breaks min fee calibration
             )
         )
 
