@@ -45,7 +45,7 @@ def _append_extra_payload(
         )
 
 
-def add_extra_resources(composer: AsaMetadataRegistryComposer, count: int) -> None:
+def add_extra_resources(composer: AsaMetadataRegistryComposer, count: int = 1) -> None:
     for i in range(count):
         composer.extra_resources(
             params=CommonAppCallParams(
