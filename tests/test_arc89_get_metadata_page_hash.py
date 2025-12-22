@@ -1,3 +1,5 @@
+import pytest
+
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
     Arc89GetMetadataPageHashArgs,
     AsaMetadataRegistryClient,
@@ -5,17 +7,28 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
 from tests.helpers.factories import AssetMetadata
 
 
-def test_maxed_metadata(
+@pytest.mark.parametrize(
+    "metadata_fixture",
+    [
+        "mutable_short_metadata",
+        "mutable_maxed_metadata",
+        "mutable_json_obj_metadata",
+        "immutable_short_metadata",
+        "immutable_maxed_metadata",
+        "immutable_json_obj_metadata",
+    ],
+)
+def test_not_empty_metadata(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    mutable_maxed_metadata: AssetMetadata,
+    metadata_fixture: str,
+    request: pytest.FixtureRequest,
 ) -> None:
-    for p in range(mutable_maxed_metadata.total_pages):
+    metadata: AssetMetadata = request.getfixturevalue(metadata_fixture)
+    for p in range(metadata.total_pages):
         page_hash = asa_metadata_registry_client.send.arc89_get_metadata_page_hash(
-            args=Arc89GetMetadataPageHashArgs(
-                asset_id=mutable_maxed_metadata.asset_id, page=p
-            )
+            args=Arc89GetMetadataPageHashArgs(asset_id=metadata.asset_id, page=p)
         ).abi_return
-        assert bytes(page_hash) == mutable_maxed_metadata.compute_page_hash(p)
+        assert bytes(page_hash) == metadata.compute_page_hash(p)
 
 
 # TODO: Test failing conditions

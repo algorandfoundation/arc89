@@ -86,17 +86,17 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             const.BIT_RIGHTMOST_IDENTIFIER - flg.ID_SHORT,
         )
 
-    def _is_arc89(self, asa: Asset) -> bool:
+    def _get_flag_value(self, asa: Asset, flag: UInt64) -> bool:
         return op.getbit(
             self._get_metadata_flags(asa),
-            const.BIT_RIGHTMOST_FLAG - flg.FLG_ARC89_NATIVE,
+            const.BIT_RIGHTMOST_FLAG - flag,
         )
 
+    def _is_arc89(self, asa: Asset) -> bool:
+        return self._get_flag_value(asa, UInt64(flg.FLG_ARC89_NATIVE))
+
     def _is_immutable(self, asa: Asset) -> bool:
-        return op.getbit(
-            self._get_metadata_flags(asa),
-            const.BIT_RIGHTMOST_FLAG - flg.FLG_IMMUTABLE,
-        )
+        return self._get_flag_value(asa, UInt64(flg.FLG_IMMUTABLE))
 
     def _get_metadata_hash(self, asa: Asset) -> Bytes:
         return self.asset_metadata.box(asa).extract(
@@ -134,13 +134,14 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             start_index=old_asset_metadata_box_size, value=payload
         )
 
-    def _is_extra_payload_txn(self, txn: gtxn.Transaction) -> bool:
+    def _is_extra_payload_txn(self, asa: Asset, txn: gtxn.Transaction) -> bool:
         return (
             txn.type == TransactionType.ApplicationCall
             and txn.app_id == Global.current_application_id
             and txn.on_completion == OnCompleteAction.NoOp
-            and txn.app_args(0)
+            and txn.app_args(const.ARC4_ARG_METHOD_SELECTOR)
             == arc4.arc4_signature(AsaMetadataRegistryInterface.arc89_extra_payload)
+            and txn.app_args(const.ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID) == op.itob(asa.id)
         )
 
     def _read_extra_payload(self, txn: gtxn.Transaction) -> Bytes:
@@ -152,6 +153,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     def _set_metadata_payload(
         self, asa: Asset, metadata_size: UInt64, payload: Bytes
     ) -> None:
+        # Erase existing metadata payload
+        self.asset_metadata.box(asa).resize(new_size=UInt64(const.METADATA_HEADER_SIZE))
+
         # Append provided payload
         self._append_payload(asa, payload)
 
@@ -160,7 +164,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         group_index = Txn.group_index
         for idx in urange(group_index + 1, group_size):
             txn = gtxn.Transaction(idx)
-            if self._is_extra_payload_txn(txn):
+            if self._is_extra_payload_txn(asa, txn):
                 extra_payload = self._read_extra_payload(txn)
                 assert (
                     self._get_metadata_size(asa) + extra_payload.length <= metadata_size
@@ -198,10 +202,14 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             start_index=const.IDX_METADATA + start, length=length
         )
 
-    def _get_short_metadata(self, asa: Asset) -> Bytes:
+    def _get_slice(self, asa: Asset, offset: UInt64, size: UInt64) -> Bytes:
         return self.asset_metadata.box(asa).extract(
-            start_index=const.IDX_METADATA, length=self._get_metadata_size(asa)
+            start_index=const.IDX_METADATA + offset, length=size
         )
+
+    def _get_short_metadata(self, asa: Asset) -> Bytes:
+        assert self._is_short(asa), err.METADATA_NOT_SHORT
+        return self._get_slice(asa, UInt64(0), self._get_metadata_size(asa))
 
     def _identify_metadata(self, asa: Asset) -> None:
         metadata_size = self._get_metadata_size(asa)
@@ -333,38 +341,18 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         # Preconditions
         self._check_base_preconditions(asset_id, metadata_size.as_uint64())
         assert not self._metadata_exists(asset_id), err.ASSET_METADATA_EXIST
-
-        # MBR Payment pre-validation
         assert (
             mbr_delta_payment.receiver == Global.current_application_address
         ), err.MBR_DELTA_RECEIVER_INVALID
 
-        # Initialize Asset Metadata Box Header
+        # Initialize empty Asset Metadata Box
         mbr_i = Global.current_application_address.min_balance
-        _exists = self.asset_metadata.box(asset_id).create(
-            size=UInt64(const.METADATA_HEADER_SIZE)
-        )
+        _exists = self.asset_metadata.box(asset_id).create(size=UInt64(0))
 
         # Set Metadata Body
         if payload.native.length > 0:
             ensure_budget(required_budget=const.APP_CALL_OP_CODE_BUDGET)
         self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload.native)
-
-        # Postconditions
-        mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
-        assert (
-            mbr_delta_payment.amount >= mbr_delta_amount
-        ), err.MBR_DELTA_AMOUNT_INVALID
-        if self._is_arc89(asset_id):
-            arc_89_uri = (
-                const.URI_ARC_89_PREFIX
-                + itoa(Global.current_application_id.id)
-                + const.URI_ARC_89_SUFFIX
-            )
-            asa_url = asset_id.url
-            assert (
-                asa_url[: arc_89_uri.length] == arc_89_uri
-            ), err.ASA_URL_INVALID_ARC89_URI
 
         # Update Metadata Header
         self._identify_metadata(asset_id)
@@ -391,6 +379,23 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             )
         )
         self._set_last_modified_round(asset_id, Global.round)
+
+        # Postconditions
+        if self._is_arc89(asset_id):
+            arc_89_uri = (
+                const.URI_ARC_89_PREFIX
+                + itoa(Global.current_application_id.id)
+                + const.URI_ARC_89_SUFFIX
+            )
+            asa_url = asset_id.url
+            assert (
+                asa_url[: arc_89_uri.length] == arc_89_uri
+            ), err.ASA_URL_INVALID_ARC89_URI
+
+        mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
+        assert (
+            mbr_delta_payment.amount >= mbr_delta_amount
+        ), err.MBR_DELTA_AMOUNT_INVALID
 
         return abi.MbrDelta(
             sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
@@ -425,15 +430,16 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         # Update Metadata Body
         mbr_i = Global.current_application_address.min_balance
-        self.asset_metadata.box(asset_id).resize(
-            new_size=UInt64(const.METADATA_HEADER_SIZE)
-        )
         self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload.native)
+
+        # Update Metadata Header
+        self._update_header_excluding_flags_and_emit(asset_id)
 
         # Postconditions
         assert (
             self._get_metadata_size(asset_id) == metadata_size.as_uint64()
         ), err.METADATA_SIZE_MISMATCH
+
         mbr_delta_amount = mbr_i - Global.current_application_address.min_balance
         if mbr_delta_amount == 0:
             sign = UInt64(enums.MBR_DELTA_NULL)
@@ -443,9 +449,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
                 receiver=asset_id.manager,
                 amount=mbr_delta_amount,
             ).submit()
-
-        # Update Metadata Header
-        self._update_header_excluding_flags_and_emit(asset_id)
 
         return abi.MbrDelta(sign=arc4.UInt8(sign), amount=arc4.UInt64(mbr_delta_amount))
 
@@ -477,25 +480,26 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert metadata_size.as_uint64() > self._get_metadata_size(
             asset_id
         ), err.SMALLER_METADATA_SIZE
+        assert (
+            mbr_delta_payment.receiver == Global.current_application_address
+        ), err.MBR_DELTA_RECEIVER_INVALID
 
         # Update Metadata Body
         mbr_i = Global.current_application_address.min_balance
-        self.asset_metadata.box(asset_id).resize(
-            new_size=UInt64(const.METADATA_HEADER_SIZE)
-        )
         self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload.native)
+
+        # Update Metadata Header
+        self._update_header_excluding_flags_and_emit(asset_id)
 
         # Postconditions
         assert (
             self._get_metadata_size(asset_id) == metadata_size.as_uint64()
         ), err.METADATA_SIZE_MISMATCH
+
         mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
         assert (
             mbr_delta_payment.amount >= mbr_delta_amount
         ), err.MBR_DELTA_AMOUNT_INVALID
-
-        # Update Metadata Header
-        self._update_header_excluding_flags_and_emit(asset_id)
 
         return abi.MbrDelta(
             sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
@@ -524,14 +528,19 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             asset_id
         ), err.EXCEEDS_METADATA_SIZE
 
-        # Update Metadata Body
-        self.asset_metadata.box(asset_id).replace(
-            start_index=const.IDX_METADATA + offset.as_uint64(),
-            value=payload.native,
+        # Handle Not Idempotent
+        existing_slice = self._get_slice(
+            asset_id, offset.as_uint64(), payload.native.length
         )
+        if payload.native != existing_slice:
+            # Update Metadata Body
+            self.asset_metadata.box(asset_id).replace(
+                start_index=const.IDX_METADATA + offset.as_uint64(),
+                value=payload.native,
+            )
 
-        # Update Metadata Header
-        self._update_header_excluding_flags_and_emit(asset_id)
+            # Update Metadata Header
+            self._update_header_excluding_flags_and_emit(asset_id)
 
     @arc4.abimethod
     def arc89_delete_metadata(
@@ -613,11 +622,14 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._check_set_flag_preconditions(asset_id)
         assert flag.as_uint64() <= flg.FLG_RESERVED_3, err.FLAG_IDX_INVALID
 
-        # Set Reversible Flag
-        self._set_flag(asset_id, flag.as_uint64(), value=value.native)
+        # Handle Not Idempotent
+        existing_value = self._get_flag_value(asset_id, flag.as_uint64())
+        if value.native != existing_value:
+            # Set Reversible Flag
+            self._set_flag(asset_id, flag.as_uint64(), value=value.native)
 
-        # Update Metadata Header
-        self._update_header_excluding_flags_and_emit(asset_id)
+            # Update Metadata Header
+            self._update_header_excluding_flags_and_emit(asset_id)
 
     @arc4.abimethod
     def arc89_set_irreversible_flag(
@@ -639,11 +651,14 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             flg.FLG_RESERVED_6 <= flag.as_uint64() <= flg.FLG_IMMUTABLE
         ), err.FLAG_IDX_INVALID
 
-        # Set Irreversible Flag
-        self._set_flag(asset_id, flag.as_uint64(), value=True)
+        # Handle Not Idempotent
+        existing_value = self._get_flag_value(asset_id, flag.as_uint64())
+        if not existing_value:
+            # Set Irreversible Flag
+            self._set_flag(asset_id, flag.as_uint64(), value=True)
 
-        # Update Metadata Header
-        self._update_header_excluding_flags_and_emit(asset_id)
+            # Update Metadata Header
+            self._update_header_excluding_flags_and_emit(asset_id)
 
     @arc4.abimethod
     def arc89_set_immutable(
@@ -773,7 +788,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
-        return arc4.Bool(self._is_immutable(asset_id))
+        return arc4.Bool(
+            self._is_immutable(asset_id) or asset_id.manager == Global.zero_address
+        )
 
     @arc4.abimethod(readonly=True)
     def arc89_is_metadata_short(
@@ -866,14 +883,19 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         # Preconditions
         self._check_existence_preconditions(asset_id)
         total_pages = self._get_total_pages(asset_id)
-        assert page.as_uint64() < total_pages, err.PAGE_IDX_INVALID
+        if total_pages > 0:
+            assert page.as_uint64() < total_pages, err.PAGE_IDX_INVALID
+            has_next_page = page.as_uint64() < total_pages - 1
+            page_content = self._get_metadata_page(asset_id, page.as_uint64())
+        else:
+            assert page.as_uint64() == 0, err.PAGE_IDX_INVALID
+            has_next_page = False
+            page_content = Bytes()
 
         return abi.PaginatedMetadata(
-            has_next_page=arc4.Bool(page.as_uint64() < total_pages - 1),
+            has_next_page=arc4.Bool(has_next_page),
             last_modified_round=arc4.UInt64(self._get_last_modified_round(asset_id)),
-            page_content=arc4.DynamicBytes(
-                self._get_metadata_page(asset_id, page.as_uint64())
-            ),
+            page_content=arc4.DynamicBytes(page_content),
         )
 
     @arc4.abimethod(readonly=True)
@@ -946,6 +968,11 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
+        total_pages = self._get_total_pages(asset_id)
+        if total_pages > 0:
+            assert page.as_uint64() < total_pages, err.PAGE_IDX_INVALID
+        else:
+            assert False, err.EMPTY_METADATA  # noqa: B011
 
         page_content = self._get_metadata_page(asset_id, page.as_uint64())
         page_hash = self._compute_page_hash(asset_id, page.as_uint64(), page_content)
@@ -991,7 +1018,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
-        assert self._is_short(asset_id), err.METADATA_NOT_SHORT
 
         obj = self._get_short_metadata(asset_id)
         value = op.JsonRef.json_string(obj, key.native.bytes)
@@ -1021,7 +1047,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
-        assert self._is_short(asset_id), err.METADATA_NOT_SHORT
 
         obj = self._get_short_metadata(asset_id)
         value = op.JsonRef.json_uint64(obj, key.native.bytes)
@@ -1048,7 +1073,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
-        assert self._is_short(asset_id), err.METADATA_NOT_SHORT
 
         obj = self._get_short_metadata(asset_id)
         value = op.JsonRef.json_object(obj, key.native.bytes)

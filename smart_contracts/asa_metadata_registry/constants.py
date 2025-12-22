@@ -10,6 +10,7 @@ ACCOUNT_MBR: Final[int] = 100_000  # microALGO
 APP_CALL_OP_CODE_BUDGET: Final[int] = 700  # microALGO
 
 # ABI Types Byte Sizes
+BOOL_SIZE: Final[int] = 1
 UINT8_SIZE: Final[int] = 1
 UINT16_SIZE: Final[int] = 2
 UINT32_SIZE: Final[int] = 4
@@ -23,7 +24,7 @@ ARC4_METHOD_SELECTOR_SIZE: Final[int] = 4
 ARC4_RETURN_PREFIX_SIZE: Final[int] = 4
 ARC4_DYNAMIC_LENGTH_SIZE: Final[int] = 2
 
-# Method Signatures
+# Method Signatures Overhead
 ARC89_CREATE_METADATA_FIXED_SIZE: Final[int] = (
     ARC4_METHOD_SELECTOR_SIZE
     + UINT64_SIZE
@@ -35,19 +36,32 @@ ARC89_CREATE_METADATA_FIXED_SIZE: Final[int] = (
 ARC89_EXTRA_PAYLOAD_FIXED_SIZE: Final[int] = (
     ARC4_METHOD_SELECTOR_SIZE + UINT64_SIZE + ARC4_DYNAMIC_LENGTH_SIZE
 )
-ARC89_EXTRA_PAYLOAD_ARG_PAYLOAD: Final[int] = 2
 
 ARC89_REPLACE_METADATA_FIXED_SIZE: Final[int] = (
     ARC4_METHOD_SELECTOR_SIZE + UINT64_SIZE + UINT16_SIZE + ARC4_DYNAMIC_LENGTH_SIZE
 )
 
+# (bool,uint64,byte[]), ABI tuple are encoded a head(...) || tail(...)
+ARC89_GET_METADATA_RETURN_FIXED_SIZE: Final[int] = (
+    ARC4_RETURN_PREFIX_SIZE
+    + BOOL_SIZE
+    + UINT64_SIZE
+    + ARC4_DYNAMIC_LENGTH_SIZE  # head
+    + ARC4_DYNAMIC_LENGTH_SIZE  # tail
+)
+
+# Method Signatures Argument Indexes
+ARC4_ARG_METHOD_SELECTOR: Final[int] = 0
+
+# arc89_extra_payload(asset_id, payload)
+ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID: Final[int] = 1
+ARC89_EXTRA_PAYLOAD_ARG_PAYLOAD: Final[int] = 2
+
 # Pagination
-# TODO: The hardcoded value 13 represents the size (in bytes) of the ABI type `(bool,uint64,byte[])`.
-#  Replace with ABI type size_of() when the type is defined.
 FIRST_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC89_CREATE_METADATA_FIXED_SIZE
 EXTRA_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC89_EXTRA_PAYLOAD_FIXED_SIZE
 REPLACE_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC89_REPLACE_METADATA_FIXED_SIZE
-PAGE_SIZE: Final[int] = MAX_LOG_SIZE - ARC4_RETURN_PREFIX_SIZE - 13
+PAGE_SIZE: Final[int] = MAX_LOG_SIZE - ARC89_GET_METADATA_RETURN_FIXED_SIZE
 MAX_PAGES: Final[int] = 31
 
 # Asset Metadata Box
