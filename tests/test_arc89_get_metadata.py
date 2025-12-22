@@ -10,17 +10,15 @@ from tests.helpers.factories import AssetMetadata
 @pytest.mark.parametrize(
     "metadata_fixture",
     [
-        "mutable_empty_metadata",
         "mutable_short_metadata",
         "mutable_maxed_metadata",
         "mutable_json_obj_metadata",
-        "immutable_empty_metadata",
         "immutable_short_metadata",
         "immutable_maxed_metadata",
         "immutable_json_obj_metadata",
     ],
 )
-def test_get_metadata(
+def test_non_empty_metadata(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     metadata_fixture: str,
     request: pytest.FixtureRequest,
@@ -36,6 +34,25 @@ def test_get_metadata(
             if p < metadata.total_pages - 1
             else not page.has_next_page
         )
+
+
+@pytest.mark.parametrize(
+    "metadata_fixture",
+    [
+        "mutable_empty_metadata",
+        "immutable_empty_metadata",
+    ],
+)
+def test_empty_metadata(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    metadata_fixture: str,
+    request: pytest.FixtureRequest,
+) -> None:
+    metadata: AssetMetadata = request.getfixturevalue(metadata_fixture)
+    page = asa_metadata_registry_client.send.arc89_get_metadata(
+        args=Arc89GetMetadataArgs(asset_id=metadata.asset_id, page=0),
+    ).abi_return
+    assert not page.page_content
 
 
 # TODO: Test failing conditions
