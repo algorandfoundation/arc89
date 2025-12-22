@@ -59,6 +59,31 @@ def add_extra_resources(composer: AsaMetadataRegistryComposer, count: int = 1) -
 
 
 def pages_min_fee(metadata: AssetMetadata) -> int:
+    """
+    Estimate the total minimum fee in microAlgos for operations that scale with
+    the number of metadata pages.
+
+    The Algorand protocol charges a minimum fee per transaction. When working
+    with ARC-89 metadata, updating or appending metadata may require multiple
+    transactions depending on how many pages of metadata need to be processed.
+
+    This helper approximates the total fee as:
+
+        min_fee * (1 + (metadata.total_pages + 1) // 4)
+
+    where `min_fee` is the current suggested minimum fee from the network, and
+    `total_pages` is the number of metadata pages. The `1 + ...` accounts for
+    a base transaction plus one additional minimum-fee "unit" for each group
+    of up to four pages, with `(total_pages + 1) // 4` performing an integer
+    division that effectively rounds up to the next group of four pages.
+
+    Args:
+        metadata: AssetMetadata whose ``total_pages`` attribute determines how
+            many minimum-fee units are required.
+
+    Returns:
+        int: The estimated total minimum fee, in microAlgos.
+    """
     client = AlgorandClient.from_environment()
     min_fee = client.get_suggested_params().min_fee
     return min_fee * (1 + (metadata.total_pages + 1) // 4)
