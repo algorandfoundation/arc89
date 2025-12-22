@@ -228,6 +228,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
     def _compute_header_hash(self, asa: Asset) -> Bytes:
         # hh = SHA - 512 / 256("arc0089/header" || Asset ID || Metadata Identifiers || Metadata Flags || Metadata Size)
+        ensure_budget(required_budget=const.HEADER_HASH_OP_BUDGET)
         domain = Bytes(const.HASH_DOMAIN_HEADER)
         asset_id = op.itob(asa.id)
         metadata_identifiers = self._get_metadata_identifiers(asa)
@@ -244,6 +245,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self, asa: Asset, page_index: UInt64, page_content: Bytes
     ) -> Bytes:
         # ph[i] = SHA-512/256("arc0089/page" || Asset ID || Page Index || Page Size || Page Content)
+        ensure_budget(required_budget=const.PAGE_HASH_OP_BUDGET)
         domain = Bytes(const.HASH_DOMAIN_PAGE)
         asset_id = op.itob(asa.id)
         page_idx = trimmed_itob(uint=page_index, size=UInt64(const.UINT8_SIZE))
@@ -288,8 +290,8 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert self._is_asa_manager(asa), err.UNAUTHORIZED
 
     def _update_header_excluding_flags_and_emit(self, asa: Asset) -> None:
-        self._identify_metadata(asa)
         # ⚠️ The subroutine assumes that Metadata Flags have already been set
+        self._identify_metadata(asa)
         metadata_hash = self._compute_metadata_hash(asa)
         self._set_metadata_hash(asa, metadata_hash)
         self._set_last_modified_round(asa, Global.round)
@@ -351,7 +353,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         # Set Metadata Body
         if payload.native.length > 0:
-            ensure_budget(required_budget=const.APP_CALL_OP_CODE_BUDGET)
+            ensure_budget(required_budget=const.APP_CALL_OP_BUDGET)
         self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload.native)
 
         # Update Metadata Header

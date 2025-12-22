@@ -28,8 +28,6 @@ def test_set_and_clear_reversible_flags(
     flag: int,
     check_fn: Callable[[AssetMetadata], bool],
 ) -> None:
-    asset_id = mutable_short_metadata.asset_id
-
     # Verify initial state is False
     assert not check_fn(mutable_short_metadata)
 
@@ -37,7 +35,7 @@ def test_set_and_clear_reversible_flags(
     set_flag_and_verify(
         asa_metadata_registry_client,
         asset_manager,
-        asset_id,
+        mutable_short_metadata,
         flag,
         check_fn,
         value=True,
@@ -47,7 +45,7 @@ def test_set_and_clear_reversible_flags(
     set_flag_and_verify(
         asa_metadata_registry_client,
         asset_manager,
-        asset_id,
+        mutable_short_metadata,
         flag,
         check_fn,
         value=False,

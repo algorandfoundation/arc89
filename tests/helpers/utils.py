@@ -2,6 +2,7 @@ from collections.abc import Callable
 
 from algokit_utils import (
     AlgoAmount,
+    AlgorandClient,
     CommonAppCallParams,
     PaymentParams,
     SendParams,
@@ -16,6 +17,7 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
     Arc89GetMetadataPaginationArgs,
     Arc89ReplaceMetadataArgs,
     Arc89ReplaceMetadataLargerArgs,
+    Arc89SetImmutableArgs,
     Arc89SetIrreversibleFlagArgs,
     Arc89SetReversibleFlagArgs,
     AsaMetadataRegistryClient,
@@ -45,45 +47,70 @@ def _append_extra_payload(
         )
 
 
-def add_extra_resources(composer: AsaMetadataRegistryComposer, count: int) -> None:
+def add_extra_resources(composer: AsaMetadataRegistryComposer, count: int = 1) -> None:
     for i in range(count):
         composer.extra_resources(
             params=CommonAppCallParams(
                 note=i.to_bytes(),
-                static_fee=AlgoAmount(micro_algo=0),
+                static_fee=AlgoAmount(
+                    micro_algo=0
+                ),  # Don't charge, otherwise breaks min fee calibration
             )
         )
+
+
+def pages_min_fee(algorand_client: AlgorandClient, metadata: AssetMetadata) -> int:
+    """
+    Estimate the total minimum fee in microAlgos for operations that scale with
+    the number of metadata pages.
+
+    The Algorand protocol charges a minimum fee per transaction. When working
+    with ARC-89 metadata, updating or appending metadata may require multiple
+    transactions depending on how many pages of metadata need to be processed.
+
+    This helper approximates the total fee as:
+
+        min_fee * (1 + (metadata.total_pages + 1) // 4)
+
+    where `min_fee` is the current suggested minimum fee from the network, and
+    `total_pages` is the number of metadata pages. The `1 + ...` accounts for
+    a base transaction plus one additional minimum-fee "unit" for each group
+    of up to four pages, with `(total_pages + 1) // 4` performing an integer
+    division that effectively rounds up to the next group of four pages.
+
+    Args:
+        algorand_client: AlgorandClient to use for fetching the current params
+        metadata: AssetMetadata whose ``total_pages`` attribute determines how
+            many minimum-fee units are required.
+
+    Returns:
+        int: The estimated total minimum fee, in microAlgos.
+    """
+    min_fee = algorand_client.get_suggested_params().min_fee
+    return min_fee * (1 + (metadata.total_pages + 1) // 4)
 
 
 def set_flag_and_verify(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     asset_manager: SigningAccount,
-    asset_id: int,
+    metadata: AssetMetadata,
     flag: int,
     check_fn: Callable[[AssetMetadata], bool],
     *,
     reversible: bool = True,
     value: bool | None = None,
 ) -> None:
+    asset_id = metadata.asset_id
     if reversible:
         assert value is not None, "Flag value must be provided when reversible=True"
-        asa_metadata_registry_client.send.arc89_set_reversible_flag(
-            args=Arc89SetReversibleFlagArgs(
-                asset_id=asset_id,
-                flag=flag,
-                value=value,
-            ),
-            params=CommonAppCallParams(sender=asset_manager.address),
+        set_reversible_flag(
+            asa_metadata_registry_client, asset_manager, metadata, flag, value=value
         )
         expected_value = value
     else:
         # Irreversible flags are always set to True
-        asa_metadata_registry_client.send.arc89_set_irreversible_flag(
-            args=Arc89SetIrreversibleFlagArgs(
-                asset_id=asset_id,
-                flag=flag,
-            ),
-            params=CommonAppCallParams(sender=asset_manager.address),
+        set_irreversible_flag(
+            asa_metadata_registry_client, asset_manager, metadata, flag
         )
         expected_value = True
 
@@ -282,3 +309,69 @@ def delete_metadata(
     return MbrDelta(
         sign=delete_metadata_response[0], amount=delete_metadata_response[1]
     )
+
+
+def set_reversible_flag(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    asset_manager: SigningAccount,
+    metadata: AssetMetadata,
+    flag: int,
+    *,
+    value: bool,
+) -> None:
+    composer = asa_metadata_registry_client.new_group()
+    composer.arc89_set_reversible_flag(
+        args=Arc89SetReversibleFlagArgs(
+            asset_id=metadata.asset_id, flag=flag, value=value
+        ),
+        params=CommonAppCallParams(
+            sender=asset_manager.address,
+            static_fee=AlgoAmount.from_micro_algo(
+                pages_min_fee(asa_metadata_registry_client.algorand, metadata)
+            ),
+        ),
+    )
+    if metadata.total_pages > 15:
+        add_extra_resources(composer)
+    composer.send()
+
+
+def set_irreversible_flag(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    asset_manager: SigningAccount,
+    metadata: AssetMetadata,
+    flag: int,
+) -> None:
+    composer = asa_metadata_registry_client.new_group()
+    composer.arc89_set_irreversible_flag(
+        args=Arc89SetIrreversibleFlagArgs(asset_id=metadata.asset_id, flag=flag),
+        params=CommonAppCallParams(
+            sender=asset_manager.address,
+            static_fee=AlgoAmount.from_micro_algo(
+                pages_min_fee(asa_metadata_registry_client.algorand, metadata)
+            ),
+        ),
+    )
+    if metadata.total_pages > 15:
+        add_extra_resources(composer)
+    composer.send()
+
+
+def set_immutable(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    asset_manager: SigningAccount,
+    metadata: AssetMetadata,
+) -> None:
+    composer = asa_metadata_registry_client.new_group()
+    composer.arc89_set_immutable(
+        args=Arc89SetImmutableArgs(asset_id=metadata.asset_id),
+        params=CommonAppCallParams(
+            sender=asset_manager.address,
+            static_fee=AlgoAmount.from_micro_algo(
+                pages_min_fee(asa_metadata_registry_client.algorand, metadata)
+            ),
+        ),
+    )
+    if metadata.total_pages > 15:
+        add_extra_resources(composer)
+    composer.send()

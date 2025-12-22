@@ -6,7 +6,6 @@ from algokit_utils import (
     AlgorandClient,
     AppClientCompilationParams,
     AssetCreateParams,
-    CommonAppCallParams,
     OnSchemaBreak,
     OnUpdate,
     PaymentParams,
@@ -15,7 +14,6 @@ from algokit_utils import (
 from algokit_utils.config import config
 
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
-    Arc89SetImmutableArgs,
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )
@@ -23,7 +21,7 @@ from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.asa_metadata_registry.template_vars import TRUSTED_DEPLOYER
 
 from .helpers.factories import AssetMetadata, create_arc3_metadata
-from .helpers.utils import add_extra_resources, create_metadata
+from .helpers.utils import create_metadata, set_immutable
 
 # Uncomment if you want to load network specific or generic .env file
 # @pytest.fixture(autouse=True, scope="session")
@@ -206,6 +204,7 @@ def _create_uploaded_metadata_fixture(
 ) -> Callable[..., AssetMetadata]:
     @pytest.fixture(scope="function")
     def uploaded_metadata(
+        algorand_client: AlgorandClient,
         asset_manager: SigningAccount,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
         request: pytest.FixtureRequest,
@@ -220,24 +219,7 @@ def _create_uploaded_metadata_fixture(
         )
 
         if immutable:
-            set_immutable = asa_metadata_registry_client.new_group()
-            min_fee = (
-                asa_metadata_registry_client.algorand.get_suggested_params().min_fee
-            )
-            # Maxed metadata needs extra AVM resources to process
-            extra_resources = 6 if "maxed" in metadata_fixture_name else 0
-            set_immutable.arc89_set_immutable(
-                args=Arc89SetImmutableArgs(asset_id=asset_id),
-                params=CommonAppCallParams(
-                    sender=asset_manager.address,
-                    static_fee=AlgoAmount.from_micro_algo(
-                        (1 + extra_resources) * min_fee
-                    ),
-                ),
-            )
-            if extra_resources:
-                add_extra_resources(set_immutable, extra_resources)
-            set_immutable.send()
+            set_immutable(asa_metadata_registry_client, asset_manager, metadata)
 
         return AssetMetadata.from_box_value(
             asset_id,

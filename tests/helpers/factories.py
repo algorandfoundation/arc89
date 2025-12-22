@@ -571,3 +571,33 @@ def create_test_metadata(
         )
 
     return AssetMetadata.create(asset_id=asset_id, metadata=metadata_content, **kwargs)
+
+
+def create_metadata_with_page_count(
+    asset_id: int, page_count: int, filler: bytes
+) -> AssetMetadata:
+    if page_count < 0 or page_count > const.MAX_PAGES:
+        raise ValueError(f"page_count must be between 0 and {const.MAX_PAGES}")
+
+    if page_count == 0:
+        # Empty metadata
+        size = 0
+    elif page_count == 1:
+        size = 1 * const.PAGE_SIZE
+    else:
+        # Minimum size to trigger N pages: (N-1) * PAGE_SIZE + 1
+        size = (page_count - 1) * const.PAGE_SIZE + 1
+
+    # Create metadata with the filler bytes repeated to the desired size
+    assert len(filler) >= 1, "Filler must be at least 1 byte"
+    metadata_bytes = filler * size
+
+    metadata = AssetMetadata.create(
+        asset_id=asset_id,
+        metadata=metadata_bytes,
+    )
+    assert (
+        metadata.total_pages == page_count
+    ), f"Expected {page_count} pages, got {metadata.total_pages}"
+
+    return metadata
