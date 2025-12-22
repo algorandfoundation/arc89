@@ -883,14 +883,19 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         # Preconditions
         self._check_existence_preconditions(asset_id)
         total_pages = self._get_total_pages(asset_id)
-        assert page.as_uint64() < total_pages, err.PAGE_IDX_INVALID
+        if total_pages > 0:
+            assert page.as_uint64() < total_pages, err.PAGE_IDX_INVALID
+            has_next_page = page.as_uint64() < total_pages - 1
+            page_content = self._get_metadata_page(asset_id, page.as_uint64())
+        else:
+            assert page.as_uint64() == 0, err.PAGE_IDX_INVALID
+            has_next_page = False
+            page_content = Bytes()
 
         return abi.PaginatedMetadata(
-            has_next_page=arc4.Bool(page.as_uint64() < total_pages - 1),
+            has_next_page=arc4.Bool(has_next_page),
             last_modified_round=arc4.UInt64(self._get_last_modified_round(asset_id)),
-            page_content=arc4.DynamicBytes(
-                self._get_metadata_page(asset_id, page.as_uint64())
-            ),
+            page_content=arc4.DynamicBytes(page_content),
         )
 
     @arc4.abimethod(readonly=True)
@@ -963,7 +968,13 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
-        assert page < self._get_total_pages(asset_id), err.PAGE_IDX_INVALID
+        total_pages = self._get_total_pages(asset_id)
+        if total_pages > 0:
+            assert page.as_uint64() < self._get_total_pages(
+                asset_id
+            ), err.PAGE_IDX_INVALID
+        else:
+            op.err("Metadata is empty")
 
         page_content = self._get_metadata_page(asset_id, page.as_uint64())
         page_hash = self._compute_page_hash(asset_id, page.as_uint64(), page_content)
