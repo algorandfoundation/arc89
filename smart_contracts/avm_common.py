@@ -18,7 +18,7 @@ def umin(a: UInt64, b: UInt64) -> UInt64:
 
 @subroutine
 def ceil_div(*, num: UInt64, den: UInt64) -> UInt64:
-    # Assumes den > 1
+    # Assumes den >= 1
     return (num + (den - 1)) // den
 
 
