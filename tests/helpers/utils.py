@@ -2,6 +2,7 @@ from collections.abc import Callable
 
 from algokit_utils import (
     AlgoAmount,
+    AlgorandClient,
     CommonAppCallParams,
     PaymentParams,
     SendParams,
@@ -53,6 +54,12 @@ def add_extra_resources(composer: AsaMetadataRegistryComposer, count: int = 1) -
                 static_fee=AlgoAmount(micro_algo=0),
             )
         )
+
+
+def pages_min_fee(metadata: AssetMetadata) -> int:
+    client = AlgorandClient.from_environment()
+    min_fee = client.get_suggested_params().min_fee
+    return min_fee * (1 + (metadata.total_pages + 1) // 4)
 
 
 def set_flag_and_verify(
