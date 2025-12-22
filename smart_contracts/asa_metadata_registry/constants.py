@@ -7,7 +7,11 @@ MAX_ARG_SIZE: Final[int] = 2048
 FLAT_MBR: Final[int] = 2500  # microALGO
 BYTE_MBR: Final[int] = 400  # microALGO
 ACCOUNT_MBR: Final[int] = 100_000  # microALGO
-APP_CALL_OP_CODE_BUDGET: Final[int] = 700  # microALGO
+
+# Opcode Budgets
+APP_CALL_OP_BUDGET: Final[int] = 700
+HEADER_HASH_OP_BUDGET: Final[int] = 110
+PAGE_HASH_OP_BUDGET: Final[int] = 150
 
 # ABI Types Byte Sizes
 BOOL_SIZE: Final[int] = 1
