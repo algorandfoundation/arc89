@@ -167,16 +167,24 @@ class AssetMetadata:
         if value:
             self.reversible_flags |= flag_mask
         else:
-            self.irreversible_flags &= ~flag_mask
+            self.reversible_flags &= ~flag_mask
 
-    def set_irreversible_flag(self, *, flag_mask: int) -> None:
+    def set_irreversible_flag(self, *, flag_mask: int, value: bool = True) -> None:
         """
-        Set a specific irreversible flag bit to True.
+        Set a specific irreversible flag bit.
 
         Args:
             flag_mask: The bitmask for the irreversible flag to set
+            value: True to set the bit, False to clear it (default: True)
+
+        Note:
+            In practice, irreversible flags should only be set to True,
+            but this factory class allows clearing for testing purposes.
         """
-        self.reversible_flags |= flag_mask
+        if value:
+            self.irreversible_flags |= flag_mask
+        else:
+            self.irreversible_flags &= ~flag_mask
 
     def set_arc20(self, *, value: bool) -> None:
         """Set the ARC-20 Smart ASA flag."""
@@ -188,15 +196,15 @@ class AssetMetadata:
 
     def set_arc3(self, *, value: bool) -> None:
         """Set the ARC-3 compliant flag."""
-        self.set_irreversible_flag(flag_mask=bitmasks.MASK_IRR_ARC3)
+        self.set_irreversible_flag(flag_mask=bitmasks.MASK_IRR_ARC3, value=value)
 
     def set_arc89_native(self, *, value: bool) -> None:
         """Set the ARC-89 native ASA flag."""
-        self.set_irreversible_flag(flag_mask=bitmasks.MASK_IRR_ARC89_NATIVE)
+        self.set_irreversible_flag(flag_mask=bitmasks.MASK_IRR_ARC89_NATIVE, value=value)
 
     def set_immutable(self, *, value: bool) -> None:
         """Set the metadata immutability flag."""
-        self.set_irreversible_flag(flag_mask=bitmasks.MASK_IRR_IMMUTABLE)
+        self.set_irreversible_flag(flag_mask=bitmasks.MASK_IRR_IMMUTABLE, value=value)
 
     # ==================== HASH COMPUTATION ====================
 
