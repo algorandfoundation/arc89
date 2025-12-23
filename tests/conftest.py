@@ -12,11 +12,11 @@ from algokit_utils import (
     SigningAccount,
 )
 from algokit_utils.config import config
-
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )
+
 from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.asa_metadata_registry.template_vars import TRUSTED_DEPLOYER
 
@@ -118,9 +118,9 @@ def arc_89_asa(
     asset_manager: SigningAccount,
 ) -> int:
     arc89_uri = (
-        const.URI_ARC_89_PREFIX.decode()
+        const.ARC_90_URI_PREFIX.decode()
         + str(asa_metadata_registry_client.app_id)
-        + const.URI_ARC_89_SUFFIX.decode()
+        + const.ARC_90_URI_SUFFIX.decode()
     )
     return asa_metadata_registry_client.algorand.send.asset_create(
         params=AssetCreateParams(
