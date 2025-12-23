@@ -121,17 +121,19 @@ def test_box_serialization():
     box_name = original.box_name
 
     assert len(box_name) == 8
-    assert len(box_value) >= const.METADATA_HEADER_SIZE
+    assert len(box_value) >= const.HEADER_SIZE
 
     # Reconstruct from box value
     restored = AssetMetadata.from_box_value(12345, box_value)
 
     assert restored.asset_id == original.asset_id
     assert restored.identifiers == original.identifiers
-    assert restored.flags == original.flags
+    assert restored.reversible_flags == original.reversible_flags
+    assert restored.irreversible_flags == original.irreversible_flags
     assert restored.metadata_hash == original.metadata_hash
     assert restored.last_modified_round == original.last_modified_round
     assert restored.metadata_bytes == original.metadata_bytes
+    assert restored.deprecated_by == original.deprecated_by
 
 
 def test_mbr_delta_calculation():
