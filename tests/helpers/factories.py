@@ -200,7 +200,9 @@ class AssetMetadata:
 
     def set_arc89_native(self, *, value: bool) -> None:
         """Set the ARC-89 native ASA flag."""
-        self.set_irreversible_flag(flag_mask=bitmasks.MASK_IRR_ARC89_NATIVE, value=value)
+        self.set_irreversible_flag(
+            flag_mask=bitmasks.MASK_IRR_ARC89_NATIVE, value=value
+        )
 
     def set_immutable(self, *, value: bool) -> None:
         """Set the metadata immutability flag."""
@@ -474,7 +476,7 @@ class AssetMetadata:
         )
         deprecated_by = int.from_bytes(
             box_value[
-                const.IDX_DEPRECATED_BY: const.IDX_DEPRECATED_BY
+                const.IDX_DEPRECATED_BY : const.IDX_DEPRECATED_BY
                 + const.DEPRECATED_BY_SIZE
             ],
             "big",
@@ -523,9 +525,7 @@ class AssetMetadata:
         Returns:
             AssetMetadata instance with hash computed
         """
-        instance = cls(
-            asset_id=asset_id, last_modified_round=last_modified_round
-        )
+        instance = cls(asset_id=asset_id, last_modified_round=last_modified_round)
 
         # Set metadata (this will auto-update short identifier)
         instance.set_metadata(metadata)

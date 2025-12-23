@@ -32,4 +32,6 @@ IMMUTABLE = "Metadata is immutable"
 FLAG_IDX_INVALID = "Invalid flag index"
 PAGE_IDX_INVALID = "Invalid page index"
 
-NEW_REGISTRY_ID_INVALID = "Invalid new ASA Metadata Registry ID, must be different from current"
+NEW_REGISTRY_ID_INVALID = (
+    "Invalid new ASA Metadata Registry ID, must be different from current"
+)

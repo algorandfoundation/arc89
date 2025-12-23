@@ -15,11 +15,26 @@ from tests.helpers.utils import set_flag_and_verify
 @pytest.mark.parametrize(
     "irreversible_flag,check_fn",
     [
-        (flags.IRR_FLG_RESERVED_2, lambda m: bool(m.irreversible_flags & bitmasks.MASK_IRR_RESERVED_2)),
-        (flags.IRR_FLG_RESERVED_3, lambda m: bool(m.irreversible_flags & bitmasks.MASK_IRR_RESERVED_3)),
-        (flags.IRR_FLG_RESERVED_4, lambda m: bool(m.irreversible_flags & bitmasks.MASK_IRR_RESERVED_4)),
-        (flags.IRR_FLG_RESERVED_5, lambda m: bool(m.irreversible_flags & bitmasks.MASK_IRR_RESERVED_5)),
-        (flags.IRR_FLG_RESERVED_6, lambda m: bool(m.irreversible_flags & bitmasks.MASK_IRR_RESERVED_6)),
+        (
+            flags.IRR_FLG_RESERVED_2,
+            lambda m: bool(m.irreversible_flags & bitmasks.MASK_IRR_RESERVED_2),
+        ),
+        (
+            flags.IRR_FLG_RESERVED_3,
+            lambda m: bool(m.irreversible_flags & bitmasks.MASK_IRR_RESERVED_3),
+        ),
+        (
+            flags.IRR_FLG_RESERVED_4,
+            lambda m: bool(m.irreversible_flags & bitmasks.MASK_IRR_RESERVED_4),
+        ),
+        (
+            flags.IRR_FLG_RESERVED_5,
+            lambda m: bool(m.irreversible_flags & bitmasks.MASK_IRR_RESERVED_5),
+        ),
+        (
+            flags.IRR_FLG_RESERVED_6,
+            lambda m: bool(m.irreversible_flags & bitmasks.MASK_IRR_RESERVED_6),
+        ),
     ],
 )
 def test_set_irreversible_flags(

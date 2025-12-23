@@ -15,9 +15,9 @@ from tests.helpers.factories import AssetMetadata, create_metadata_with_page_cou
 from tests.helpers.utils import (
     add_extra_resources,
     create_metadata,
-    pages_min_fee,
     set_immutable,
-    set_reversible_flag, total_extra_resources,
+    set_reversible_flag,
+    total_extra_resources,
 )
 
 

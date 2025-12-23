@@ -147,10 +147,7 @@ def test_fixtures_with_smart_contract_operations(
     if short_metadata.is_short:
         # Smart contract can operate directly on this metadata
         short_box_value = short_metadata.box_value
-        assert (
-            len(short_box_value)
-            <= const.HEADER_SIZE + const.SHORT_METADATA_SIZE
-        )
+        assert len(short_box_value) <= const.HEADER_SIZE + const.SHORT_METADATA_SIZE
 
     # Test 3: Maxed metadata tests the upper limit
     assert maxed_metadata.size == const.MAX_METADATA_SIZE

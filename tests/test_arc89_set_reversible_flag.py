@@ -17,12 +17,30 @@ from tests.helpers.utils import set_flag_and_verify
     [
         (flags.REV_FLG_ARC20, lambda m: m.is_arc20),
         (flags.REV_FLG_ARC62, lambda m: m.is_arc62),
-        (flags.REV_FLG_RESERVED_2, lambda m: bool(m.reversible_flags & bitmasks.MASK_REV_RESERVED_2)),
-        (flags.REV_FLG_RESERVED_3, lambda m: bool(m.reversible_flags & bitmasks.MASK_REV_RESERVED_3)),
-        (flags.REV_FLG_RESERVED_4, lambda m: bool(m.reversible_flags & bitmasks.MASK_REV_RESERVED_4)),
-        (flags.REV_FLG_RESERVED_5, lambda m: bool(m.reversible_flags & bitmasks.MASK_REV_RESERVED_5)),
-        (flags.REV_FLG_RESERVED_6, lambda m: bool(m.reversible_flags & bitmasks.MASK_REV_RESERVED_6)),
-        (flags.REV_FLG_RESERVED_7, lambda m: bool(m.reversible_flags & bitmasks.MASK_REV_RESERVED_7)),
+        (
+            flags.REV_FLG_RESERVED_2,
+            lambda m: bool(m.reversible_flags & bitmasks.MASK_REV_RESERVED_2),
+        ),
+        (
+            flags.REV_FLG_RESERVED_3,
+            lambda m: bool(m.reversible_flags & bitmasks.MASK_REV_RESERVED_3),
+        ),
+        (
+            flags.REV_FLG_RESERVED_4,
+            lambda m: bool(m.reversible_flags & bitmasks.MASK_REV_RESERVED_4),
+        ),
+        (
+            flags.REV_FLG_RESERVED_5,
+            lambda m: bool(m.reversible_flags & bitmasks.MASK_REV_RESERVED_5),
+        ),
+        (
+            flags.REV_FLG_RESERVED_6,
+            lambda m: bool(m.reversible_flags & bitmasks.MASK_REV_RESERVED_6),
+        ),
+        (
+            flags.REV_FLG_RESERVED_7,
+            lambda m: bool(m.reversible_flags & bitmasks.MASK_REV_RESERVED_7),
+        ),
     ],
 )
 def test_set_and_clear_reversible_flags(
