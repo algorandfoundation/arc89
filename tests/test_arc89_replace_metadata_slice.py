@@ -46,7 +46,10 @@ def test_replace_metadata_slice(
     assert replaced_slice == new_slice
     assert updated_metadata.size == metadata.size
     assert updated_metadata.identifiers == metadata.identifiers
-    assert updated_metadata.flags == metadata.flags
+    assert updated_metadata.reversible_flags == metadata.reversible_flags
+    assert updated_metadata.irreversible_flags == metadata.irreversible_flags
+    assert updated_metadata.last_modified_round != metadata.last_modified_round
+    assert updated_metadata.deprecated_by == metadata.deprecated_by
     assert updated_metadata.metadata_bytes != metadata.metadata_bytes
 
 
