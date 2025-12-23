@@ -17,7 +17,7 @@ def test_empty_metadata_fixture(arc_89_asa: int, empty_metadata: AssetMetadata) 
     assert empty_metadata.metadata_hash != b"\x00" * 32
 
     # Header should still be 42 bytes
-    assert len(empty_metadata.header_bytes) == const.METADATA_HEADER_SIZE
+    assert len(empty_metadata.header_bytes) == const.HEADER_SIZE
 
     print(f"✓ Empty metadata: {empty_metadata.size} bytes")
 
@@ -141,7 +141,7 @@ def test_fixtures_with_smart_contract_operations(
     # Test 1: Empty metadata should be accepted
     assert empty_metadata.validate_size()
     empty_box_value = empty_metadata.box_value
-    assert len(empty_box_value) == const.METADATA_HEADER_SIZE  # Header only
+    assert len(empty_box_value) == const.HEADER_SIZE  # Header only
 
     # Test 2: Short metadata is optimal for AVM operations
     if short_metadata.is_short:
@@ -149,13 +149,13 @@ def test_fixtures_with_smart_contract_operations(
         short_box_value = short_metadata.box_value
         assert (
             len(short_box_value)
-            <= const.METADATA_HEADER_SIZE + const.SHORT_METADATA_SIZE
+            <= const.HEADER_SIZE + const.SHORT_METADATA_SIZE
         )
 
     # Test 3: Maxed metadata tests the upper limit
     assert maxed_metadata.size == const.MAX_METADATA_SIZE
     maxed_box_value = maxed_metadata.box_value
-    assert len(maxed_box_value) == const.METADATA_HEADER_SIZE + const.MAX_METADATA_SIZE
+    assert len(maxed_box_value) == const.HEADER_SIZE + const.MAX_METADATA_SIZE
 
     # All should have valid hashes
     for metadata in [empty_metadata, short_metadata, maxed_metadata]:
