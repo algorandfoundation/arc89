@@ -58,7 +58,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         return metadata_size <= const.SHORT_METADATA_SIZE
 
     def _get_metadata_identifiers(self, asa: Asset) -> Bytes:
-        """Return the 1-byte Metadata Identifiers for an ASA."""
         return self.asset_metadata.box(asa).extract(
             start_index=const.IDX_METADATA_IDENTIFIERS,
             length=const.METADATA_IDENTIFIERS_SIZE,
@@ -69,15 +68,24 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             start_index=const.IDX_METADATA_IDENTIFIERS, value=identifiers
         )
 
-    def _get_metadata_flags(self, asa: Asset) -> Bytes:
-        """Return the 1-byte Metadata Identifiers for an ASA."""
+    def _get_reversible_flags(self, asa: Asset) -> Bytes:
         return self.asset_metadata.box(asa).extract(
-            start_index=const.IDX_METADATA_FLAGS, length=const.METADATA_FLAGS_SIZE
+            start_index=const.IDX_REVERSIBLE_FLAGS, length=const.REVERSIBLE_FLAGS_SIZE
         )
 
-    def _set_metadata_flags(self, asa: Asset, flags: Bytes) -> None:
+    def _get_irreversible_flags(self, asa: Asset) -> Bytes:
+        return self.asset_metadata.box(asa).extract(
+            start_index=const.IDX_IRREVERSIBLE_FLAGS, length=const.IRREVERSIBLE_FLAGS_SIZE
+        )
+
+    def _set_reversible_flags(self, asa: Asset, flags: Bytes) -> None:
         self.asset_metadata.box(asa).replace(
-            start_index=const.IDX_METADATA_FLAGS, value=flags
+            start_index=const.IDX_REVERSIBLE_FLAGS, value=flags
+        )
+
+    def _set_irreversible_flags(self, asa: Asset, flags: Bytes) -> None:
+        self.asset_metadata.box(asa).replace(
+            start_index=const.IDX_IRREVERSIBLE_FLAGS, value=flags
         )
 
     def _is_short(self, asa: Asset) -> bool:
@@ -86,17 +94,23 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             const.BIT_RIGHTMOST_IDENTIFIER - flg.ID_SHORT,
         )
 
-    def _get_flag_value(self, asa: Asset, flag: UInt64) -> bool:
+    def _get_reversible_flag_value(self, asa: Asset, flag: UInt64) -> bool:
         return op.getbit(
-            self._get_metadata_flags(asa),
-            const.BIT_RIGHTMOST_FLAG - flag,
+            self._get_reversible_flags(asa),
+            const.BIT_RIGHTMOST_REV_FLAG - flag,
+        )
+
+    def _get_irreversible_flag_value(self, asa: Asset, flag: UInt64) -> bool:
+        return op.getbit(
+            self._get_irreversible_flags(asa),
+            const.BIT_RIGHTMOST_IRR_FLAG - flag,
         )
 
     def _is_arc89(self, asa: Asset) -> bool:
-        return self._get_flag_value(asa, UInt64(flg.FLG_ARC89_NATIVE))
+        return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_ARC89_NATIVE))
 
     def _is_immutable(self, asa: Asset) -> bool:
-        return self._get_flag_value(asa, UInt64(flg.FLG_IMMUTABLE))
+        return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_IMMUTABLE))
 
     def _get_metadata_hash(self, asa: Asset) -> Bytes:
         return self.asset_metadata.box(asa).extract(
@@ -122,8 +136,22 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             value=op.itob(last_modified_round),
         )
 
+    def _get_deprecated_by(self, asa: Asset) -> UInt64:
+        return op.btoi(
+            self.asset_metadata.box(asa).extract(
+                start_index=const.IDX_DEPRECATED_BY,
+                length=const.DEPRECATED_BY_SIZE,
+            )
+        )
+
+    def _set_deprecated_by(self, asa: Asset, deprecated_by: UInt64) -> None:
+        self.asset_metadata.box(asa).replace(
+            start_index=const.IDX_DEPRECATED_BY,
+            value=op.itob(deprecated_by),
+        )
+
     def _get_metadata_size(self, asa: Asset) -> UInt64:
-        return self.asset_metadata.box(asa).length - const.METADATA_HEADER_SIZE
+        return self.asset_metadata.box(asa).length - const.HEADER_SIZE
 
     def _append_payload(self, asa: Asset, payload: Bytes) -> None:
         old_asset_metadata_box_size = self.asset_metadata.box(asa).length
@@ -154,7 +182,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self, asa: Asset, metadata_size: UInt64, payload: Bytes
     ) -> None:
         # Erase existing metadata payload
-        self.asset_metadata.box(asa).resize(new_size=UInt64(const.METADATA_HEADER_SIZE))
+        self.asset_metadata.box(asa).resize(new_size=UInt64(const.HEADER_SIZE))
 
         # Append provided payload
         self._append_payload(asa, payload)
@@ -220,25 +248,32 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         )
         self._set_metadata_identifiers(asa, identifiers)
 
-    def _set_flag(self, asa: Asset, flag: UInt64, *, value: bool) -> None:
+    def _set_reversible_flag_value(self, asa: Asset, flag: UInt64, *, value: bool) -> None:
         updated_flags = op.setbit_bytes(
-            self._get_metadata_flags(asa), const.BIT_RIGHTMOST_FLAG - flag, value
+            self._get_reversible_flags(asa), const.BIT_RIGHTMOST_REV_FLAG - flag, value
         )
-        self._set_metadata_flags(asa, updated_flags)
+        self._set_reversible_flags(asa, updated_flags)
+
+    def _set_irreversible_flag_value(self, asa: Asset, flag: UInt64) -> None:
+        updated_flags = op.setbit_bytes(
+            self._get_irreversible_flags(asa), const.BIT_RIGHTMOST_IRR_FLAG - flag, True
+        )
+        self._set_irreversible_flags(asa, updated_flags)
 
     def _compute_header_hash(self, asa: Asset) -> Bytes:
-        # hh = SHA - 512 / 256("arc0089/header" || Asset ID || Metadata Identifiers || Metadata Flags || Metadata Size)
+        # hh = SHA-512/256("arc0089/header" || Asset ID || Metadata Identifiers || Reversible Flags || Irreversible Flags ||Metadata Size)
         ensure_budget(required_budget=const.HEADER_HASH_OP_BUDGET)
         domain = Bytes(const.HASH_DOMAIN_HEADER)
         asset_id = op.itob(asa.id)
         metadata_identifiers = self._get_metadata_identifiers(asa)
-        metadata_flags = self._get_metadata_flags(asa)
+        reversible_flags = self._get_reversible_flags(asa)
+        irreversible_flags = self._get_irreversible_flags(asa)
         metadata_size = trimmed_itob(
             uint=self._get_metadata_size(asa),
             size=UInt64(const.UINT16_SIZE),
         )
         return op.sha512_256(
-            domain + asset_id + metadata_identifiers + metadata_flags + metadata_size
+            domain + asset_id + metadata_identifiers + reversible_flags + irreversible_flags + metadata_size
         )
 
     def _compute_page_hash(
@@ -300,7 +335,8 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
                 asset_id=arc4.UInt64(asa.id),
                 round=arc4.UInt64(Global.round),
                 timestamp=arc4.UInt64(Global.latest_timestamp),
-                flags=arc4.Byte(op.btoi(self._get_metadata_flags(asa))),
+                reversible_flags=arc4.Byte(op.btoi(self._get_reversible_flags(asa))),
+                irreversible_flags=arc4.Byte(op.btoi(self._get_irreversible_flags(asa))),
                 is_short=arc4.Bool(self._is_short(asa)),
                 hash=abi.Hash.from_bytes(metadata_hash),
             )
@@ -321,7 +357,8 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self,
         *,
         asset_id: Asset,
-        flags: arc4.Byte,
+        reversible_flags: arc4.Byte,
+        irreversible_flags: arc4.Byte,
         metadata_size: arc4.UInt16,
         payload: arc4.DynamicBytes,
         mbr_delta_payment: gtxn.PaymentTransaction,
@@ -331,7 +368,8 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         Args:
             asset_id: The Asset ID to create the Asset Metadata for
-            flags: The Metadata Flags. WARNING: if the MSB is True the Asset Metadata is IMMUTABLE
+            reversible_flags: The Reversible Flags. WARNING: LSB and 1 can by set only at creation time
+            irreversible_flags: The Irreversible Flags. WARNING: if the MSB is True the Asset Metadata is IMMUTABLE
             metadata_size: The Metadata byte size to be created
             payload: The Metadata payload (without Header). WARNING: Payload larger than args capacity
                      must be provided with arc89_extra_payload calls in the Group
@@ -358,9 +396,13 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         # Update Metadata Header
         self._identify_metadata(asset_id)
-        self._set_metadata_flags(
+        self._set_reversible_flags(
             asset_id,
-            trimmed_itob(uint=flags.as_uint64(), size=UInt64(const.BYTE_SIZE)),
+            trimmed_itob(uint=reversible_flags.as_uint64(), size=UInt64(const.BYTE_SIZE)),
+        )
+        self._set_irreversible_flags(
+            asset_id,
+            trimmed_itob(uint=irreversible_flags.as_uint64(), size=UInt64(const.BYTE_SIZE)),
         )
         if asset_id.metadata_hash != Bytes(
             const.BYTES32_SIZE * b"\x00"
@@ -370,17 +412,8 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         else:
             metadata_hash = self._compute_metadata_hash(asset_id)
         self._set_metadata_hash(asset_id, metadata_hash)
-        arc4.emit(
-            abi.Arc89MetadataUpdated(
-                asset_id=arc4.UInt64(asset_id.id),
-                round=arc4.UInt64(Global.round),
-                timestamp=arc4.UInt64(Global.latest_timestamp),
-                flags=flags,
-                is_short=arc4.Bool(self._is_short(asset_id)),
-                hash=abi.Hash.from_bytes(metadata_hash),
-            )
-        )
         self._set_last_modified_round(asset_id, Global.round)
+        self._set_deprecated_by(asset_id, UInt64(0))
 
         # Postconditions
         if self._is_arc89(asset_id):
@@ -393,6 +426,18 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             assert (
                 asa_url[: arc_89_uri.length] == arc_89_uri
             ), err.ASA_URL_INVALID_ARC89_URI
+
+        arc4.emit(
+            abi.Arc89MetadataUpdated(
+                asset_id=arc4.UInt64(asset_id.id),
+                round=arc4.UInt64(Global.round),
+                timestamp=arc4.UInt64(Global.latest_timestamp),
+                reversible_flags=arc4.Byte(op.btoi(self._get_reversible_flags(asset_id))),
+                irreversible_flags=arc4.Byte(op.btoi(self._get_irreversible_flags(asset_id))),
+                is_short=arc4.Bool(self._is_short(asset_id)),
+                hash=abi.Hash.from_bytes(metadata_hash),
+            )
+        )
 
         mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
         assert (
@@ -545,6 +590,38 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             self._update_header_excluding_flags_and_emit(asset_id)
 
     @arc4.abimethod
+    def arc89_migrate_metadata(
+        self,
+        *,
+        asset_id: Asset,
+        new_registry_id: arc4.UInt64,
+    ) -> None:
+        """
+        Migrate the Asset Metadata for an ASA to a new ASA Metadata Registry version,
+        restricted to the ASA Manager Address
+
+        Args:
+            asset_id: The Asset ID to migrate the Asset Metadata for
+            new_registry_id: The Application ID of the new ASA Metadata Registry version
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        assert self._is_asa_manager(asset_id), err.UNAUTHORIZED
+        assert new_registry_id.as_uint64() != Global.current_application_id.id, err.NEW_REGISTRY_ID_INVALID
+
+        # Update Deprecated By
+        self._set_deprecated_by(asset_id, new_registry_id.as_uint64())
+
+        arc4.emit(
+            abi.Arc89MetadataMigrated(
+                asset_id=arc4.UInt64(asset_id.id),
+                round=arc4.UInt64(Global.round),
+                timestamp=arc4.UInt64(Global.latest_timestamp),
+                new_registry_id=arc4.UInt64(self._get_deprecated_by(asset_id)),
+            )
+        )
+
+    @arc4.abimethod
     def arc89_delete_metadata(
         self,
         *,
@@ -617,18 +694,18 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         Args:
             asset_id: The Asset ID to set the Metadata Flag for
-            flag: The reversible flag index to set. WARNING: must be 0 ... 3
+            flag: The reversible flag index to set
             value: The flag value to set
         """
         # Preconditions
         self._check_set_flag_preconditions(asset_id)
-        assert flag.as_uint64() <= flg.FLG_RESERVED_3, err.FLAG_IDX_INVALID
+        assert flag.as_uint64() <= flg.REV_FLG_RESERVED_7, err.FLAG_IDX_INVALID
 
         # Handle Not Idempotent
-        existing_value = self._get_flag_value(asset_id, flag.as_uint64())
+        existing_value = self._get_reversible_flag_value(asset_id, flag.as_uint64())
         if value.native != existing_value:
             # Set Reversible Flag
-            self._set_flag(asset_id, flag.as_uint64(), value=value.native)
+            self._set_reversible_flag_value(asset_id, flag.as_uint64(), value=value.native)
 
             # Update Metadata Header
             self._update_header_excluding_flags_and_emit(asset_id)
@@ -645,19 +722,19 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         Args:
             asset_id: The Asset ID to set the Metadata Flag for
-            flag: The irreversible flag index to set. WARNING: must be 6, 7
+            flag: The irreversible flag index to set. WARNING: must be in 2 ... 6
         """
         # Preconditions
         self._check_set_flag_preconditions(asset_id)
         assert (
-            flg.FLG_RESERVED_6 <= flag.as_uint64() <= flg.FLG_IMMUTABLE
+            flg.IRR_FLG_RESERVED_2 <= flag.as_uint64() <= flg.IRR_FLG_RESERVED_6
         ), err.FLAG_IDX_INVALID
 
         # Handle Not Idempotent
-        existing_value = self._get_flag_value(asset_id, flag.as_uint64())
+        existing_value = self._get_irreversible_flag_value(asset_id, flag.as_uint64())
         if not existing_value:
             # Set Irreversible Flag
-            self._set_flag(asset_id, flag.as_uint64(), value=True)
+            self._set_irreversible_flag_value(asset_id, flag.as_uint64())
 
             # Update Metadata Header
             self._update_header_excluding_flags_and_emit(asset_id)
@@ -678,7 +755,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._check_set_flag_preconditions(asset_id)
 
         # Set Immutable Flag
-        self._set_flag(asset_id, UInt64(flg.FLG_IMMUTABLE), value=True)
+        self._set_irreversible_flag_value(asset_id, UInt64(flg.IRR_FLG_IMMUTABLE))
 
         # Update Metadata Header
         self._update_header_excluding_flags_and_emit(asset_id)
@@ -693,7 +770,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             FIRST_PAYLOAD_MAX_SIZE, EXTRA_PAYLOAD_MAX_SIZE, REPLACE_PAYLOAD_MAX_SIZE, FLAT_MBR, BYTE_MBR)
         """
         return abi.RegistryParameters(
-            header_size=arc4.UInt16(const.METADATA_HEADER_SIZE),
+            header_size=arc4.UInt16(const.HEADER_SIZE),
             max_metadata_size=arc4.UInt16(const.MAX_METADATA_SIZE),
             short_metadata_size=arc4.UInt16(const.SHORT_METADATA_SIZE),
             page_size=arc4.UInt16(const.PAGE_SIZE),
@@ -744,7 +821,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             sign = UInt64(enums.MBR_DELTA_POS)
             delta_size = (
                 const.ASSET_METADATA_BOX_KEY_SIZE
-                + const.METADATA_HEADER_SIZE
+                + const.HEADER_SIZE
                 + new_metadata_size.as_uint64()
             )
 
@@ -830,16 +907,18 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             asset_id: The Asset ID to get the Asset Metadata Header for
 
         Returns:
-            Asset Metadata Header: (Identifiers, Flags, Hash, Last Modified Round)
+            Asset Metadata Header: (Identifiers, Reversible Flags, Irreversible Flags, Hash, Last Modified Round, Deprecated By)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
         return abi.MetadataHeader(
             identifiers=arc4.Byte.from_bytes(self._get_metadata_identifiers(asset_id)),
-            flags=arc4.Byte.from_bytes(self._get_metadata_flags(asset_id)),
+            reversible_flags=arc4.Byte.from_bytes(self._get_reversible_flags(asset_id)),
+            irreversible_flags=arc4.Byte.from_bytes(self._get_irreversible_flags(asset_id)),
             hash=abi.Hash.from_bytes(self._get_metadata_hash(asset_id)),
             last_modified_round=arc4.UInt64(self._get_last_modified_round(asset_id)),
+            deprecated_by=arc4.UInt64(self._get_deprecated_by(asset_id)),
         )
 
     @arc4.abimethod(readonly=True)
