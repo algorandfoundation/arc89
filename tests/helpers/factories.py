@@ -56,9 +56,11 @@ class AssetMetadata:
 
     # Header fields
     identifiers: int = 0
-    flags: int = 0
+    reversible_flags: int = 0
+    irreversible_flags: int = 0
     metadata_hash: bytes = field(default_factory=lambda: b"\x00" * 32)
     last_modified_round: int = 0
+    deprecated_by: int = 0
 
     # Body
     metadata_bytes: bytes = b""
@@ -83,27 +85,27 @@ class AssetMetadata:
     @property
     def is_arc20(self) -> bool:
         """Check if ASA is declared as ARC-20 Smart ASA."""
-        return (self.flags & bitmasks.MASK_ARC20) != 0
+        return (self.reversible_flags & bitmasks.MASK_REV_ARC20) != 0
 
     @property
     def is_arc62(self) -> bool:
         """Check if ARC-62 Circulating Supply is enabled."""
-        return (self.flags & bitmasks.MASK_ARC62) != 0
+        return (self.reversible_flags & bitmasks.MASK_REV_ARC62) != 0
 
     @property
     def is_arc3(self) -> bool:
         """Check if metadata is ARC-3 compliant."""
-        return (self.flags & bitmasks.MASK_ARC3) != 0
+        return (self.irreversible_flags & bitmasks.MASK_IRR_ARC3) != 0
 
     @property
     def is_arc89_native(self) -> bool:
         """Check if ASA is ARC-89 native."""
-        return (self.flags & bitmasks.MASK_ARC89_NATIVE) != 0
+        return (self.irreversible_flags & bitmasks.MASK_IRR_ARC89_NATIVE) != 0
 
     @property
     def is_immutable(self) -> bool:
         """Check if metadata is immutable."""
-        return (self.flags & bitmasks.MASK_IMMUTABLE) != 0
+        return (self.irreversible_flags & bitmasks.MASK_IRR_IMMUTABLE) != 0
 
     @property
     def total_pages(self) -> int:
@@ -117,9 +119,11 @@ class AssetMetadata:
         """Get the complete metadata header as bytes."""
         return (
             self.identifiers.to_bytes(1, "big")
-            + self.flags.to_bytes(1, "big")
+            + self.reversible_flags.to_bytes(1, "big")
+            + self.irreversible_flags.to_bytes(1, "big")
             + self.metadata_hash
             + self.last_modified_round.to_bytes(8, "big")
+            + self.deprecated_by.to_bytes(8, "big")
         )
 
     @property
@@ -130,7 +134,7 @@ class AssetMetadata:
     @property
     def box_name(self) -> bytes:
         """Get the Asset Metadata Box name (8-byte big-endian asset ID)."""
-        return self.asset_id.to_bytes(8, "big")
+        return self.asset_id.to_bytes(const.ASSET_METADATA_BOX_KEY_SIZE, "big")
 
     # ==================== SETTERS ====================
 
@@ -152,38 +156,47 @@ class AssetMetadata:
 
         self._update_short_identifier()
 
-    def set_flag(self, *, flag_mask: int, value: bool) -> None:
+    def set_reversible_flag(self, *, flag_mask: int, value: bool) -> None:
         """
-        Set a specific flag bit.
+        Set a specific reversible flag bit.
 
         Args:
-            flag_mask: The bitmask for the flag to set
+            flag_mask: The bitmask for the reversible flag to set
             value: True to set the bit, False to clear it
         """
         if value:
-            self.flags |= flag_mask
+            self.reversible_flags |= flag_mask
         else:
-            self.flags &= ~flag_mask
+            self.irreversible_flags &= ~flag_mask
+
+    def set_irreversible_flag(self, *, flag_mask: int) -> None:
+        """
+        Set a specific irreversible flag bit to True.
+
+        Args:
+            flag_mask: The bitmask for the irreversible flag to set
+        """
+        self.reversible_flags |= flag_mask
 
     def set_arc20(self, *, value: bool) -> None:
         """Set the ARC-20 Smart ASA flag."""
-        self.set_flag(flag_mask=bitmasks.MASK_ARC20, value=value)
+        self.set_reversible_flag(flag_mask=bitmasks.MASK_REV_ARC20, value=value)
 
     def set_arc62(self, *, value: bool) -> None:
         """Set the ARC-62 Circulating Supply flag."""
-        self.set_flag(flag_mask=bitmasks.MASK_ARC62, value=value)
+        self.set_reversible_flag(flag_mask=bitmasks.MASK_REV_ARC62, value=value)
 
     def set_arc3(self, *, value: bool) -> None:
         """Set the ARC-3 compliant flag."""
-        self.set_flag(flag_mask=bitmasks.MASK_ARC3, value=value)
+        self.set_irreversible_flag(flag_mask=bitmasks.MASK_IRR_ARC3)
 
     def set_arc89_native(self, *, value: bool) -> None:
         """Set the ARC-89 native ASA flag."""
-        self.set_flag(flag_mask=bitmasks.MASK_ARC89_NATIVE, value=value)
+        self.set_irreversible_flag(flag_mask=bitmasks.MASK_IRR_ARC89_NATIVE)
 
     def set_immutable(self, *, value: bool) -> None:
         """Set the metadata immutability flag."""
-        self.set_flag(flag_mask=bitmasks.MASK_IMMUTABLE, value=value)
+        self.set_irreversible_flag(flag_mask=bitmasks.MASK_IRR_IMMUTABLE)
 
     # ==================== HASH COMPUTATION ====================
 
@@ -193,7 +206,7 @@ class AssetMetadata:
 
         Formula:
         hh = SHA-512/256("arc0089/header" || Asset ID || Metadata Identifiers ||
-                         Metadata Flags || Metadata Size)
+                         Reversible Flags || Irreversible Flags || Metadata Size)
 
         Returns:
             32-byte header hash
@@ -201,10 +214,11 @@ class AssetMetadata:
         domain = const.HASH_DOMAIN_HEADER
         asset_id_bytes = self.asset_id.to_bytes(const.UINT64_SIZE, "big")
         identifiers = self.identifiers.to_bytes(const.BYTE_SIZE, "big")
-        flags = self.flags.to_bytes(const.BYTE_SIZE, "big")
+        rev_flags = self.reversible_flags.to_bytes(const.BYTE_SIZE, "big")
+        irr_flags = self.irreversible_flags.to_bytes(const.BYTE_SIZE, "big")
         size = self.size.to_bytes(const.UINT16_SIZE, "big")
 
-        preimage = domain + asset_id_bytes + identifiers + flags + size
+        preimage = domain + asset_id_bytes + identifiers + rev_flags + irr_flags + size
         return hashlib.new("sha512_256", preimage).digest()
 
     def compute_page_hash(self, page_index: int) -> bytes:
@@ -324,7 +338,7 @@ class AssetMetadata:
             # FLAT_MBR + BYTE_MBR * (box_name_size + box_value_size)
             return const.FLAT_MBR + const.BYTE_MBR * (
                 const.ASSET_METADATA_BOX_KEY_SIZE
-                + const.METADATA_HEADER_SIZE
+                + const.HEADER_SIZE
                 + metadata_body_size
             )
 
@@ -384,9 +398,11 @@ class AssetMetadata:
 
     def print_header(self) -> None:
         print(f"Identifiers: {self.identifiers:08b}")
-        print(f"Flags: {self.flags:08b}")
+        print(f"Reversible Flags: {self.reversible_flags:08b}")
+        print(f"Irreversible Flags: {self.irreversible_flags:08b}")
         print(f"Metadata Hash: {self.metadata_hash.hex()}")
         print(f"Last Modified Round: {self.last_modified_round}")
+        print(f"Deprecated By: {self.deprecated_by}")
 
     def print_metadata(self) -> None:
         try:
@@ -431,12 +447,13 @@ class AssetMetadata:
         Returns:
             AssetMetadata instance
         """
-        if len(box_value) < const.METADATA_HEADER_SIZE:
+        if len(box_value) < const.HEADER_SIZE:
             raise ValueError("Box value too short for header")
 
         # Parse header
         identifiers = box_value[const.IDX_METADATA_IDENTIFIERS]
-        flags = box_value[const.IDX_METADATA_FLAGS]
+        rev_flags = box_value[const.IDX_REVERSIBLE_FLAGS]
+        irr_flags = box_value[const.IDX_IRREVERSIBLE_FLAGS]
         metadata_hash = box_value[
             const.IDX_METADATA_HASH : const.IDX_METADATA_HASH + const.METADATA_HASH_SIZE
         ]
@@ -447,6 +464,13 @@ class AssetMetadata:
             ],
             "big",
         )
+        deprecated_by = int.from_bytes(
+            box_value[
+                const.IDX_DEPRECATED_BY: const.IDX_DEPRECATED_BY
+                + const.DEPRECATED_BY_SIZE
+            ],
+            "big",
+        )
 
         # Parse body
         metadata_bytes = box_value[const.IDX_METADATA :]
@@ -454,10 +478,12 @@ class AssetMetadata:
         return cls(
             asset_id=asset_id,
             identifiers=identifiers,
-            flags=flags,
+            reversible_flags=rev_flags,
+            irreversible_flags=irr_flags,
             metadata_hash=metadata_hash,
             last_modified_round=last_modified_round,
             metadata_bytes=metadata_bytes,
+            deprecated_by=deprecated_by,
         )
 
     @classmethod
@@ -490,7 +516,7 @@ class AssetMetadata:
             AssetMetadata instance with hash computed
         """
         instance = cls(
-            asset_id=asset_id, flags=0, last_modified_round=last_modified_round
+            asset_id=asset_id, last_modified_round=last_modified_round
         )
 
         # Set metadata (this will auto-update short identifier)
