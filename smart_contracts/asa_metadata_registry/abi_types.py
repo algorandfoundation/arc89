@@ -14,9 +14,11 @@ class MetadataHeader(arc4.Struct, kw_only=True):
     """Asset Metadata Header"""
 
     identifiers: arc4.Byte
-    flags: arc4.Byte
+    reversible_flags: arc4.Byte
+    irreversible_flags: arc4.Byte
     hash: Hash
     last_modified_round: arc4.UInt64
+    deprecated_by: arc4.UInt64
 
 
 class MbrDelta(arc4.Struct, kw_only=True):
@@ -80,9 +82,19 @@ class Arc89MetadataUpdated(arc4.Struct, kw_only=True):
     asset_id: arc4.UInt64
     round: arc4.UInt64
     timestamp: Timestamp
-    flags: arc4.Byte
+    reversible_flags: arc4.Byte
+    irreversible_flags: arc4.Byte
     is_short: arc4.Bool
     hash: Hash
+
+
+class Arc89MetadataMigrated(arc4.Struct, kw_only=True):
+    """Event emitted when Asset Metadata has been migrated to a new ASA Metadata Registry version"""
+
+    asset_id: arc4.UInt64
+    new_registry_id: arc4.UInt64
+    round: arc4.UInt64
+    timestamp: Timestamp
 
 
 class Arc89MetadataDeleted(arc4.Struct, kw_only=True):
