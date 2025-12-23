@@ -167,7 +167,8 @@ def create_metadata(
     create_metadata_composer.arc89_create_metadata(
         args=Arc89CreateMetadataArgs(
             asset_id=asset_id,
-            flags=metadata.flags,
+            reversible_flags=metadata.reversible_flags,
+            irreversible_flags=metadata.irreversible_flags,
             metadata_size=metadata.size,
             payload=chunks[0],
             mbr_delta_payment=mbr_payment,
