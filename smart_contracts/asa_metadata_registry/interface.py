@@ -12,7 +12,8 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
         self,
         *,
         asset_id: Asset,
-        flags: arc4.Byte,
+        reversible_flags: arc4.Byte,
+        irreversible_flags: arc4.Byte,
         metadata_size: arc4.UInt16,
         payload: arc4.DynamicBytes,
         mbr_delta_payment: gtxn.PaymentTransaction,
@@ -50,6 +51,16 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
         asset_id: Asset,
         offset: arc4.UInt16,
         payload: arc4.DynamicBytes,
+    ) -> None:
+        pass
+
+    @abstractmethod
+    @arc4.abimethod
+    def arc89_migrate_metadata(
+        self,
+        *,
+        asset_id: Asset,
+        new_registry_id: arc4.UInt64,
     ) -> None:
         pass
 
