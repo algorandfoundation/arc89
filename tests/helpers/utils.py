@@ -90,6 +90,21 @@ def pages_min_fee(algorand_client: AlgorandClient, metadata: AssetMetadata) -> i
     return min_fee * (1 + (metadata.total_pages + 1) // 4)
 
 
+def total_extra_resources(algorand_client: AlgorandClient, metadata: AssetMetadata) -> tuple[int, int]:
+    # FIXME: Add extra resources based on page count to avoid opcode budget issues
+    #  in populate resources simulation
+    extra_count = 0
+    if metadata.total_pages > 15:
+        # Scale: 1 extra resource per 2 pages, starting from page 16
+        extra_count = ((metadata.total_pages - 15) // 2) + 1
+
+    min_fee = algorand_client.get_suggested_params().min_fee
+    base_fee = pages_min_fee(algorand_client, metadata)
+    # Account for extra resource transactions in total fee
+    total_fee = base_fee + (extra_count * min_fee)
+    return extra_count, total_fee
+
+
 def set_flag_and_verify(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     asset_manager: SigningAccount,
@@ -320,6 +335,7 @@ def set_reversible_flag(
     *,
     value: bool,
 ) -> None:
+    extra_count, total_fee = total_extra_resources(asa_metadata_registry_client.algorand, metadata)
     composer = asa_metadata_registry_client.new_group()
     composer.arc89_set_reversible_flag(
         args=Arc89SetReversibleFlagArgs(
@@ -327,13 +343,11 @@ def set_reversible_flag(
         ),
         params=CommonAppCallParams(
             sender=asset_manager.address,
-            static_fee=AlgoAmount.from_micro_algo(
-                pages_min_fee(asa_metadata_registry_client.algorand, metadata)
-            ),
+            static_fee=AlgoAmount.from_micro_algo(total_fee),
         ),
     )
-    if metadata.total_pages > 15:
-        add_extra_resources(composer)
+    if extra_count > 0:
+        add_extra_resources(composer, extra_count)
     composer.send()
 
 
@@ -343,18 +357,17 @@ def set_irreversible_flag(
     metadata: AssetMetadata,
     flag: int,
 ) -> None:
+    extra_count, total_fee = total_extra_resources(asa_metadata_registry_client.algorand, metadata)
     composer = asa_metadata_registry_client.new_group()
     composer.arc89_set_irreversible_flag(
         args=Arc89SetIrreversibleFlagArgs(asset_id=metadata.asset_id, flag=flag),
         params=CommonAppCallParams(
             sender=asset_manager.address,
-            static_fee=AlgoAmount.from_micro_algo(
-                pages_min_fee(asa_metadata_registry_client.algorand, metadata)
-            ),
+            static_fee=AlgoAmount.from_micro_algo(total_fee),
         ),
     )
-    if metadata.total_pages > 15:
-        add_extra_resources(composer)
+    if extra_count > 0:
+        add_extra_resources(composer, extra_count)
     composer.send()
 
 
@@ -363,16 +376,15 @@ def set_immutable(
     asset_manager: SigningAccount,
     metadata: AssetMetadata,
 ) -> None:
+    extra_count, total_fee = total_extra_resources(asa_metadata_registry_client.algorand, metadata)
     composer = asa_metadata_registry_client.new_group()
     composer.arc89_set_immutable(
         args=Arc89SetImmutableArgs(asset_id=metadata.asset_id),
         params=CommonAppCallParams(
             sender=asset_manager.address,
-            static_fee=AlgoAmount.from_micro_algo(
-                pages_min_fee(asa_metadata_registry_client.algorand, metadata)
-            ),
+            static_fee=AlgoAmount.from_micro_algo(total_fee),
         ),
     )
-    if metadata.total_pages > 15:
-        add_extra_resources(composer)
+    if extra_count > 0:
+        add_extra_resources(composer, extra_count)
     composer.send()

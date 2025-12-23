@@ -17,7 +17,7 @@ from tests.helpers.utils import (
     create_metadata,
     pages_min_fee,
     set_immutable,
-    set_reversible_flag,
+    set_reversible_flag, total_extra_resources,
 )
 
 
@@ -56,6 +56,7 @@ def test_per_page_count(
 
     # Replace slice
     if page_count > 0:
+        extra_count, total_fee = total_extra_resources(algorand_client, metadata)
         replace_slice = asa_metadata_registry_client.new_group()
         replace_slice.arc89_replace_metadata_slice(
             args=Arc89ReplaceMetadataSliceArgs(
@@ -65,13 +66,11 @@ def test_per_page_count(
             ),
             params=CommonAppCallParams(
                 sender=asset_manager.address,
-                static_fee=AlgoAmount.from_micro_algo(
-                    pages_min_fee(algorand_client, metadata)
-                ),
+                static_fee=AlgoAmount.from_micro_algo(total_fee),
             ),
         )
-        if metadata.total_pages > 15:
-            add_extra_resources(replace_slice)
+        if extra_count > 0:
+            add_extra_resources(replace_slice, extra_count)
         replace_slice.send()
 
     # Set immutable
