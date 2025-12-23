@@ -32,6 +32,8 @@ def test_get_metadata_header(
     ).abi_return
 
     assert header.identifiers == metadata.identifiers
-    assert header.flags == metadata.flags
+    assert header.reversible_flags == metadata.reversible_flags
+    assert header.irreversible_flags == metadata.irreversible_flags
     assert bytes(header.hash) == metadata.metadata_hash
     assert header.last_modified_round == metadata.last_modified_round
+    assert header.deprecated_by == metadata.deprecated_by
