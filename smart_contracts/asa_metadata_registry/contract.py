@@ -182,41 +182,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     def _is_immutable(self, asa: Asset) -> bool:
         return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_IMMUTABLE))
 
-    def _is_arc3_compliant(self, asa: Asset) -> bool:
-        asa_name = asa.name
-        asa_url = asa.url
-        arc_3_name_suffix = Bytes(const.ARC_3_NAME_SUFFIX)
-        arc_3_url_suffix = Bytes(const.ARC_3_URL_SUFFIX)
-
-        if asa_name == const.ARC_3_NAME:
-            return True
-
-        if (
-            asa_name.length >= arc_3_name_suffix.length
-            and asa_name[asa_name.length - arc_3_name_suffix.length :]
-            == const.ARC_3_NAME_SUFFIX
-        ):
-            return True
-
-        if (
-            asa_url.length >= arc_3_url_suffix.length
-            and asa_url[asa_url.length - arc_3_url_suffix.length :]
-            == const.ARC_3_URL_SUFFIX
-        ):
-            return True
-
-        return False
-
-    def _is_arc89_compliant(self, asa: Asset) -> bool:
-        # This validation does not enforce ARC-90 compliance fragments (optional)
-        arc_89_uri = (
-            const.ARC_90_URI_PREFIX
-            + itoa(Global.current_application_id.id)
-            + const.ARC_90_URI_SUFFIX
-        )
-        asa_url = asa.url
-        return asa_url[: arc_89_uri.length] == arc_89_uri
-
     def _is_extra_payload_txn(self, asa: Asset, txn: gtxn.Transaction) -> bool:
         return (
             txn.type == TransactionType.ApplicationCall
@@ -373,6 +338,37 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert not self._is_immutable(asa), err.IMMUTABLE
         assert self._is_asa_manager(asa), err.UNAUTHORIZED
 
+    def _check_arc3_compliance(self, asa: Asset) -> None:
+        asa_name = asa.name
+        asa_url = asa.url
+        arc_3_name_suffix = Bytes(const.ARC_3_NAME_SUFFIX)
+        arc_3_url_suffix = Bytes(const.ARC_3_URL_SUFFIX)
+
+        compliant = (
+            asa_name == const.ARC_3_NAME
+            or (
+                asa_name.length >= arc_3_name_suffix.length
+                and asa_name[asa_name.length - arc_3_name_suffix.length :]
+                == const.ARC_3_NAME_SUFFIX
+            )
+            or (
+                asa_url.length >= arc_3_url_suffix.length
+                and asa_url[asa_url.length - arc_3_url_suffix.length :]
+                == const.ARC_3_URL_SUFFIX
+            )
+        )
+        assert compliant, err.ASA_NOT_ARC3_COMPLIANT
+
+    def _check_arc89_compliance(self, asa: Asset) -> None:
+        # This validation does not enforce ARC-90 compliance fragments (optional)
+        arc_89_uri = (
+            const.ARC_90_URI_PREFIX
+            + itoa(Global.current_application_id.id)
+            + const.ARC_90_URI_SUFFIX
+        )
+        asa_url = asa.url
+        assert asa_url[: arc_89_uri.length] == arc_89_uri, err.ASA_NOT_ARC89_COMPLIANT
+
     def _update_header_excluding_flags_and_emit(self, asa: Asset) -> None:
         # ⚠️ The subroutine assumes that Metadata Flags have already been set
         self._identify_metadata(asa)
@@ -471,10 +467,10 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         self._set_deprecated_by(asset_id, UInt64(0))
 
         # Postconditions
-        if self._is_arc89(asset_id):
-            assert self._is_arc89_compliant(asset_id), err.ASA_NOT_ARC89_COMPLIANT
         if self._is_arc3(asset_id):
-            assert self._is_arc3_compliant(asset_id), err.ASA_NOT_ARC3_COMPLIANT
+            self._check_arc3_compliance(asset_id)
+        if self._is_arc89(asset_id):
+            self._check_arc89_compliance(asset_id)
 
         arc4.emit(
             abi.Arc89MetadataUpdated(
