@@ -15,7 +15,6 @@ from tests.helpers.factories import AssetMetadata
     [
         "mutable_short_metadata",
         "mutable_maxed_metadata",
-        "mutable_json_obj_metadata",
     ],
 )
 def test_get_slice(

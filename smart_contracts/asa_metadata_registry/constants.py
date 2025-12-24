@@ -112,6 +112,10 @@ HASH_DOMAIN_HEADER: Final[bytes] = b"arc0089/header"
 HASH_DOMAIN_PAGE: Final[bytes] = b"arc0089/page"
 HASH_DOMAIN_METADATA: Final[bytes] = b"arc0089/am"
 
-# Asset Metadata URI
-URI_ARC_89_PREFIX: Final[bytes] = b"algorand://app/"
-URI_ARC_89_SUFFIX: Final[bytes] = b"?box="
+# ARCs
+ARC_90_URI_PREFIX: Final[bytes] = b"algorand://app/"
+ARC_90_URI_SUFFIX: Final[bytes] = b"?box="
+
+ARC_3_NAME: Final[bytes] = b"arc3"
+ARC_3_NAME_SUFFIX: Final[bytes] = b"@arc3"
+ARC_3_URL_SUFFIX: Final[bytes] = b"#arc3"

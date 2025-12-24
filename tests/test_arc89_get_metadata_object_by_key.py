@@ -12,12 +12,12 @@ from tests.helpers.factories import AssetMetadata
 def test_get_object_value(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     json_obj: dict,
-    mutable_json_obj_metadata: AssetMetadata,
+    mutable_short_metadata: AssetMetadata,
 ) -> None:
     # FIXME: The '.abi_return' value is broken, hence we decode the raw logs
     raw_value = asa_metadata_registry_client.send.arc89_get_metadata_object_by_key(
         args=Arc89GetMetadataObjectByKeyArgs(
-            asset_id=mutable_json_obj_metadata.asset_id,
+            asset_id=mutable_short_metadata.asset_id,
             key="date",
         ),
     ).confirmation["logs"][0]

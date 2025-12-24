@@ -8,11 +8,11 @@ from tests.helpers.factories import AssetMetadata
 def test_get_uint64_value(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     json_obj: dict,
-    mutable_json_obj_metadata: AssetMetadata,
+    mutable_short_metadata: AssetMetadata,
 ) -> None:
     uint64_value = asa_metadata_registry_client.send.arc89_get_metadata_uint64_by_key(
         args=Arc89GetMetadataUint64ByKeyArgs(
-            asset_id=mutable_json_obj_metadata.asset_id,
+            asset_id=mutable_short_metadata.asset_id,
             key="answer",
         ),
     ).abi_return
