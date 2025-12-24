@@ -335,8 +335,8 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
     def _check_set_flag_preconditions(self, asa: Asset) -> None:
         self._check_existence_preconditions(asa)
-        assert not self._is_immutable(asa), err.IMMUTABLE
         assert self._is_asa_manager(asa), err.UNAUTHORIZED
+        assert not self._is_immutable(asa), err.IMMUTABLE
 
     def _check_arc3_compliance(self, asa: Asset) -> None:
         asa_name = asa.name
@@ -654,8 +654,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
             new_registry_id: The Application ID of the new ASA Metadata Registry version
         """
         # Preconditions
-        self._check_existence_preconditions(asset_id)
-        assert self._is_asa_manager(asset_id), err.UNAUTHORIZED
+        self._check_set_flag_preconditions(asset_id)
         assert (
             new_registry_id.as_uint64() != Global.current_application_id.id
         ), err.NEW_REGISTRY_ID_INVALID
