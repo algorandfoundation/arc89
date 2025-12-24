@@ -432,12 +432,12 @@ arc89_create_metadata_after_if_else@6:
     // asa_name == const.ARC_3_NAME
     // or (
     //     asa_name.length >= arc_3_name_suffix.length
-    //     and asa_name[asa_name.length - arc_3_name_suffix.length:]
+    //     and asa_name[asa_name.length - arc_3_name_suffix.length :]
     //     == const.ARC_3_NAME_SUFFIX
     // )
     // or (
     //     asa_url.length >= arc_3_url_suffix.length
-    //     and asa_url[asa_url.length - arc_3_url_suffix.length:]
+    //     and asa_url[asa_url.length - arc_3_url_suffix.length :]
     //     == const.ARC_3_URL_SUFFIX
     // )
     bnz arc89_create_metadata_bool_true@23
@@ -451,11 +451,11 @@ arc89_create_metadata_after_if_else@6:
     >=
     // smart_contracts/asa_metadata_registry/contract.py:350-352
     // asa_name.length >= arc_3_name_suffix.length
-    // and asa_name[asa_name.length - arc_3_name_suffix.length:]
+    // and asa_name[asa_name.length - arc_3_name_suffix.length :]
     // == const.ARC_3_NAME_SUFFIX
     bz arc89_create_metadata_or_contd@21
     // smart_contracts/asa_metadata_registry/contract.py:351
-    // and asa_name[asa_name.length - arc_3_name_suffix.length:]
+    // and asa_name[asa_name.length - arc_3_name_suffix.length :]
     dig 10
     dup
     pushint 5
@@ -474,12 +474,12 @@ arc89_create_metadata_after_if_else@6:
     // == const.ARC_3_NAME_SUFFIX
     pushbytes 0x4061726333
     // smart_contracts/asa_metadata_registry/contract.py:351-352
-    // and asa_name[asa_name.length - arc_3_name_suffix.length:]
+    // and asa_name[asa_name.length - arc_3_name_suffix.length :]
     // == const.ARC_3_NAME_SUFFIX
     ==
     // smart_contracts/asa_metadata_registry/contract.py:350-352
     // asa_name.length >= arc_3_name_suffix.length
-    // and asa_name[asa_name.length - arc_3_name_suffix.length:]
+    // and asa_name[asa_name.length - arc_3_name_suffix.length :]
     // == const.ARC_3_NAME_SUFFIX
     bnz arc89_create_metadata_bool_true@23
 
@@ -494,11 +494,11 @@ arc89_create_metadata_or_contd@21:
     >=
     // smart_contracts/asa_metadata_registry/contract.py:355-357
     // asa_url.length >= arc_3_url_suffix.length
-    // and asa_url[asa_url.length - arc_3_url_suffix.length:]
+    // and asa_url[asa_url.length - arc_3_url_suffix.length :]
     // == const.ARC_3_URL_SUFFIX
     bz arc89_create_metadata_bool_false@24
     // smart_contracts/asa_metadata_registry/contract.py:356
-    // and asa_url[asa_url.length - arc_3_url_suffix.length:]
+    // and asa_url[asa_url.length - arc_3_url_suffix.length :]
     dig 9
     dup
     pushint 5
@@ -517,12 +517,12 @@ arc89_create_metadata_or_contd@21:
     // == const.ARC_3_URL_SUFFIX
     pushbytes 0x2361726333
     // smart_contracts/asa_metadata_registry/contract.py:356-357
-    // and asa_url[asa_url.length - arc_3_url_suffix.length:]
+    // and asa_url[asa_url.length - arc_3_url_suffix.length :]
     // == const.ARC_3_URL_SUFFIX
     ==
     // smart_contracts/asa_metadata_registry/contract.py:355-357
     // asa_url.length >= arc_3_url_suffix.length
-    // and asa_url[asa_url.length - arc_3_url_suffix.length:]
+    // and asa_url[asa_url.length - arc_3_url_suffix.length :]
     // == const.ARC_3_URL_SUFFIX
     bz arc89_create_metadata_bool_false@24
 
