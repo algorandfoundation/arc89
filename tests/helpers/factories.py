@@ -548,7 +548,7 @@ class AssetMetadata:
         return instance
 
 
-def create_arc3_metadata(
+def create_arc3_payload(
     name: str,
     description: str = "",
     image: str = "",
@@ -599,7 +599,7 @@ def create_test_metadata(
         AssetMetadata instance
     """
     if metadata_content is None:
-        metadata_content = create_arc3_metadata(
+        metadata_content = create_arc3_payload(
             name=f"Test Asset {asset_id}",
             description="Test asset metadata",
         )

@@ -28,15 +28,13 @@ def test_short_metadata_fixture(arc_89_asa: int, short_metadata: AssetMetadata) 
     assert short_metadata.size > 0
     assert short_metadata.size <= const.SHORT_METADATA_SIZE
     assert short_metadata.is_short
-    assert short_metadata.is_arc3
-    assert short_metadata.is_arc89_native
     assert short_metadata.validate_size()
     assert short_metadata.validate_json()
 
     # Short metadata can be operated on directly by AVM
     json_data = short_metadata.to_json()
     assert "name" in json_data
-    assert json_data["name"] == "Short Metadata Test"
+    assert json_data["name"] == "Silvio"
 
     # Should have at least 1 page (even if small)
     assert short_metadata.total_pages >= 1

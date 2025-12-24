@@ -1,4 +1,3 @@
-import pytest
 from algokit_utils import CommonAppCallParams, SigningAccount
 
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
@@ -8,25 +7,16 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
 from tests.helpers.factories import AssetMetadata
 
 
-@pytest.mark.parametrize(
-    "metadata_fixture",
-    [
-        "mutable_short_metadata",
-        "mutable_json_obj_metadata",
-    ],
-)
 def test_replace_metadata_slice(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    metadata_fixture: str,
-    request: pytest.FixtureRequest,
+    mutable_short_metadata: AssetMetadata,
 ) -> None:
-    metadata: AssetMetadata = request.getfixturevalue(metadata_fixture)
-    asset_id = metadata.asset_id
+    asset_id = mutable_short_metadata.asset_id
 
     offset = 0
     size = 4
-    current_slice = metadata.metadata_bytes[offset : offset + size]
+    current_slice = mutable_short_metadata.metadata_bytes[offset : offset + size]
     new_slice = size * b"\x00"
     assert current_slice != new_slice
 
@@ -44,13 +34,18 @@ def test_replace_metadata_slice(
     )
     replaced_slice = updated_metadata.metadata_bytes[offset : offset + size]
     assert replaced_slice == new_slice
-    assert updated_metadata.size == metadata.size
-    assert updated_metadata.identifiers == metadata.identifiers
-    assert updated_metadata.reversible_flags == metadata.reversible_flags
-    assert updated_metadata.irreversible_flags == metadata.irreversible_flags
-    assert updated_metadata.last_modified_round != metadata.last_modified_round
-    assert updated_metadata.deprecated_by == metadata.deprecated_by
-    assert updated_metadata.metadata_bytes != metadata.metadata_bytes
+    assert updated_metadata.size == mutable_short_metadata.size
+    assert updated_metadata.identifiers == mutable_short_metadata.identifiers
+    assert updated_metadata.reversible_flags == mutable_short_metadata.reversible_flags
+    assert (
+        updated_metadata.irreversible_flags == mutable_short_metadata.irreversible_flags
+    )
+    assert (
+        updated_metadata.last_modified_round
+        != mutable_short_metadata.last_modified_round
+    )
+    assert updated_metadata.deprecated_by == mutable_short_metadata.deprecated_by
+    assert updated_metadata.metadata_bytes != mutable_short_metadata.metadata_bytes
 
 
 # TODO: Test failing conditions

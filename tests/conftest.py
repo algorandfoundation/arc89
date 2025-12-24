@@ -12,15 +12,15 @@ from algokit_utils import (
     SigningAccount,
 )
 from algokit_utils.config import config
+
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )
-
 from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.asa_metadata_registry.template_vars import TRUSTED_DEPLOYER
 
-from .helpers.factories import AssetMetadata, create_arc3_metadata
+from .helpers.factories import AssetMetadata
 from .helpers.utils import create_metadata, set_immutable
 
 # Uncomment if you want to load network specific or generic .env file
@@ -113,22 +113,27 @@ def asa_metadata_registry_client(
 
 
 @pytest.fixture(scope="function")
-def arc_89_asa(
-    asa_metadata_registry_client: AsaMetadataRegistryClient,
-    asset_manager: SigningAccount,
-) -> int:
-    arc89_uri = (
+def arc90_uri(asa_metadata_registry_client: AsaMetadataRegistryClient) -> str:
+    return (
         const.ARC_90_URI_PREFIX.decode()
         + str(asa_metadata_registry_client.app_id)
         + const.ARC_90_URI_SUFFIX.decode()
     )
+
+
+@pytest.fixture(scope="function")
+def arc_89_asa(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    arc90_uri: str,
+) -> int:
     return asa_metadata_registry_client.algorand.send.asset_create(
         params=AssetCreateParams(
             sender=asset_manager.address,
             total=42,
             asset_name="ARC89 Mutable",
             unit_name="ARC89",
-            url=arc89_uri,
+            url=arc90_uri,
             decimals=0,
             default_frozen=False,
             manager=asset_manager.address,
@@ -139,26 +144,16 @@ def arc_89_asa(
 # AssetMetadata factory fixtures
 @pytest.fixture(scope="function")
 def empty_metadata(arc_89_asa: int) -> AssetMetadata:
-    metadata = AssetMetadata.create(
-        asset_id=arc_89_asa, metadata=b"", arc89_native=True  # Empty body
-    )
+    metadata = AssetMetadata.create(asset_id=arc_89_asa, metadata=b"")
     assert metadata.size == 0
     assert metadata.total_pages == 0
     return metadata
 
 
 @pytest.fixture(scope="function")
-def short_metadata(arc_89_asa: int) -> AssetMetadata:
-    # Create small ARC-3 metadata
-    arc3_data = create_arc3_metadata(
-        name="Short Metadata Test",
-        description="This is small enough to fit in AVM stack",
-        image="ipfs://QmShort",
-    )
-
-    metadata = AssetMetadata.create(
-        asset_id=arc_89_asa, metadata=arc3_data, arc3_compliant=True, arc89_native=True
-    )
+def short_metadata(json_obj: dict, arc_89_asa: int) -> AssetMetadata:
+    metadata = AssetMetadata.create(asset_id=arc_89_asa, metadata=json_obj)
+    assert metadata.validate_json()
     assert metadata.size <= const.SHORT_METADATA_SIZE
     assert metadata.is_short
     return metadata
@@ -184,17 +179,6 @@ def oversized_metadata(arc_89_asa: int) -> AssetMetadata:
     )
     assert metadata.size > const.MAX_METADATA_SIZE
     assert not metadata.validate_size()
-    return metadata
-
-
-@pytest.fixture(scope="function")
-def json_obj_metadata(arc_89_asa: int, json_obj: dict) -> AssetMetadata:
-    metadata = AssetMetadata.create(
-        asset_id=arc_89_asa,
-        metadata=json_obj,
-    )
-    assert metadata.validate_json()
-    assert metadata.is_short
     return metadata
 
 
@@ -233,7 +217,6 @@ def _create_uploaded_metadata_fixture(
 mutable_empty_metadata = _create_uploaded_metadata_fixture("empty_metadata")
 mutable_short_metadata = _create_uploaded_metadata_fixture("short_metadata")
 mutable_maxed_metadata = _create_uploaded_metadata_fixture("maxed_metadata")
-mutable_json_obj_metadata = _create_uploaded_metadata_fixture("json_obj_metadata")
 
 # Immutable Metadata Fixtures
 immutable_empty_metadata = _create_uploaded_metadata_fixture(
@@ -244,7 +227,4 @@ immutable_short_metadata = _create_uploaded_metadata_fixture(
 )
 immutable_maxed_metadata = _create_uploaded_metadata_fixture(
     "maxed_metadata", immutable=True
-)
-immutable_json_obj_metadata = _create_uploaded_metadata_fixture(
-    "json_obj_metadata", immutable=True
 )
