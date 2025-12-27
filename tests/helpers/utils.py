@@ -1,3 +1,5 @@
+import base64
+import os
 from collections.abc import Callable
 
 from algokit_utils import (
@@ -10,6 +12,7 @@ from algokit_utils import (
 )
 from algosdk.transaction import Transaction
 
+from smart_contracts import constants as const
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
     Arc89CreateMetadataArgs,
     Arc89DeleteMetadataArgs,
@@ -24,6 +27,7 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
     AsaMetadataRegistryComposer,
     MbrDelta,
 )
+from smart_contracts.template_vars import ARC90_NETAUTH
 from tests.helpers.factories import AssetMetadata
 
 
@@ -86,7 +90,7 @@ def pages_min_fee(algorand_client: AlgorandClient, metadata: AssetMetadata) -> i
     Returns:
         int: The estimated total minimum fee, in microAlgos.
     """
-    min_fee = algorand_client.get_suggested_params().min_fee
+    min_fee: int = algorand_client.get_suggested_params().min_fee
     return min_fee * (1 + (metadata.total_pages + 1) // 4)
 
 
@@ -396,3 +400,21 @@ def set_immutable(
     if extra_count > 0:
         add_extra_resources(composer, extra_count)
     composer.send()
+
+
+def arc90_box_query(
+    algorand_client: AlgorandClient, app_id: int, box_name: bytes
+) -> str:
+    gh = algorand_client.get_suggested_params().gh
+    if gh == const.MAINNET_GH_B64:
+        arc90_netauth = ""
+    else:
+        arc90_netauth = os.environ[ARC90_NETAUTH]
+    return (
+        const.ARC90_URI_SCHEME.decode()
+        + arc90_netauth
+        + const.ARC90_URI_APP_PATH.decode()
+        + str(app_id)
+        + const.ARC90_URI_BOX_QUERY.decode()
+        + base64.urlsafe_b64encode(box_name).decode()
+    )
