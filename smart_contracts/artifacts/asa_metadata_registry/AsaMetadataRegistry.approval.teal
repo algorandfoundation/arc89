@@ -107,9 +107,9 @@ ensure_budget_after_while@6:
 // smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_create_metadata[routing]() -> void:
 arc89_create_metadata:
     intc_1 // 0
-    dupn 4
+    dupn 5
     bytec_1 // ""
-    dupn 2
+    dupn 4
     // smart_contracts/asa_metadata_registry/contract.py:376
     // @arc4.abimethod
     txna ApplicationArgs 1
@@ -320,7 +320,7 @@ arc89_create_metadata_after_if_else@3:
     dig 7
     asset_params_get AssetMetadataHash
     swap
-    bury 14
+    bury 16
     assert // asset exists
 
 arc89_create_metadata_after_if_else@6:
@@ -337,7 +337,7 @@ arc89_create_metadata_after_if_else@6:
     // self.asset_metadata.box(asa).replace(
     //     start_index=const.IDX_METADATA_HASH, value=metadata_hash
     // )
-    dig 15
+    dig 17
     box_replace
     // smart_contracts/asa_metadata_registry/contract.py:440
     // self._set_last_modified_round(asset_id, Global.round)
@@ -416,120 +416,24 @@ arc89_create_metadata_after_if_else@6:
     swap
     dup
     cover 3
-    bury 18
+    bury 20
     assert // asset exists
     // smart_contracts/asa_validation.py:23
     // asa_url = asa.url
     asset_params_get AssetURL
     swap
-    bury 16
+    bury 18
     assert // asset exists
-    // smart_contracts/asa_validation.py:28
-    // asa_name == ARC3_NAME
+    // smart_contracts/asa_validation.py:27
+    // if asa_name == ARC3_NAME:
     pushbytes 0x61726333
     ==
-    // smart_contracts/asa_validation.py:28-38
-    // asa_name == ARC3_NAME
-    // or (
-    //     asa_name.length >= arc3_name_suffix.length
-    //     and asa_name[asa_name.length - arc3_name_suffix.length :]
-    //     == arc3_name_suffix
-    // )
-    // or (
-    //     asa_url.length >= arc3_url_suffix.length
-    //     and asa_url[asa_url.length - arc3_url_suffix.length :]
-    //     == arc3_url_suffix
-    // )
-    bnz arc89_create_metadata_bool_true@23
-    // smart_contracts/asa_validation.py:30
-    // asa_name.length >= arc3_name_suffix.length
-    dig 14
-    len
-    dup
-    bury 11
-    pushint 5
-    >=
-    // smart_contracts/asa_validation.py:30-32
-    // asa_name.length >= arc3_name_suffix.length
-    // and asa_name[asa_name.length - arc3_name_suffix.length :]
-    // == arc3_name_suffix
-    bz arc89_create_metadata_or_contd@21
-    // smart_contracts/asa_validation.py:31
-    // and asa_name[asa_name.length - arc3_name_suffix.length :]
-    dig 9
-    dup
-    pushint 5
-    -
-    dup
-    dig 2
-    >=
-    dig 2
-    swap
-    select
-    dig 16
-    swap
-    uncover 2
-    substring3
-    // smart_contracts/asa_validation.py:24
-    // arc3_name_suffix = Bytes(ARC3_NAME_SUFFIX)
-    pushbytes 0x4061726333
-    // smart_contracts/asa_validation.py:31-32
-    // and asa_name[asa_name.length - arc3_name_suffix.length :]
-    // == arc3_name_suffix
-    ==
-    // smart_contracts/asa_validation.py:30-32
-    // asa_name.length >= arc3_name_suffix.length
-    // and asa_name[asa_name.length - arc3_name_suffix.length :]
-    // == arc3_name_suffix
-    bnz arc89_create_metadata_bool_true@23
-
-arc89_create_metadata_or_contd@21:
-    // smart_contracts/asa_validation.py:35
-    // asa_url.length >= arc3_url_suffix.length
-    dig 13
-    len
-    dup
-    bury 10
-    pushint 5
-    >=
-    // smart_contracts/asa_validation.py:35-37
-    // asa_url.length >= arc3_url_suffix.length
-    // and asa_url[asa_url.length - arc3_url_suffix.length :]
-    // == arc3_url_suffix
-    bz arc89_create_metadata_bool_false@24
-    // smart_contracts/asa_validation.py:36
-    // and asa_url[asa_url.length - arc3_url_suffix.length :]
-    dig 8
-    dup
-    pushint 5
-    -
-    dup
-    dig 2
-    >=
-    dig 2
-    swap
-    select
-    dig 15
-    swap
-    uncover 2
-    substring3
-    // smart_contracts/asa_validation.py:25
-    // arc3_url_suffix = Bytes(ARC3_URL_SUFFIX)
-    pushbytes 0x2361726333
-    // smart_contracts/asa_validation.py:36-37
-    // and asa_url[asa_url.length - arc3_url_suffix.length :]
-    // == arc3_url_suffix
-    ==
-    // smart_contracts/asa_validation.py:35-37
-    // asa_url.length >= arc3_url_suffix.length
-    // and asa_url[asa_url.length - arc3_url_suffix.length :]
-    // == arc3_url_suffix
-    bz arc89_create_metadata_bool_false@24
-
-arc89_create_metadata_bool_true@23:
+    bz arc89_create_metadata_after_if_else@22
+    // smart_contracts/asa_validation.py:28
+    // return True
     intc_0 // 1
 
-arc89_create_metadata_bool_merge@25:
+arc89_create_metadata_after_inlined_smart_contracts.asa_validation.AsaValidation._is_arc3_compliant@29:
     // smart_contracts/asa_metadata_registry/contract.py:445
     // assert self._is_arc3_compliant(asset_id), err.ASA_NOT_ARC3_COMPLIANT
     assert // Invalid ARC-3 parameters (name or URL)
@@ -565,43 +469,43 @@ arc89_create_metadata_after_if_else@8:
     // smart_contracts/asa_metadata_registry/contract.py:446
     // if self._is_arc89_native(asset_id):
     bz arc89_create_metadata_after_if_else@10
-    // smart_contracts/asa_validation.py:43-44
+    // smart_contracts/asa_validation.py:41-42
     // # This validation does not enforce ARC-90 compliance fragments (optional)
     // arc89_partial_uri = arc90_box_query(Global.current_application_id, Bytes())
     global CurrentApplicationID
-    // smart_contracts/avm_common.py:48
+    // smart_contracts/avm_common.py:49
     // ARC90_URI_SCHEME
     pushbytes 0x616c676f72616e643a2f2f
-    // smart_contracts/avm_common.py:49
+    // smart_contracts/avm_common.py:50
     // + TemplateVar[Bytes](ARC90_NETAUTH)
     bytec 7 // TMPL_ARC90_NETAUTH
-    // smart_contracts/avm_common.py:48-49
+    // smart_contracts/avm_common.py:49-50
     // ARC90_URI_SCHEME
     // + TemplateVar[Bytes](ARC90_NETAUTH)
     concat
-    // smart_contracts/avm_common.py:50
+    // smart_contracts/avm_common.py:51
     // + ARC90_URI_APP_PATH
     pushbytes 0x6170702f
-    // smart_contracts/avm_common.py:48-50
+    // smart_contracts/avm_common.py:49-51
     // ARC90_URI_SCHEME
     // + TemplateVar[Bytes](ARC90_NETAUTH)
     // + ARC90_URI_APP_PATH
     concat
-    bury 13
+    bury 15
     // smart_contracts/avm_common.py:36
     // acc = Bytes(b"")
     bytec_1 // 0x
-    bury 17
-    bury 11
+    bury 20
+    bury 13
 
 arc89_create_metadata_while_top@12:
     // smart_contracts/avm_common.py:38
     // while i > 0:
-    dig 10
+    dig 12
     bz arc89_create_metadata_after_while@14
     // smart_contracts/avm_common.py:39
     // d = i % UInt64(10)
-    dig 10
+    dig 12
     dup
     pushint 10
     %
@@ -637,64 +541,70 @@ arc89_create_metadata_while_top@12:
     // acc = digits[d : d + UInt64(1)] + acc
     cover 2
     substring3
-    dig 17
+    dig 20
     concat
-    bury 17
+    bury 20
     // smart_contracts/avm_common.py:41
     // i //= UInt64(10)
     pushint 10
     /
-    bury 11
+    bury 13
     b arc89_create_metadata_while_top@12
 
 arc89_create_metadata_after_while@14:
     // smart_contracts/avm_common.py:43
     // return acc or Bytes(b"0")
-    dig 15
+    dig 18
     dup
     len
     pushbytes 0x30
     cover 2
     select
-    // smart_contracts/avm_common.py:48-51
+    // smart_contracts/avm_common.py:49-52
     // ARC90_URI_SCHEME
     // + TemplateVar[Bytes](ARC90_NETAUTH)
     // + ARC90_URI_APP_PATH
     // + itoa(app.id)
-    dig 12
+    dig 14
     swap
     concat
-    // smart_contracts/avm_common.py:52
+    // smart_contracts/avm_common.py:53
     // + ARC90_URI_BOX_QUERY
     pushbytes 0x3f626f783d
-    // smart_contracts/avm_common.py:48-52
+    // smart_contracts/avm_common.py:49-53
     // ARC90_URI_SCHEME
     // + TemplateVar[Bytes](ARC90_NETAUTH)
     // + ARC90_URI_APP_PATH
     // + itoa(app.id)
     // + ARC90_URI_BOX_QUERY
     concat
-    // smart_contracts/asa_validation.py:45
+    dup
+    bury 19
+    // smart_contracts/asa_validation.py:43
     // asa_url = asa.url
     dig 8
     asset_params_get AssetURL
-    assert // asset exists
-    // smart_contracts/asa_validation.py:46
-    // return asa_url[: arc89_partial_uri.length] == arc89_partial_uri
-    dup
-    len
-    dig 2
-    len
-    dup
-    dig 2
-    >=
     swap
+    dup
     cover 2
-    select
-    intc_1 // 0
+    bury 19
+    assert // asset exists
+    // smart_contracts/asa_validation.py:45
+    // if asa_url.length < arc89_partial_uri.length:
+    len
+    dup
+    bury 13
     swap
-    substring3
-    ==
+    len
+    dup
+    bury 12
+    <
+    bz arc89_create_metadata_after_if_else@16
+    // smart_contracts/asa_validation.py:46
+    // return False
+    intc_1 // 0
+
+arc89_create_metadata_after_inlined_smart_contracts.asa_validation.AsaValidation._is_arc89_compliant@17:
     // smart_contracts/asa_metadata_registry/contract.py:447
     // assert self._is_arc89_compliant(asset_id), err.ASA_NOT_ARC89_COMPLIANT
     assert // Invalid ARC-89 partial URI
@@ -703,7 +613,7 @@ arc89_create_metadata_after_if_else@10:
     // smart_contracts/asa_metadata_registry/contract.py:449
     // self._emit_updated_event(asset_id, metadata_hash)
     dig 7
-    dig 13
+    dig 15
     callsub _emit_updated_event
     // smart_contracts/asa_metadata_registry/contract.py:451
     // mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
@@ -735,16 +645,122 @@ arc89_create_metadata_after_if_else@10:
     intc_0 // 1
     return
 
-arc89_create_metadata_bool_false@24:
+arc89_create_metadata_after_if_else@16:
+    // smart_contracts/asa_validation.py:48
+    // return asa_url[: arc89_partial_uri.length] == arc89_partial_uri
+    dig 9
+    dup
+    dig 12
+    dup
+    cover 3
+    >=
+    swap
+    cover 2
+    select
+    dig 16
     intc_1 // 0
-    b arc89_create_metadata_bool_merge@25
+    uncover 2
+    substring3
+    dig 18
+    ==
+    // smart_contracts/asa_metadata_registry/contract.py:447
+    // assert self._is_arc89_compliant(asset_id), err.ASA_NOT_ARC89_COMPLIANT
+    b arc89_create_metadata_after_inlined_smart_contracts.asa_validation.AsaValidation._is_arc89_compliant@17
+
+arc89_create_metadata_after_if_else@22:
+    // smart_contracts/asa_validation.py:30
+    // if asa_name.length >= arc3_name_suffix.length:
+    dig 16
+    len
+    dup
+    bury 13
+    pushint 5
+    >=
+    bz arc89_create_metadata_after_if_else@25
+    // smart_contracts/asa_validation.py:31
+    // if asa_name[asa_name.length - arc3_name_suffix.length :] == arc3_name_suffix:
+    dig 11
+    dup
+    pushint 5
+    -
+    dup
+    dig 2
+    >=
+    dig 2
+    swap
+    select
+    dig 18
+    swap
+    uncover 2
+    substring3
+    // smart_contracts/asa_validation.py:24
+    // arc3_name_suffix = Bytes(ARC3_NAME_SUFFIX)
+    pushbytes 0x4061726333
+    // smart_contracts/asa_validation.py:31
+    // if asa_name[asa_name.length - arc3_name_suffix.length :] == arc3_name_suffix:
+    ==
+    bz arc89_create_metadata_after_if_else@25
+    // smart_contracts/asa_validation.py:32
+    // return True
+    intc_0 // 1
+    // smart_contracts/asa_metadata_registry/contract.py:445
+    // assert self._is_arc3_compliant(asset_id), err.ASA_NOT_ARC3_COMPLIANT
+    b arc89_create_metadata_after_inlined_smart_contracts.asa_validation.AsaValidation._is_arc3_compliant@29
+
+arc89_create_metadata_after_if_else@25:
+    // smart_contracts/asa_validation.py:34
+    // if asa_url.length >= arc3_url_suffix.length:
+    dig 15
+    len
+    dup
+    bury 10
+    pushint 5
+    >=
+    bz arc89_create_metadata_after_if_else@28
+    // smart_contracts/asa_validation.py:35
+    // if asa_url[asa_url.length - arc3_url_suffix.length :] == arc3_url_suffix:
+    dig 8
+    dup
+    pushint 5
+    -
+    dup
+    dig 2
+    >=
+    dig 2
+    swap
+    select
+    dig 17
+    swap
+    uncover 2
+    substring3
+    // smart_contracts/asa_validation.py:25
+    // arc3_url_suffix = Bytes(ARC3_URL_SUFFIX)
+    pushbytes 0x2361726333
+    // smart_contracts/asa_validation.py:35
+    // if asa_url[asa_url.length - arc3_url_suffix.length :] == arc3_url_suffix:
+    ==
+    bz arc89_create_metadata_after_if_else@28
+    // smart_contracts/asa_validation.py:36
+    // return True
+    intc_0 // 1
+    // smart_contracts/asa_metadata_registry/contract.py:445
+    // assert self._is_arc3_compliant(asset_id), err.ASA_NOT_ARC3_COMPLIANT
+    b arc89_create_metadata_after_inlined_smart_contracts.asa_validation.AsaValidation._is_arc3_compliant@29
+
+arc89_create_metadata_after_if_else@28:
+    // smart_contracts/asa_validation.py:38
+    // return False
+    intc_1 // 0
+    // smart_contracts/asa_metadata_registry/contract.py:445
+    // assert self._is_arc3_compliant(asset_id), err.ASA_NOT_ARC3_COMPLIANT
+    b arc89_create_metadata_after_inlined_smart_contracts.asa_validation.AsaValidation._is_arc3_compliant@29
 
 arc89_create_metadata_else_body@5:
     // smart_contracts/asa_metadata_registry/contract.py:438
     // metadata_hash = self._compute_metadata_hash(asset_id)
     dig 7
     callsub _compute_metadata_hash
-    bury 13
+    bury 15
     b arc89_create_metadata_after_if_else@6
 
 
