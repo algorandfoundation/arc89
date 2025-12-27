@@ -24,23 +24,25 @@ class AsaValidation(ARC4Contract):
         arc3_name_suffix = Bytes(ARC3_NAME_SUFFIX)
         arc3_url_suffix = Bytes(ARC3_URL_SUFFIX)
 
-        compliant = (
-            asa_name == ARC3_NAME
-            or (
-                asa_name.length >= arc3_name_suffix.length
-                and asa_name[asa_name.length - arc3_name_suffix.length :]
-                == arc3_name_suffix
-            )
-            or (
-                asa_url.length >= arc3_url_suffix.length
-                and asa_url[asa_url.length - arc3_url_suffix.length :]
-                == arc3_url_suffix
-            )
-        )
-        return compliant
+        if asa_name == ARC3_NAME:
+            return True
+
+        if asa_name.length >= arc3_name_suffix.length:
+            if asa_name[asa_name.length - arc3_name_suffix.length :] == arc3_name_suffix:
+                return True
+
+        if asa_url.length >= arc3_url_suffix.length:
+            if asa_url[asa_url.length - arc3_url_suffix.length :] == arc3_url_suffix:
+                return True
+
+        return False
 
     def _is_arc89_compliant(self, asa: Asset) -> bool:
         # This validation does not enforce ARC-90 compliance fragments (optional)
         arc89_partial_uri = arc90_box_query(Global.current_application_id, Bytes())
         asa_url = asa.url
+
+        if asa_url.length < arc89_partial_uri.length:
+            return False
+
         return asa_url[: arc89_partial_uri.length] == arc89_partial_uri
