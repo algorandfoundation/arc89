@@ -1,32 +1,10 @@
-from typing import Final
-
-# AVM
-MAX_BOX_SIZE: Final[int] = 32768
-MAX_LOG_SIZE: Final[int] = 1024
-MAX_ARG_SIZE: Final[int] = 2048
-FLAT_MBR: Final[int] = 2500  # microALGO
-BYTE_MBR: Final[int] = 400  # microALGO
-ACCOUNT_MBR: Final[int] = 100_000  # microALGO
+# ruff: noqa: F403, F405
+from smart_contracts.constants import *
 
 # Opcode Budgets
 APP_CALL_OP_BUDGET: Final[int] = 700
 HEADER_HASH_OP_BUDGET: Final[int] = 110
 PAGE_HASH_OP_BUDGET: Final[int] = 150
-
-# ABI Types Byte Sizes
-BOOL_SIZE: Final[int] = 1
-UINT8_SIZE: Final[int] = 1
-UINT16_SIZE: Final[int] = 2
-UINT32_SIZE: Final[int] = 4
-UINT64_SIZE: Final[int] = 8
-
-BYTE_SIZE: Final[int] = 1
-BYTES32_SIZE: Final[int] = 32
-
-# ARC-4 ABI Overhead
-ARC4_METHOD_SELECTOR_SIZE: Final[int] = 4
-ARC4_RETURN_PREFIX_SIZE: Final[int] = 4
-ARC4_DYNAMIC_LENGTH_SIZE: Final[int] = 2
 
 # Method Signatures Overhead
 ARC89_CREATE_METADATA_FIXED_SIZE: Final[int] = (
@@ -56,7 +34,6 @@ ARC89_GET_METADATA_RETURN_FIXED_SIZE: Final[int] = (
 )
 
 # Method Signatures Argument Indexes
-ARC4_ARG_METHOD_SELECTOR: Final[int] = 0
 
 # arc89_extra_payload(asset_id, payload)
 ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID: Final[int] = 1
@@ -111,11 +88,3 @@ SHORT_METADATA_SIZE: Final[int] = 4096
 HASH_DOMAIN_HEADER: Final[bytes] = b"arc0089/header"
 HASH_DOMAIN_PAGE: Final[bytes] = b"arc0089/page"
 HASH_DOMAIN_METADATA: Final[bytes] = b"arc0089/am"
-
-# ARCs
-ARC_90_URI_PREFIX: Final[bytes] = b"algorand://app/"
-ARC_90_URI_SUFFIX: Final[bytes] = b"?box="
-
-ARC_3_NAME: Final[bytes] = b"arc3"
-ARC_3_NAME_SUFFIX: Final[bytes] = b"@arc3"
-ARC_3_URL_SUFFIX: Final[bytes] = b"#arc3"
