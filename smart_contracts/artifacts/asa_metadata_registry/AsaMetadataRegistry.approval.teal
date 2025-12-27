@@ -8,7 +8,7 @@ main:
     // smart_contracts/asa_metadata_registry/contract.py:36
     // class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     txn NumAppArgs
-    bz main_deploy@35
+    bz main_deploy@36
     txn OnCompletion
     !
     assert
@@ -16,9 +16,9 @@ main:
     assert
     pushbytess 0x78407831 0xb82ea7ef 0x1245fafb 0x045f2e6e 0xddffcb92 0x15b275b2 // method "arc89_create_metadata(uint64,byte,byte,uint16,byte[],pay)(uint8,uint64)", method "arc89_replace_metadata(uint64,uint16,byte[])(uint8,uint64)", method "arc89_replace_metadata_larger(uint64,uint16,byte[],pay)(uint8,uint64)", method "arc89_replace_metadata_slice(uint64,uint16,byte[])void", method "arc89_migrate_metadata(uint64,uint64)void", method "arc89_delete_metadata(uint64)(uint8,uint64)"
     bytec_3 // method "arc89_extra_payload(uint64,byte[])void"
-    pushbytess 0xb5121d8a 0x49fbae91 0x0b538ce3 0x9aa9af25 0x8e5e1024 0x244c47c4 0x2d59f6e0 0xee85b473 0xb75931bc 0x8f25ef72 0x11c38476 0xb0abf65b 0xce9dbed7 0xca52fb1e 0x226391b9 0x7a13d532 0x53c22203 0xd3772ad3 0x0056d9c1 // method "arc89_set_reversible_flag(uint64,uint8,bool)void", method "arc89_set_irreversible_flag(uint64,uint8)void", method "arc89_set_immutable(uint64)void", method "arc89_get_metadata_registry_parameters()(uint16,uint16,uint16,uint16,uint16,uint16,uint16,uint64,uint64)", method "arc89_get_metadata_mbr_delta(uint64,uint16)(uint8,uint64)", method "arc89_check_metadata_exists(uint64)(bool,bool)", method "arc89_is_metadata_immutable(uint64)bool", method "arc89_is_metadata_short(uint64)(bool,uint64)", method "arc89_get_metadata_header(uint64)(byte,byte,byte,byte[32],uint64,uint64)", method "arc89_get_metadata_pagination(uint64)(uint16,uint16,uint8)", method "arc89_get_metadata(uint64,uint8)(bool,uint64,byte[])", method "arc89_get_metadata_slice(uint64,uint16,uint16)byte[]", method "arc89_get_metadata_header_hash(uint64)byte[32]", method "arc89_get_metadata_page_hash(uint64,uint8)byte[32]", method "arc89_get_metadata_hash(uint64)byte[32]", method "arc89_get_metadata_string_by_key(uint64,string)string", method "arc89_get_metadata_uint64_by_key(uint64,string)uint64", method "arc89_get_metadata_object_by_key(uint64,string)string", method "extra_resources()void"
+    pushbytess 0xb5121d8a 0x49fbae91 0x0b538ce3 0x9aa9af25 0x8e5e1024 0x244c47c4 0x2d59f6e0 0xee85b473 0xb75931bc 0x8f25ef72 0x11c38476 0xb0abf65b 0xce9dbed7 0xca52fb1e 0x226391b9 0x7a13d532 0x53c22203 0xd3772ad3 0x0056d9c1 0xb92e267a // method "arc89_set_reversible_flag(uint64,uint8,bool)void", method "arc89_set_irreversible_flag(uint64,uint8)void", method "arc89_set_immutable(uint64)void", method "arc89_get_metadata_registry_parameters()(uint16,uint16,uint16,uint16,uint16,uint16,uint16,uint64,uint64)", method "arc89_get_metadata_mbr_delta(uint64,uint16)(uint8,uint64)", method "arc89_check_metadata_exists(uint64)(bool,bool)", method "arc89_is_metadata_immutable(uint64)bool", method "arc89_is_metadata_short(uint64)(bool,uint64)", method "arc89_get_metadata_header(uint64)(byte,byte,byte,byte[32],uint64,uint64)", method "arc89_get_metadata_pagination(uint64)(uint16,uint16,uint8)", method "arc89_get_metadata(uint64,uint8)(bool,uint64,byte[])", method "arc89_get_metadata_slice(uint64,uint16,uint16)byte[]", method "arc89_get_metadata_header_hash(uint64)byte[32]", method "arc89_get_metadata_page_hash(uint64,uint8)byte[32]", method "arc89_get_metadata_hash(uint64)byte[32]", method "arc89_get_metadata_string_by_key(uint64,string)string", method "arc89_get_metadata_uint64_by_key(uint64,string)uint64", method "arc89_get_metadata_object_by_key(uint64,string)string", method "extra_resources()void", method "withdraw_balance_excess()void"
     txna ApplicationArgs 0
-    match arc89_create_metadata arc89_replace_metadata arc89_replace_metadata_larger arc89_replace_metadata_slice arc89_migrate_metadata arc89_delete_metadata arc89_extra_payload arc89_set_reversible_flag arc89_set_irreversible_flag arc89_set_immutable main_arc89_get_metadata_registry_parameters_route@16 arc89_get_metadata_mbr_delta arc89_check_metadata_exists arc89_is_metadata_immutable arc89_is_metadata_short arc89_get_metadata_header arc89_get_metadata_pagination arc89_get_metadata arc89_get_metadata_slice arc89_get_metadata_header_hash arc89_get_metadata_page_hash arc89_get_metadata_hash arc89_get_metadata_string_by_key arc89_get_metadata_uint64_by_key arc89_get_metadata_object_by_key main_extra_resources_route@31
+    match arc89_create_metadata arc89_replace_metadata arc89_replace_metadata_larger arc89_replace_metadata_slice arc89_migrate_metadata arc89_delete_metadata arc89_extra_payload arc89_set_reversible_flag arc89_set_irreversible_flag arc89_set_immutable main_arc89_get_metadata_registry_parameters_route@16 arc89_get_metadata_mbr_delta arc89_check_metadata_exists arc89_is_metadata_immutable arc89_is_metadata_short arc89_get_metadata_header arc89_get_metadata_pagination arc89_get_metadata arc89_get_metadata_slice arc89_get_metadata_header_hash arc89_get_metadata_page_hash arc89_get_metadata_hash arc89_get_metadata_string_by_key arc89_get_metadata_uint64_by_key arc89_get_metadata_object_by_key main_extra_resources_route@31 withdraw_balance_excess
     err
 
 main_extra_resources_route@31:
@@ -35,7 +35,7 @@ main_arc89_get_metadata_registry_parameters_route@16:
     intc_0 // 1
     return
 
-main_deploy@35:
+main_deploy@36:
     // smart_contracts/asa_metadata_registry/contract.py:404
     // @arc4.baremethod(create="require")
     txn OnCompletion
@@ -2827,6 +2827,51 @@ arc89_get_metadata_object_by_key:
     swap
     concat
     log
+    intc_0 // 1
+    return
+
+
+// smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.withdraw_balance_excess[routing]() -> void:
+withdraw_balance_excess:
+    // smart_contracts/asa_metadata_registry/contract.py:1237
+    // Global.current_application_address.balance
+    global CurrentApplicationAddress
+    acct_params_get AcctBalance
+    assert // account funded
+    // smart_contracts/asa_metadata_registry/contract.py:1238
+    // - Global.current_application_address.min_balance
+    global CurrentApplicationAddress
+    acct_params_get AcctMinBalance
+    assert // account funded
+    // smart_contracts/asa_metadata_registry/contract.py:1237-1238
+    // Global.current_application_address.balance
+    // - Global.current_application_address.min_balance
+    -
+    // smart_contracts/asa_metadata_registry/contract.py:1240-1243
+    // itxn.Payment(
+    //     receiver=Global.creator_address,
+    //     amount=excess_balance,
+    // ).submit()
+    itxn_begin
+    // smart_contracts/asa_metadata_registry/contract.py:1241
+    // receiver=Global.creator_address,
+    global CreatorAddress
+    itxn_field Receiver
+    itxn_field Amount
+    // smart_contracts/asa_metadata_registry/contract.py:1240
+    // itxn.Payment(
+    intc_0 // pay
+    itxn_field TypeEnum
+    intc_1 // 0
+    itxn_field Fee
+    // smart_contracts/asa_metadata_registry/contract.py:1240-1243
+    // itxn.Payment(
+    //     receiver=Global.creator_address,
+    //     amount=excess_balance,
+    // ).submit()
+    itxn_submit
+    // smart_contracts/asa_metadata_registry/contract.py:1228
+    // @arc4.abimethod
     intc_0 // 1
     return
 
