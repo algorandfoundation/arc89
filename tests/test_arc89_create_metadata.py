@@ -40,19 +40,19 @@ def test_create_metadata(
     "asset_params,arc3_compliant,arc89_native",
     [
         pytest.param(
-            {"asset_name": const.ARC_3_NAME.decode()},
+            {"asset_name": const.ARC3_NAME.decode()},
             True,
             False,
             id="arc3_name",
         ),
         pytest.param(
-            {"asset_name": "Test" + const.ARC_3_NAME_SUFFIX.decode()},
+            {"asset_name": "Test" + const.ARC3_NAME_SUFFIX.decode()},
             True,
             False,
             id="arc3_name_suffix",
         ),
         pytest.param(
-            {"url": "URI" + const.ARC_3_URL_SUFFIX.decode()},
+            {"url": "URI" + const.ARC3_URL_SUFFIX.decode()},
             True,
             False,
             id="arc3_url",
@@ -113,7 +113,7 @@ def test_arc89_native_arc3_url_compliance(
             sender=asset_manager.address,
             manager=asset_manager.address,
             total=42,
-            url=arc90_uri + const.ARC_3_URL_SUFFIX.decode(),
+            url=arc90_uri + const.ARC3_URL_SUFFIX.decode(),
         )
     ).asset_id
 
