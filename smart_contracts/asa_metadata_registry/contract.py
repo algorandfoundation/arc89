@@ -182,11 +182,16 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     def _is_immutable(self, asa: Asset) -> bool:
         return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_IMMUTABLE))
 
-    def _is_extra_payload_txn(self, asa: Asset, txn: gtxn.Transaction) -> bool:
+    def _is_registry_call(self, txn: gtxn.Transaction) -> bool:
         return (
             txn.type == TransactionType.ApplicationCall
             and txn.app_id == Global.current_application_id
             and txn.on_completion == OnCompleteAction.NoOp
+        )
+
+    def _is_extra_payload_call(self, asa: Asset, txn: gtxn.Transaction) -> bool:
+        return (
+            self._is_registry_call(txn)
             and txn.app_args(const.ARC4_ARG_METHOD_SELECTOR)
             == arc4.arc4_signature(AsaMetadataRegistryInterface.arc89_extra_payload)
             and txn.app_args(const.ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID) == op.itob(asa.id)
@@ -206,18 +211,22 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         # Append provided payload
         self._append_payload(asa, payload)
+        assert self._get_metadata_size(asa) <= metadata_size, err.PAYLOAD_OVERFLOW
 
         # Append staged extra payload (in the same Group, if any)
         group_size = Global.group_size
         group_index = Txn.group_index
         for idx in urange(group_index + 1, group_size):
             txn = gtxn.Transaction(idx)
-            if self._is_extra_payload_txn(asa, txn):
+            if self._is_extra_payload_call(asa, txn):
                 extra_payload = self._read_extra_payload(txn)
                 assert (
                     self._get_metadata_size(asa) + extra_payload.length <= metadata_size
                 ), err.PAYLOAD_OVERFLOW
                 self._append_payload(asa, extra_payload)
+                assert (
+                    self._get_metadata_size(asa) <= metadata_size
+                ), err.PAYLOAD_OVERFLOW
         assert self._get_metadata_size(asa) == metadata_size, err.METADATA_SIZE_MISMATCH
 
     def _get_total_pages(self, asa: Asset) -> UInt64:
@@ -369,12 +378,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         asa_url = asa.url
         assert asa_url[: arc_89_uri.length] == arc_89_uri, err.ASA_NOT_ARC89_COMPLIANT
 
-    def _update_header_excluding_flags_and_emit(self, asa: Asset) -> None:
-        # ⚠️ The subroutine assumes that Metadata Flags have already been set
-        self._identify_metadata(asa)
-        metadata_hash = self._compute_metadata_hash(asa)
-        self._set_metadata_hash(asa, metadata_hash)
-        self._set_last_modified_round(asa, Global.round)
+    def _emit_updated_event(self, asa: Asset, metadata_hash: Bytes) -> None:
         arc4.emit(
             abi.Arc89MetadataUpdated(
                 asset_id=arc4.UInt64(asa.id),
@@ -388,6 +392,14 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
                 hash=abi.Hash.from_bytes(metadata_hash),
             )
         )
+
+    def _update_header_excluding_flags_and_emit(self, asa: Asset) -> None:
+        # ⚠️ The subroutine assumes that Metadata Flags have already been set
+        self._identify_metadata(asa)
+        metadata_hash = self._compute_metadata_hash(asa)
+        self._set_metadata_hash(asa, metadata_hash)
+        self._set_last_modified_round(asa, Global.round)
+        self._emit_updated_event(asa, metadata_hash)
 
     @arc4.baremethod(create="require")
     def deploy(self) -> None:
@@ -472,21 +484,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         if self._is_arc89(asset_id):
             self._check_arc89_compliance(asset_id)
 
-        arc4.emit(
-            abi.Arc89MetadataUpdated(
-                asset_id=arc4.UInt64(asset_id.id),
-                round=arc4.UInt64(Global.round),
-                timestamp=arc4.UInt64(Global.latest_timestamp),
-                reversible_flags=arc4.Byte(
-                    op.btoi(self._get_reversible_flags(asset_id))
-                ),
-                irreversible_flags=arc4.Byte(
-                    op.btoi(self._get_irreversible_flags(asset_id))
-                ),
-                is_short=arc4.Bool(self._is_short(asset_id)),
-                hash=abi.Hash.from_bytes(metadata_hash),
-            )
-        )
+        self._emit_updated_event(asset_id, metadata_hash)
 
         mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
         assert (
@@ -720,13 +718,15 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         asset_id: Asset,
         payload: arc4.DynamicBytes,
     ) -> None:
-        """Concatenate extra payload to Asset Metadata head call methods (creation or replacement).
+        """
+        Concatenate extra payload to Asset Metadata head call methods (creation or replacement).
 
         Args:
             asset_id: The Asset ID to provide Metadata extra payload for
             payload: The Metadata extra payload to concatenate
         """
         # Preconditions
+        assert Global.group_size >= 2, err.NO_PAYLOAD_HEAD_CALL
         assert self._asa_exists(asset_id), err.ASA_NOT_EXIST
         assert self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST
         assert self._is_asa_manager(asset_id), err.UNAUTHORIZED
@@ -1221,6 +1221,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     @arc4.abimethod
     def extra_resources(self) -> None:
         """
-        Placeholder method to acquire AVM extra resources.
+        Non-normative placeholder method to acquire AVM extra resources.
         """
         pass
