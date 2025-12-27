@@ -1,6 +1,6 @@
 from algopy import ARC4Contract, Asset, Bytes, Global, Txn, op
 
-from .avm_common import arc90_box_query
+from .avm_common import arc90_box_query, endswith, startswith
 from .constants import (
     ARC3_NAME,
     ARC3_NAME_SUFFIX,
@@ -28,11 +28,11 @@ class AsaValidation(ARC4Contract):
             return True
 
         if asa_name.length >= arc3_name_suffix.length:
-            if asa_name[asa_name.length - arc3_name_suffix.length :] == arc3_name_suffix:
+            if endswith(asa_name, arc3_name_suffix):
                 return True
 
         if asa_url.length >= arc3_url_suffix.length:
-            if asa_url[asa_url.length - arc3_url_suffix.length :] == arc3_url_suffix:
+            if endswith(asa_url, arc3_url_suffix):
                 return True
 
         return False
@@ -45,4 +45,4 @@ class AsaValidation(ARC4Contract):
         if asa_url.length < arc89_partial_uri.length:
             return False
 
-        return asa_url[: arc89_partial_uri.length] == arc89_partial_uri
+        return startswith(asa_url, arc89_partial_uri)
