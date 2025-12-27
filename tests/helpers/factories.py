@@ -1,7 +1,9 @@
 """Factory helpers for creating test fixtures for ASA Metadata Registry tests."""
 
+import base64
 import hashlib
 import json
+import os
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -9,8 +11,19 @@ from algokit_utils import AlgoAmount
 
 from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.asa_metadata_registry import enums
+from smart_contracts.template_vars import ARC90_NETAUTH
 
 from . import bitmasks
+
+
+def sha512_256(preimage: bytes) -> bytes:
+    h = hashlib.new("sha512_256")
+    h.update(preimage)
+    return h.digest()
+
+
+def sha256(preimage: bytes) -> bytes:
+    return hashlib.sha256(preimage).digest()
 
 
 @dataclass
@@ -229,7 +242,7 @@ class AssetMetadata:
         size = self.size.to_bytes(const.UINT16_SIZE, "big")
 
         preimage = domain + asset_id_bytes + identifiers + rev_flags + irr_flags + size
-        return hashlib.new("sha512_256", preimage).digest()
+        return sha512_256(preimage)
 
     def compute_page_hash(self, page_index: int) -> bytes:
         """
@@ -264,7 +277,7 @@ class AssetMetadata:
         preimage = (
             domain + asset_id_bytes + page_index_byte + page_size_bytes + page_content
         )
-        return hashlib.new("sha512_256", preimage).digest()
+        return sha512_256(preimage)
 
     def compute_metadata_hash(self) -> bytes:
         """
@@ -290,7 +303,7 @@ class AssetMetadata:
             ph = self.compute_page_hash(i)
             preimage += ph
 
-        return hashlib.new("sha512_256", preimage).digest()
+        return sha512_256(preimage)
 
     def update_metadata_hash(self) -> None:
         """Recompute and update the stored metadata hash."""
@@ -507,6 +520,7 @@ class AssetMetadata:
         arc89_native: bool = False,
         arc20: bool = False,
         arc62: bool = False,
+        asset_metadata_hash: bytes | None = None,
         last_modified_round: int = 0,
     ) -> "AssetMetadata":
         """
@@ -520,6 +534,7 @@ class AssetMetadata:
             arc89_native: Set ARC-89 native flag
             arc20: Set ARC-20 Smart ASA flag
             arc62: Set ARC-62 flag
+            asset_metadata_hash: Optional metadata hash to set, overrides auto-computation
             last_modified_round: Last modified round number
 
         Returns:
@@ -542,8 +557,11 @@ class AssetMetadata:
         if arc62:
             instance.set_arc62(value=True)
 
-        # Compute and set the metadata hash
-        instance.update_metadata_hash()
+        # Compute and set the metadata hash if not provided
+        if asset_metadata_hash is not None:
+            instance.metadata_hash = asset_metadata_hash
+        else:
+            instance.update_metadata_hash()
 
         return instance
 
@@ -582,6 +600,41 @@ def create_arc3_payload(
         metadata["properties"] = properties
 
     return metadata
+
+
+def compute_arc3_metadata_hash(json_bytes: bytes) -> bytes:
+    try:
+        obj = json.loads(json_bytes.decode("utf-8"))
+    except UnicodeDecodeError as e:
+        raise ValueError("Metadata file must be UTF-8 encoded JSON.") from e
+    except json.JSONDecodeError as e:
+        raise ValueError("Invalid JSON metadata file.") from e
+
+    if isinstance(obj, dict) and "extra_metadata" in obj:
+        extra_b64 = obj.get("extra_metadata")
+        if not isinstance(extra_b64, str):
+            raise ValueError('"extra_metadata" must be a base64 string when present.')
+
+        try:
+            extra = base64.b64decode(extra_b64, validate=True)
+        except Exception as e:
+            raise ValueError('Could not base64-decode "extra_metadata".') from e
+
+        json_h = sha512_256(const.ARC3_HASH_AMJ_PREFIX + json_bytes)
+        am = sha512_256(const.ARC3_HASH_AM_PREFIX + json_h + extra)
+        return am
+    else:
+        return sha256(json_bytes)
+
+
+def compute_arc89_partial_uri(asa_metadata_registry_app_id: int) -> str:
+    return (
+        const.ARC90_URI_SCHEME.decode()
+        + os.environ[ARC90_NETAUTH]
+        + const.ARC90_URI_APP_PATH.decode()
+        + str(asa_metadata_registry_app_id)
+        + const.ARC90_URI_BOX_QUERY.decode()
+    )
 
 
 def create_test_metadata(
