@@ -1,4 +1,6 @@
+import os
 from collections.abc import Callable
+from pathlib import Path
 
 import pytest
 from algokit_utils import (
@@ -12,22 +14,24 @@ from algokit_utils import (
     SigningAccount,
 )
 from algokit_utils.config import config
+from dotenv import load_dotenv
 
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )
 from smart_contracts.asa_metadata_registry import constants as const
-from smart_contracts.asa_metadata_registry.template_vars import TRUSTED_DEPLOYER
+from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
 
 from .helpers.factories import AssetMetadata
 from .helpers.utils import create_metadata, set_immutable
 
-# Uncomment if you want to load network specific or generic .env file
-# @pytest.fixture(autouse=True, scope="session")
-# def environment_fixture() -> None:
-#     env_path = Path(__file__).parent.parent / ".env"
-#     load_dotenv(env_path)
+
+@pytest.fixture(autouse=True, scope="session")
+def environment_fixture() -> None:
+    env_path = Path(__file__).parent.parent / ".env.localnet.template"
+    load_dotenv(env_path)
+
 
 config.configure(
     debug=True,
@@ -78,7 +82,10 @@ def asa_metadata_registry_factory(
     return algorand_client.client.get_typed_app_factory(
         AsaMetadataRegistryFactory,
         compilation_params=AppClientCompilationParams(
-            deploy_time_params={TRUSTED_DEPLOYER: deployer.public_key}
+            deploy_time_params={
+                TRUSTED_DEPLOYER: deployer.public_key,
+                ARC90_NETAUTH: os.environ[ARC90_NETAUTH],
+            }
         ),
         default_sender=deployer.address,
     )
@@ -115,9 +122,11 @@ def asa_metadata_registry_client(
 @pytest.fixture(scope="function")
 def arc90_uri(asa_metadata_registry_client: AsaMetadataRegistryClient) -> str:
     return (
-        const.ARC_90_URI_PREFIX.decode()
+        const.ARC90_URI_SCHEME.decode()
+        + os.environ[ARC90_NETAUTH]
+        + const.ARC90_URI_APP_PATH.decode()
         + str(asa_metadata_registry_client.app_id)
-        + const.ARC_90_URI_SUFFIX.decode()
+        + const.ARC90_URI_BOX_QUERY.decode()
     )
 
 
