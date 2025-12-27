@@ -1,0 +1,9 @@
+{
+  "name": "Zero Coupon Bond (PAM)",
+  "description": "A zero coupon bond, matures in 1 year, variable interest rate",
+  "decimals": 0,
+  "unitName": "PAM",
+  "properties": {
+    "interest_rate_bps": 300
+  }
+}
