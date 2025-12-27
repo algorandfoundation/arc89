@@ -1,9 +1,11 @@
 import logging
+import os
 
 import algokit_utils
 
+from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
+
 from .constants import ACCOUNT_MBR
-from .template_vars import TRUSTED_DEPLOYER
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +26,10 @@ def deploy() -> None:
     factory = algorand.client.get_typed_app_factory(
         AsaMetadataRegistryFactory,
         compilation_params=algokit_utils.AppClientCompilationParams(
-            deploy_time_params={TRUSTED_DEPLOYER: deployer_.public_key}
+            deploy_time_params={
+                TRUSTED_DEPLOYER: deployer_.public_key,
+                ARC90_NETAUTH: os.environ[ARC90_NETAUTH],
+            }
         ),
         default_sender=deployer_.address,
     )

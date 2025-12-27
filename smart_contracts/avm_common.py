@@ -1,4 +1,11 @@
-from algopy import Bytes, UInt64, op, subroutine
+from algopy import Application, Bytes, TemplateVar, UInt64, op, subroutine
+
+from .constants import (
+    ARC90_URI_APP_PATH,
+    ARC90_URI_BOX_QUERY,
+    ARC90_URI_SCHEME,
+)
+from .template_vars import ARC90_NETAUTH
 
 
 @subroutine
@@ -18,7 +25,6 @@ def umin(a: UInt64, b: UInt64) -> UInt64:
 
 @subroutine
 def ceil_div(*, num: UInt64, den: UInt64) -> UInt64:
-    # Assumes den >= 1
     return (num + (den - 1)) // den
 
 
@@ -34,3 +40,27 @@ def itoa(i: UInt64) -> Bytes:
         i //= UInt64(10)
 
     return acc or Bytes(b"0")
+
+
+@subroutine
+def startswith(s: Bytes, prefix: Bytes) -> bool:
+    assert prefix.length <= s.length
+    return s[: prefix.length] == prefix
+
+
+@subroutine
+def endswith(s: Bytes, suffix: Bytes) -> bool:
+    assert suffix.length <= s.length
+    return s[s.length - suffix.length :] == suffix
+
+
+@subroutine
+def arc90_box_query(app: Application, box_name: Bytes) -> Bytes:
+    return (
+        ARC90_URI_SCHEME
+        + TemplateVar[Bytes](ARC90_NETAUTH)
+        + ARC90_URI_APP_PATH
+        + itoa(app.id)
+        + ARC90_URI_BOX_QUERY
+        + box_name
+    )

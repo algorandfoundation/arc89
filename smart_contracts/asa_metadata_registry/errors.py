@@ -2,8 +2,8 @@ UNTRUSTED_DEPLOYER = "The deployer address is not trusted"
 UNAUTHORIZED = "Unauthorized, must be the Asset Manager"
 
 ASA_NOT_EXIST = "The specified ASA does not exist"
-ASA_NOT_ARC89_COMPLIANT = "Invalid ARC-89 URI"
 ASA_NOT_ARC3_COMPLIANT = "Invalid ARC-3 parameters (name or URL)"
+ASA_NOT_ARC89_COMPLIANT = "Invalid ARC-89 partial URI"
 
 ASSET_METADATA_EXIST = "Asset Metadata already exists for the specified ASA"
 ASSET_METADATA_NOT_EXIST = "Asset Metadata does not exist for the specified ASA"

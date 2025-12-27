@@ -17,12 +17,13 @@ from algopy import (
     urange,
 )
 
+from smart_contracts.asa_validation import AsaValidation
 from smart_contracts.avm_common import (
     ceil_div,
-    itoa,
     trimmed_itob,
     umin,
 )
+from smart_contracts.template_vars import TRUSTED_DEPLOYER
 
 from . import abi_types as abi
 from . import constants as const
@@ -30,10 +31,9 @@ from . import enums as enums
 from . import errors as err
 from . import flags as flg
 from .interface import AsaMetadataRegistryInterface
-from .template_vars import TRUSTED_DEPLOYER
 
 
-class AsaMetadataRegistry(AsaMetadataRegistryInterface):
+class AsaMetadataRegistry(AsaMetadataRegistryInterface, AsaValidation):
     """
     Singleton Application providing ASA metadata via Algod API and AVM
     """
@@ -41,15 +41,8 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     def __init__(self) -> None:
         self.asset_metadata = BoxMap(Asset, Bytes, key_prefix="")
 
-    def _asa_exists(self, asa: Asset) -> bool:
-        _creator, exists = op.AssetParamsGet.asset_creator(asa)
-        return exists
-
     def _metadata_exists(self, asa: Asset) -> bool:
         return asa in self.asset_metadata
-
-    def _is_asa_manager(self, asa: Asset) -> bool:
-        return Txn.sender == asa.manager
 
     def _is_valid_max_metadata_size(self, metadata_size: UInt64) -> bool:
         return metadata_size <= const.MAX_METADATA_SIZE
@@ -176,7 +169,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
     def _is_arc3(self, asa: Asset) -> bool:
         return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_ARC3))
 
-    def _is_arc89(self, asa: Asset) -> bool:
+    def _is_arc89_native(self, asa: Asset) -> bool:
         return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_ARC89_NATIVE))
 
     def _is_immutable(self, asa: Asset) -> bool:
@@ -347,37 +340,6 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         assert self._is_asa_manager(asa), err.UNAUTHORIZED
         assert not self._is_immutable(asa), err.IMMUTABLE
 
-    def _check_arc3_compliance(self, asa: Asset) -> None:
-        asa_name = asa.name
-        asa_url = asa.url
-        arc_3_name_suffix = Bytes(const.ARC_3_NAME_SUFFIX)
-        arc_3_url_suffix = Bytes(const.ARC_3_URL_SUFFIX)
-
-        compliant = (
-            asa_name == const.ARC_3_NAME
-            or (
-                asa_name.length >= arc_3_name_suffix.length
-                and asa_name[asa_name.length - arc_3_name_suffix.length :]
-                == const.ARC_3_NAME_SUFFIX
-            )
-            or (
-                asa_url.length >= arc_3_url_suffix.length
-                and asa_url[asa_url.length - arc_3_url_suffix.length :]
-                == const.ARC_3_URL_SUFFIX
-            )
-        )
-        assert compliant, err.ASA_NOT_ARC3_COMPLIANT
-
-    def _check_arc89_compliance(self, asa: Asset) -> None:
-        # This validation does not enforce ARC-90 compliance fragments (optional)
-        arc_89_uri = (
-            const.ARC_90_URI_PREFIX
-            + itoa(Global.current_application_id.id)
-            + const.ARC_90_URI_SUFFIX
-        )
-        asa_url = asa.url
-        assert asa_url[: arc_89_uri.length] == arc_89_uri, err.ASA_NOT_ARC89_COMPLIANT
-
     def _emit_updated_event(self, asa: Asset, metadata_hash: Bytes) -> None:
         arc4.emit(
             abi.Arc89MetadataUpdated(
@@ -480,9 +442,9 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
 
         # Postconditions
         if self._is_arc3(asset_id):
-            self._check_arc3_compliance(asset_id)
-        if self._is_arc89(asset_id):
-            self._check_arc89_compliance(asset_id)
+            assert self._is_arc3_compliant(asset_id), err.ASA_NOT_ARC3_COMPLIANT
+        if self._is_arc89_native(asset_id):
+            assert self._is_arc89_compliant(asset_id), err.ASA_NOT_ARC89_COMPLIANT
 
         self._emit_updated_event(asset_id, metadata_hash)
 
