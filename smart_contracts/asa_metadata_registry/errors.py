@@ -16,7 +16,10 @@ LARGER_METADATA_SIZE = (
     "Invalid Metadata size, must be smaller than or equal to the current size"
 )
 SMALLER_METADATA_SIZE = "Invalid Metadata size, must be larger than the current size"
+
+NO_PAYLOAD_HEAD_CALL = "No payload head call in Group"
 PAYLOAD_OVERFLOW = "Payload overflow, exceeds metadata size"
+
 METADATA_SIZE_MISMATCH = (
     "Metadata size mismatch, must be exactly equal to declared size"
 )
