@@ -1224,3 +1224,20 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface):
         Non-normative placeholder method to acquire AVM extra resources.
         """
         pass
+
+    @arc4.abimethod
+    def withdraw_balance_excess(self) -> None:
+        """
+        Non-normative method to withdraw balance excess due to accidental deposits
+        (it should never happen if deposits match exactly the required MBR. Deleted
+        metadata MBR is not included in the excess, since it is immediately returned
+        on delete).
+        """
+        excess_balance = (
+            Global.current_application_address.balance
+            - Global.current_application_address.min_balance
+        )
+        itxn.Payment(
+            receiver=Global.creator_address,
+            amount=excess_balance,
+        ).submit()
