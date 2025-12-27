@@ -23,7 +23,7 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
 from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
 
-from .helpers.factories import AssetMetadata
+from .helpers.factories import AssetMetadata, compute_arc89_partial_uri
 from .helpers.utils import create_metadata, set_immutable
 
 
@@ -120,21 +120,15 @@ def asa_metadata_registry_client(
 
 
 @pytest.fixture(scope="function")
-def arc90_uri(asa_metadata_registry_client: AsaMetadataRegistryClient) -> str:
-    return (
-        const.ARC90_URI_SCHEME.decode()
-        + os.environ[ARC90_NETAUTH]
-        + const.ARC90_URI_APP_PATH.decode()
-        + str(asa_metadata_registry_client.app_id)
-        + const.ARC90_URI_BOX_QUERY.decode()
-    )
+def arc89_partial_uri(asa_metadata_registry_client: AsaMetadataRegistryClient) -> str:
+    return compute_arc89_partial_uri(asa_metadata_registry_client.app_id)
 
 
 @pytest.fixture(scope="function")
 def arc_89_asa(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    arc90_uri: str,
+    arc89_partial_uri: str,
 ) -> int:
     return asa_metadata_registry_client.algorand.send.asset_create(
         params=AssetCreateParams(
@@ -142,7 +136,7 @@ def arc_89_asa(
             total=42,
             asset_name="ARC89 Mutable",
             unit_name="ARC89",
-            url=arc90_uri,
+            url=arc89_partial_uri,
             decimals=0,
             default_frozen=False,
             manager=asset_manager.address,
