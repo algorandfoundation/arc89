@@ -16,6 +16,7 @@ def _verify_metadata_pagination(
     pagination = client.send.arc89_get_metadata_pagination(
         args=Arc89GetMetadataPaginationArgs(asset_id=metadata.asset_id),
     ).abi_return
+    assert pagination is not None
     assert pagination.metadata_size == metadata.size
     assert pagination.page_size == const.PAGE_SIZE
     assert pagination.total_pages == metadata.total_pages

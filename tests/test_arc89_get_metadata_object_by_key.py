@@ -11,7 +11,7 @@ from tests.helpers.factories import AssetMetadata
 
 def test_get_object_value(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    json_obj: dict,
+    json_obj: dict[str, object],
     mutable_short_metadata: AssetMetadata,
 ) -> None:
     # FIXME: The '.abi_return' value is broken, hence we decode the raw logs
@@ -21,7 +21,12 @@ def test_get_object_value(
             key="date",
         ),
     ).confirmation["logs"][0]
-    decoded_bytes = b64decode(raw_value)[const.ARC4_RETURN_PREFIX_SIZE :]
+    raw_value_str = (
+        raw_value
+        if isinstance(raw_value, str)
+        else raw_value.decode() if isinstance(raw_value, bytes) else str(raw_value)
+    )
+    decoded_bytes = b64decode(raw_value_str)[const.ARC4_RETURN_PREFIX_SIZE :]
     nested_obj_value = json.loads(decoded_bytes.decode("utf-8"))
     assert nested_obj_value == json_obj["date"]
 

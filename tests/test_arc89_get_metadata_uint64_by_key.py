@@ -7,7 +7,7 @@ from tests.helpers.factories import AssetMetadata
 
 def test_get_uint64_value(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    json_obj: dict,
+    json_obj: dict[str, object],
     mutable_short_metadata: AssetMetadata,
 ) -> None:
     uint64_value = asa_metadata_registry_client.send.arc89_get_metadata_uint64_by_key(

@@ -34,7 +34,12 @@ def test_get_slice(
             size=size,
         ),
     ).confirmation["logs"][0]
-    metadata_slice = b64decode(raw_value)[const.ARC4_RETURN_PREFIX_SIZE :]
+    raw_value_str = (
+        raw_value
+        if isinstance(raw_value, str)
+        else raw_value.decode() if isinstance(raw_value, bytes) else str(raw_value)
+    )
+    metadata_slice = b64decode(raw_value_str)[const.ARC4_RETURN_PREFIX_SIZE :]
     assert metadata_slice == metadata.metadata_bytes[offset : offset + size]
 
 

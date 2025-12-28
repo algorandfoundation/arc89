@@ -35,6 +35,7 @@ def test_delete_metadata_existing_asa(
     metadata_existence = asa_metadata_registry_client.send.arc89_check_metadata_exists(
         args=Arc89CheckMetadataExistsArgs(asset_id=mutable_maxed_metadata.asset_id),
     ).abi_return
+    assert metadata_existence is not None
     assert metadata_existence.asa_exists
     assert not metadata_existence.metadata_exists
 
@@ -72,6 +73,7 @@ def test_delete_metadata_nonexistent_asa(
     metadata_existence = asa_metadata_registry_client.send.arc89_check_metadata_exists(
         args=Arc89CheckMetadataExistsArgs(asset_id=mutable_maxed_metadata.asset_id),
     ).abi_return
+    assert metadata_existence is not None
     assert not metadata_existence.asa_exists
     assert not metadata_existence.metadata_exists
 

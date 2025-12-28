@@ -20,6 +20,7 @@ def _check_metadata_existence(
         args=Arc89CheckMetadataExistsArgs(asset_id=asset_id),
         params=call_params,
     ).abi_return
+    assert metadata_existence is not None
     assert metadata_existence.asa_exists == expected_asa_exists
     assert metadata_existence.metadata_exists == expected_metadata_exists
 

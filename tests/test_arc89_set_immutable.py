@@ -23,9 +23,13 @@ def test_set_immutable_flag(
         params=CommonAppCallParams(sender=asset_manager.address),
     )
 
+    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
+        asset_id
+    )
+    assert box_value is not None
     post_set = AssetMetadata.from_box_value(
         asset_id,
-        asa_metadata_registry_client.state.box.asset_metadata.get_value(asset_id),
+        box_value,
     )
     assert post_set.is_immutable
 

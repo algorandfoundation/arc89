@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from algokit_utils import AssetCreateParams, SigningAccount
 
@@ -66,7 +68,7 @@ def test_create_metadata(
 def test_arc3_compliance(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    asset_params: dict,
+    asset_params: dict[str, object],
     *,
     arc3_compliant: bool,
     arc89_native: bool,
@@ -76,7 +78,7 @@ def test_arc3_compliance(
             sender=asset_manager.address,
             manager=asset_manager.address,
             total=42,
-            **asset_params,
+            **asset_params,  # type: ignore[arg-type]
         )
     ).asset_id
 
@@ -98,9 +100,13 @@ def test_arc3_compliance(
         metadata=metadata,
     )
 
+    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
+        asset_id
+    )
+    assert box_value is not None
     created_metadata = AssetMetadata.from_box_value(
         asset_id,
-        asa_metadata_registry_client.state.box.asset_metadata.get_value(asset_id),
+        box_value,
     )
     assert created_metadata.is_arc3 == arc3_compliant
     if arc89_native:
@@ -138,9 +144,13 @@ def test_arc89_native_arc3_url_compliance(
         metadata=metadata,
     )
 
+    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
+        asset_id
+    )
+    assert box_value is not None
     created_metadata = AssetMetadata.from_box_value(
         asset_id,
-        asa_metadata_registry_client.state.box.asset_metadata.get_value(asset_id),
+        box_value,
     )
     assert created_metadata.is_arc3
     assert created_metadata.is_arc89_native
@@ -150,8 +160,6 @@ def test_arc3_metadata_hash(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
 ) -> None:
-    import json
-
     arc3_payload = create_arc3_payload(name="ARC3 Compliant Test")
     arc3_metadata_hash = compute_arc3_metadata_hash(json.dumps(arc3_payload).encode())
     asset_id = asa_metadata_registry_client.algorand.send.asset_create(
@@ -181,9 +189,13 @@ def test_arc3_metadata_hash(
         metadata=metadata,
     )
 
+    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
+        asset_id
+    )
+    assert box_value is not None
     created_metadata = AssetMetadata.from_box_value(
         asset_id,
-        asa_metadata_registry_client.state.box.asset_metadata.get_value(asset_id),
+        box_value,
     )
     assert created_metadata.is_arc3
     assert created_metadata.metadata_hash == arc3_metadata_hash

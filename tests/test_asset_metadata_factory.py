@@ -8,7 +8,7 @@ from tests.helpers.factories import (
 )
 
 
-def test_create_simple_metadata():
+def test_create_simple_metadata() -> None:
     """Test creating simple metadata with defaults."""
     metadata = AssetMetadata.create(asset_id=12345, metadata={"name": "Test Asset"})
 
@@ -19,7 +19,7 @@ def test_create_simple_metadata():
     assert metadata.metadata_hash != b"\x00" * 32  # Hash should be computed
 
 
-def test_metadata_flags():
+def test_metadata_flags() -> None:
     """Test setting and reading metadata flags."""
     metadata = AssetMetadata.create(
         asset_id=1,
@@ -38,7 +38,7 @@ def test_metadata_flags():
     assert metadata.is_arc62
 
 
-def test_short_metadata_identifier():
+def test_short_metadata_identifier() -> None:
     """Test that short metadata identifier is set correctly."""
     # Small metadata should be short
     small_metadata = AssetMetadata.create(asset_id=1, metadata={"name": "Short"})
@@ -52,7 +52,7 @@ def test_short_metadata_identifier():
     assert large_metadata.size > const.SHORT_METADATA_SIZE
 
 
-def test_hash_computation():
+def test_hash_computation() -> None:
     """Test that hashes are computed correctly."""
     metadata = AssetMetadata.create(
         asset_id=12345, metadata={"name": "Test", "description": "A test asset"}
@@ -70,7 +70,7 @@ def test_hash_computation():
     assert am == metadata.metadata_hash
 
 
-def test_page_computation():
+def test_page_computation() -> None:
     """Test metadata pagination."""
     # Create metadata that spans multiple pages
     large_data = "x" * (const.PAGE_SIZE * 2 + 500)
@@ -93,7 +93,7 @@ def test_page_computation():
     assert len(ph_0) == 32
 
 
-def test_empty_metadata():
+def test_empty_metadata() -> None:
     """Test metadata with empty body."""
     metadata = AssetMetadata.create(asset_id=1, metadata=b"")
 
@@ -106,7 +106,7 @@ def test_empty_metadata():
     assert len(am) == 32
 
 
-def test_box_serialization():
+def test_box_serialization() -> None:
     """Test serialization to/from box format."""
     original = AssetMetadata.create(
         asset_id=12345,
@@ -136,7 +136,7 @@ def test_box_serialization():
     assert restored.deprecated_by == original.deprecated_by
 
 
-def test_mbr_delta_calculation():
+def test_mbr_delta_calculation() -> None:
     """Test MBR delta calculation."""
     metadata = AssetMetadata.create(asset_id=1, metadata={"name": "Test"})
 
@@ -175,7 +175,7 @@ def test_mbr_delta_calculation():
     assert mbr_delta_grow.signed_amount == mbr_delta_grow.amount.micro_algo
 
 
-def test_json_operations():
+def test_json_operations() -> None:
     """Test JSON encoding/decoding."""
     metadata_dict = {
         "name": "Test Asset",
@@ -193,7 +193,7 @@ def test_json_operations():
     assert metadata.validate_json()
 
 
-def test_validation():
+def test_validation() -> None:
     """Test metadata validation methods."""
     # Valid metadata
     valid = AssetMetadata.create(asset_id=1, metadata={"name": "Test"})
@@ -211,7 +211,7 @@ def test_validation():
     assert not invalid_json.validate_json()
 
 
-def test_create_test_metadata_helper():
+def test_create_test_metadata_helper() -> None:
     """Test the convenience test metadata creator."""
     metadata = create_test_metadata(asset_id=999, arc3_compliant=True)
 
@@ -225,7 +225,7 @@ def test_create_test_metadata_helper():
     assert "Test Asset 999" in json_data["name"]
 
 
-def test_flag_toggling():
+def test_flag_toggling() -> None:
     """Test that flags can be toggled on and off."""
     metadata = AssetMetadata(asset_id=1)
 
@@ -247,7 +247,7 @@ def test_flag_toggling():
     assert metadata.is_arc62  # ARC-62 should still be on
 
 
-def test_metadata_hash_update():
+def test_metadata_hash_update() -> None:
     """Test that metadata hash updates when content changes."""
     metadata = AssetMetadata.create(asset_id=1, metadata={"name": "Original"})
 
@@ -261,7 +261,7 @@ def test_metadata_hash_update():
     assert metadata.metadata_hash != original_hash
 
 
-def test_immutable_flag_one_way():
+def test_immutable_flag_one_way() -> None:
     """Test that immutable flag can be set but not unset (one-way)."""
     metadata = AssetMetadata.create(asset_id=1, metadata={"name": "Test"})
 

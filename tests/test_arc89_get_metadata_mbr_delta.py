@@ -18,6 +18,7 @@ def test_get_metadata_mbr_delta_for_existing_metadata(
             new_metadata_size=empty_metadata.size,
         ),
     ).abi_return
+    assert mbr_delta is not None
     assert mbr_delta.sign == to_smaller_mbr_delta.sign
     assert mbr_delta.amount == to_smaller_mbr_delta.amount
 
@@ -28,6 +29,7 @@ def test_get_metadata_mbr_delta_for_existing_metadata(
             new_metadata_size=maxed_metadata.size,
         ),
     ).abi_return
+    assert mbr_delta is not None
     assert mbr_delta.sign == to_larger_mbr_delta.sign
     assert mbr_delta.amount == to_larger_mbr_delta.amount
 
@@ -44,6 +46,7 @@ def test_get_metadata_mbr_delta_for_nonexistent_metadata(
             new_metadata_size=empty_metadata.size,
         ),
     ).abi_return
+    assert mbr_delta is not None
     assert mbr_delta.sign == empty_metadata.get_mbr_delta().sign
     assert mbr_delta.amount == empty_metadata.get_mbr_delta().amount
 
@@ -53,6 +56,7 @@ def test_get_metadata_mbr_delta_for_nonexistent_metadata(
             new_metadata_size=short_metadata.size,
         ),
     ).abi_return
+    assert mbr_delta is not None
     assert mbr_delta.sign == short_metadata.get_mbr_delta().sign
     assert mbr_delta.amount == short_metadata.get_mbr_delta().amount
 
@@ -62,6 +66,7 @@ def test_get_metadata_mbr_delta_for_nonexistent_metadata(
             new_metadata_size=maxed_metadata.size,
         ),
     ).abi_return
+    assert mbr_delta is not None
     assert mbr_delta.sign == maxed_metadata.get_mbr_delta().sign
     assert mbr_delta.amount == maxed_metadata.get_mbr_delta().amount
 
