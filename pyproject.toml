@@ -21,8 +21,8 @@ pytest = "^8.4.2"
 pytest-cov = "^7.0.0"
 pip = "^25.3"
 pip-audit = "^2.10.0"
-pre-commit = "^4.5.0"
-puyapy = "^5.5.0"
+pre-commit = "^4.5.1"
+puyapy = "^5.6.0"
 urllib3 = "^2.6.2"
 
 [build-system]
