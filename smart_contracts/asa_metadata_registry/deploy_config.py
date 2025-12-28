@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from pathlib import Path
+from typing import cast
 
 import algokit_utils
 
@@ -71,18 +72,24 @@ def deploy() -> None:
         / "arc3_pure_nft.json"
     )
     with open(arc3_pure_nft_json_path, encoding="utf-8") as f:
-        arc3_pure_nft_payload = json.load(f)
+        arc3_pure_nft_payload_str = f.read()
+
+    arc3_pure_nft_payload_dict = cast(
+        dict[str, object], json.loads(arc3_pure_nft_payload_str)
+    )
 
     arc3_pure_nft_metadata_hash = compute_arc3_metadata_hash(
-        arc3_pure_nft_payload.encode()
+        arc3_pure_nft_payload_str.encode("utf-8")
     )
     arc3_pure_nft_id = algorand.send.asset_create(
         algokit_utils.AssetCreateParams(
             sender=deployer_.address,
             total=1,  # Pure NFT: single unit
-            decimals=arc3_pure_nft_payload["decimals"],  # Pure NFT: not divisible
-            asset_name=arc3_pure_nft_payload["name"],
-            unit_name=arc3_pure_nft_payload["unitName"],
+            decimals=int(
+                cast(int, arc3_pure_nft_payload_dict["decimals"])
+            ),  # Pure NFT: not divisible
+            asset_name=str(arc3_pure_nft_payload_dict["name"]),
+            unit_name=str(arc3_pure_nft_payload_dict["unitName"]),
             url=arc89_partial_uri + ARC3_URL_SUFFIX.decode(),
             metadata_hash=arc3_pure_nft_metadata_hash,
             manager=deployer_.address,
@@ -94,7 +101,7 @@ def deploy() -> None:
 
     arc3_pure_nft_metadata = AssetMetadata.create(
         asset_id=arc3_pure_nft_id,
-        metadata=arc3_pure_nft_payload,
+        metadata=arc3_pure_nft_payload_dict,
         immutable=True,
         arc3_compliant=True,
         arc89_native=True,
@@ -121,15 +128,19 @@ def deploy() -> None:
         Path(__file__).parent.parent / "artifacts" / "asa_example" / "arc3_bond.json"
     )
     with open(arc3_bond_json_path, encoding="utf-8") as f:
-        arc3_bond_payload = json.load(f)
+        arc3_bond_payload_str = f.read()
+
+    arc3_bond_payload_dict = cast(dict[str, object], json.loads(arc3_bond_payload_str))
 
     arc3_bond_id = algorand.send.asset_create(
         algokit_utils.AssetCreateParams(
             sender=deployer_.address,
             total=1,  # Pure NFT: single unit
-            decimals=arc3_bond_payload["decimals"],  # Pure NFT: not divisible
-            asset_name=arc3_bond_payload["name"],
-            unit_name=arc3_bond_payload["unitName"],
+            decimals=int(
+                cast(int, arc3_bond_payload_dict["decimals"])
+            ),  # Pure NFT: not divisible
+            asset_name=str(arc3_bond_payload_dict["name"]),
+            unit_name=str(arc3_bond_payload_dict["unitName"]),
             url=arc89_partial_uri + ARC3_URL_SUFFIX.decode(),
             manager=deployer_.address,
             default_frozen=False,
@@ -140,7 +151,7 @@ def deploy() -> None:
 
     arc3_bond_metadata = AssetMetadata.create(
         asset_id=arc3_bond_id,
-        metadata=arc3_bond_payload,
+        metadata=arc3_bond_payload_dict,
         immutable=False,
         arc3_compliant=True,
         arc89_native=True,

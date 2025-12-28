@@ -5,7 +5,6 @@ import hashlib
 import json
 import os
 from dataclasses import dataclass, field
-from typing import Any
 
 from algokit_utils import AlgoAmount
 
@@ -78,7 +77,7 @@ class AssetMetadata:
     # Body
     metadata_bytes: bytes = b""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize computed fields after dataclass initialization."""
         # Auto-set short metadata identifier based on size
         self._update_short_identifier()
@@ -151,7 +150,7 @@ class AssetMetadata:
 
     # ==================== SETTERS ====================
 
-    def set_metadata(self, metadata: bytes | str | dict) -> None:
+    def set_metadata(self, metadata: bytes | str | dict[str, object]) -> None:
         """
         Set the metadata bytes and update computed fields.
 
@@ -383,7 +382,7 @@ class AssetMetadata:
             )
         return MbrDelta(sign=enums.MBR_DELTA_NULL, amount=AlgoAmount(micro_algo=0))
 
-    def to_json(self) -> dict:
+    def to_json(self) -> dict[str, object]:
         """
         Convert metadata bytes to a JSON dict (if valid JSON).
 
@@ -393,7 +392,7 @@ class AssetMetadata:
         Raises:
             json.JSONDecodeError: If metadata is not valid JSON
         """
-        return json.loads(self.metadata_bytes.decode("utf-8"))
+        return json.loads(self.metadata_bytes.decode("utf-8"))  # type: ignore[no-any-return]
 
     def validate_size(self) -> bool:
         """
@@ -514,7 +513,7 @@ class AssetMetadata:
         cls,
         *,
         asset_id: int,
-        metadata: bytes | str | dict,
+        metadata: bytes | str | dict[str, object],
         immutable: bool = False,
         arc3_compliant: bool = False,
         arc89_native: bool = False,
@@ -571,8 +570,8 @@ def create_arc3_payload(
     description: str = "",
     image: str = "",
     external_url: str = "",
-    properties: dict | None = None,
-) -> dict:
+    properties: dict[str, object] | None = None,
+) -> dict[str, object]:
     """
     Create an ARC-3 compliant metadata dictionary.
 
@@ -586,7 +585,7 @@ def create_arc3_payload(
     Returns:
         ARC-3 compliant metadata dict
     """
-    metadata: dict[str, Any] = {
+    metadata: dict[str, str | dict[str, object]] = {
         "name": name,
     }
 
@@ -599,7 +598,7 @@ def create_arc3_payload(
     if properties:
         metadata["properties"] = properties
 
-    return metadata
+    return metadata  # type: ignore[return-value]
 
 
 def compute_arc3_metadata_hash(json_bytes: bytes) -> bytes:
@@ -638,7 +637,9 @@ def compute_arc89_partial_uri(asa_metadata_registry_app_id: int) -> str:
 
 
 def create_test_metadata(
-    asset_id: int, metadata_content: dict | None = None, **kwargs: Any
+    asset_id: int,
+    metadata_content: dict[str, object] | None = None,
+    **kwargs: object,
 ) -> AssetMetadata:
     """
     Convenience function to create test metadata with sensible defaults.
@@ -657,7 +658,7 @@ def create_test_metadata(
             description="Test asset metadata",
         )
 
-    return AssetMetadata.create(asset_id=asset_id, metadata=metadata_content, **kwargs)
+    return AssetMetadata.create(asset_id=asset_id, metadata=metadata_content, **kwargs)  # type: ignore[arg-type]
 
 
 def create_metadata_with_page_count(

@@ -1,6 +1,7 @@
 import base64
 import os
 from collections.abc import Callable
+from typing import cast
 
 from algokit_utils import (
     AlgoAmount,
@@ -135,10 +136,11 @@ def set_flag_and_verify(
         )
         expected_value = True
 
-    post_set = AssetMetadata.from_box_value(
-        asset_id,
-        asa_metadata_registry_client.state.box.asset_metadata.get_value(asset_id),
+    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
+        asset_id
     )
+    assert box_value is not None, f"Metadata box not found for asset {asset_id}"
+    post_set = AssetMetadata.from_box_value(asset_id, box_value)
     assert check_fn(post_set) == expected_value
 
 
@@ -200,12 +202,16 @@ def create_metadata(
         ),
     )
     _append_extra_payload(create_metadata_composer, asset_manager, metadata)
-    create_metadata_response = (
-        create_metadata_composer.send(
-            send_params=SendParams(cover_app_call_inner_transaction_fees=True)
-        )
-        .returns[0]
-        .value
+    create_metadata_response = cast(
+        tuple[int, int],
+        cast(
+            object,
+            create_metadata_composer.send(
+                send_params=SendParams(cover_app_call_inner_transaction_fees=True)
+            )
+            .returns[0]
+            .value,
+        ),
     )
 
     return MbrDelta(
@@ -238,11 +244,13 @@ def replace_metadata(
     min_fee = asa_metadata_registry_client.algorand.get_suggested_params().min_fee
     replace_metadata_composer = asa_metadata_registry_client.new_group()
 
-    current_metadata_size = (
-        asa_metadata_registry_client.send.arc89_get_metadata_pagination(
-            args=Arc89GetMetadataPaginationArgs(asset_id=asset_id),
-        ).abi_return.metadata_size
-    )
+    pagination_result = asa_metadata_registry_client.send.arc89_get_metadata_pagination(
+        args=Arc89GetMetadataPaginationArgs(asset_id=asset_id),
+    ).abi_return
+    assert (
+        pagination_result is not None
+    ), f"Failed to get metadata pagination for asset {asset_id}"
+    current_metadata_size = pagination_result.metadata_size
     if new_metadata.size <= current_metadata_size:
         replace_metadata_composer.arc89_replace_metadata(
             args=Arc89ReplaceMetadataArgs(
@@ -277,12 +285,16 @@ def replace_metadata(
         )
     _append_extra_payload(replace_metadata_composer, asset_manager, new_metadata)
     add_extra_resources(replace_metadata_composer, extra_resources)
-    replace_metadata_response = (
-        replace_metadata_composer.send(
-            send_params=SendParams(cover_app_call_inner_transaction_fees=True)
-        )
-        .returns[0]
-        .value
+    replace_metadata_response = cast(
+        tuple[int, int],
+        cast(
+            object,
+            replace_metadata_composer.send(
+                send_params=SendParams(cover_app_call_inner_transaction_fees=True)
+            )
+            .returns[0]
+            .value,
+        ),
     )
 
     return MbrDelta(
@@ -320,12 +332,16 @@ def delete_metadata(
         ),
     ),
     add_extra_resources(delete_metadata_composer, extra_resources)
-    delete_metadata_response = (
-        delete_metadata_composer.send(
-            send_params=SendParams(cover_app_call_inner_transaction_fees=True)
-        )
-        .returns[0]
-        .value
+    delete_metadata_response = cast(
+        tuple[int, int],
+        cast(
+            object,
+            delete_metadata_composer.send(
+                send_params=SendParams(cover_app_call_inner_transaction_fees=True)
+            )
+            .returns[0]
+            .value,
+        ),
     )
 
     return MbrDelta(
