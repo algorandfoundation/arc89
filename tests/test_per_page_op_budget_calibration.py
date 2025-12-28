@@ -42,9 +42,13 @@ def test_per_page_count(
     )
 
     # Verify initial state is not immutable
+    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
+        asset_id
+    )
+    assert box_value is not None
     initial_state = AssetMetadata.from_box_value(
         asset_id,
-        asa_metadata_registry_client.state.box.asset_metadata.get_value(asset_id),
+        box_value,
     )
     assert initial_state.total_pages == page_count
     assert not initial_state.is_immutable

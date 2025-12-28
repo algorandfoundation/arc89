@@ -1,16 +1,29 @@
 """Factory helpers for creating test fixtures for ASA Metadata Registry tests."""
 
+import base64
+import binascii
 import hashlib
 import json
+import os
 from dataclasses import dataclass, field
-from typing import Any
 
 from algokit_utils import AlgoAmount
 
 from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.asa_metadata_registry import enums
+from smart_contracts.template_vars import ARC90_NETAUTH
 
 from . import bitmasks
+
+
+def sha512_256(preimage: bytes) -> bytes:
+    h = hashlib.new("sha512_256")
+    h.update(preimage)
+    return h.digest()
+
+
+def sha256(preimage: bytes) -> bytes:
+    return hashlib.sha256(preimage).digest()
 
 
 @dataclass
@@ -65,7 +78,7 @@ class AssetMetadata:
     # Body
     metadata_bytes: bytes = b""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize computed fields after dataclass initialization."""
         # Auto-set short metadata identifier based on size
         self._update_short_identifier()
@@ -138,7 +151,7 @@ class AssetMetadata:
 
     # ==================== SETTERS ====================
 
-    def set_metadata(self, metadata: bytes | str | dict) -> None:
+    def set_metadata(self, metadata: bytes | str | dict[str, object]) -> None:
         """
         Set the metadata bytes and update computed fields.
 
@@ -229,7 +242,7 @@ class AssetMetadata:
         size = self.size.to_bytes(const.UINT16_SIZE, "big")
 
         preimage = domain + asset_id_bytes + identifiers + rev_flags + irr_flags + size
-        return hashlib.new("sha512_256", preimage).digest()
+        return sha512_256(preimage)
 
     def compute_page_hash(self, page_index: int) -> bytes:
         """
@@ -264,7 +277,7 @@ class AssetMetadata:
         preimage = (
             domain + asset_id_bytes + page_index_byte + page_size_bytes + page_content
         )
-        return hashlib.new("sha512_256", preimage).digest()
+        return sha512_256(preimage)
 
     def compute_metadata_hash(self) -> bytes:
         """
@@ -290,7 +303,7 @@ class AssetMetadata:
             ph = self.compute_page_hash(i)
             preimage += ph
 
-        return hashlib.new("sha512_256", preimage).digest()
+        return sha512_256(preimage)
 
     def update_metadata_hash(self) -> None:
         """Recompute and update the stored metadata hash."""
@@ -370,7 +383,7 @@ class AssetMetadata:
             )
         return MbrDelta(sign=enums.MBR_DELTA_NULL, amount=AlgoAmount(micro_algo=0))
 
-    def to_json(self) -> dict:
+    def to_json(self) -> dict[str, object]:
         """
         Convert metadata bytes to a JSON dict (if valid JSON).
 
@@ -380,7 +393,7 @@ class AssetMetadata:
         Raises:
             json.JSONDecodeError: If metadata is not valid JSON
         """
-        return json.loads(self.metadata_bytes.decode("utf-8"))
+        return json.loads(self.metadata_bytes.decode("utf-8"))  # type: ignore[no-any-return]
 
     def validate_size(self) -> bool:
         """
@@ -501,12 +514,13 @@ class AssetMetadata:
         cls,
         *,
         asset_id: int,
-        metadata: bytes | str | dict,
+        metadata: bytes | str | dict[str, object],
         immutable: bool = False,
         arc3_compliant: bool = False,
         arc89_native: bool = False,
         arc20: bool = False,
         arc62: bool = False,
+        asset_metadata_hash: bytes | None = None,
         last_modified_round: int = 0,
     ) -> "AssetMetadata":
         """
@@ -520,6 +534,7 @@ class AssetMetadata:
             arc89_native: Set ARC-89 native flag
             arc20: Set ARC-20 Smart ASA flag
             arc62: Set ARC-62 flag
+            asset_metadata_hash: Optional metadata hash to set, overrides auto-computation
             last_modified_round: Last modified round number
 
         Returns:
@@ -542,8 +557,11 @@ class AssetMetadata:
         if arc62:
             instance.set_arc62(value=True)
 
-        # Compute and set the metadata hash
-        instance.update_metadata_hash()
+        # Compute and set the metadata hash if not provided
+        if asset_metadata_hash is not None:
+            instance.metadata_hash = asset_metadata_hash
+        else:
+            instance.update_metadata_hash()
 
         return instance
 
@@ -553,8 +571,8 @@ def create_arc3_payload(
     description: str = "",
     image: str = "",
     external_url: str = "",
-    properties: dict | None = None,
-) -> dict:
+    properties: dict[str, object] | None = None,
+) -> dict[str, object]:
     """
     Create an ARC-3 compliant metadata dictionary.
 
@@ -568,7 +586,7 @@ def create_arc3_payload(
     Returns:
         ARC-3 compliant metadata dict
     """
-    metadata: dict[str, Any] = {
+    metadata: dict[str, str | dict[str, object]] = {
         "name": name,
     }
 
@@ -581,11 +599,48 @@ def create_arc3_payload(
     if properties:
         metadata["properties"] = properties
 
-    return metadata
+    return metadata  # type: ignore[return-value]
+
+
+def compute_arc3_metadata_hash(json_bytes: bytes) -> bytes:
+    try:
+        obj = json.loads(json_bytes.decode("utf-8"))
+    except UnicodeDecodeError as e:
+        raise ValueError("Metadata file must be UTF-8 encoded JSON.") from e
+    except json.JSONDecodeError as e:
+        raise ValueError("Invalid JSON metadata file.") from e
+
+    if isinstance(obj, dict) and "extra_metadata" in obj:
+        extra_b64 = obj.get("extra_metadata")
+        if not isinstance(extra_b64, str):
+            raise ValueError('"extra_metadata" must be a base64 string when present.')
+
+        try:
+            extra = base64.b64decode(extra_b64, validate=True)
+        except binascii.Error as e:
+            raise ValueError('Could not base64-decode "extra_metadata".') from e
+
+        json_h = sha512_256(const.ARC3_HASH_AMJ_PREFIX + json_bytes)
+        am = sha512_256(const.ARC3_HASH_AM_PREFIX + json_h + extra)
+        return am
+    else:
+        return sha256(json_bytes)
+
+
+def compute_arc89_partial_uri(asa_metadata_registry_app_id: int) -> str:
+    return (
+        const.ARC90_URI_SCHEME.decode()
+        + os.environ[ARC90_NETAUTH]
+        + const.ARC90_URI_APP_PATH.decode()
+        + str(asa_metadata_registry_app_id)
+        + const.ARC90_URI_BOX_QUERY.decode()
+    )
 
 
 def create_test_metadata(
-    asset_id: int, metadata_content: dict | None = None, **kwargs: Any
+    asset_id: int,
+    metadata_content: dict[str, object] | None = None,
+    **kwargs: object,
 ) -> AssetMetadata:
     """
     Convenience function to create test metadata with sensible defaults.
@@ -604,7 +659,7 @@ def create_test_metadata(
             description="Test asset metadata",
         )
 
-    return AssetMetadata.create(asset_id=asset_id, metadata=metadata_content, **kwargs)
+    return AssetMetadata.create(asset_id=asset_id, metadata=metadata_content, **kwargs)  # type: ignore[arg-type]
 
 
 def create_metadata_with_page_count(

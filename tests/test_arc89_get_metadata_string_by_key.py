@@ -10,7 +10,7 @@ from tests.helpers.factories import AssetMetadata
 
 def test_get_string_value(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    json_obj: dict,
+    json_obj: dict[str, object],
     mutable_short_metadata: AssetMetadata,
 ) -> None:
     # FIXME: The '.abi_return' value is broken, hence we decode the raw logs
@@ -20,8 +20,15 @@ def test_get_string_value(
             key="name",
         ),
     ).confirmation["logs"][0]
-    string_value = b64decode(raw_value)[const.ARC4_RETURN_PREFIX_SIZE :].decode("utf-8")
-    assert string_value == json_obj["name"]
+    raw_value_str = (
+        raw_value
+        if isinstance(raw_value, str)
+        else raw_value.decode() if isinstance(raw_value, bytes) else str(raw_value)
+    )
+    string_value = b64decode(raw_value_str)[const.ARC4_RETURN_PREFIX_SIZE :].decode(
+        "utf-8"
+    )
+    assert string_value == str(json_obj["name"])
 
 
 # TODO: Test failing conditions

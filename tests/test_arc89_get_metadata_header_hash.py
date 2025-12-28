@@ -27,4 +27,5 @@ def test_get_metadata_header_hash(
     hh = asa_metadata_registry_client.send.arc89_get_metadata_header_hash(
         args=Arc89GetMetadataHeaderHashArgs(asset_id=metadata.asset_id),
     ).abi_return
+    assert hh is not None
     assert bytes(hh) == metadata.compute_header_hash()

@@ -28,6 +28,7 @@ def test_get_metadata_header(
     header = asa_metadata_registry_client.send.arc89_get_metadata_header(
         args=Arc89GetMetadataHeaderArgs(asset_id=metadata.asset_id),
     ).abi_return
+    assert header is not None
 
     assert header.identifiers == metadata.identifiers
     assert header.reversible_flags == metadata.reversible_flags

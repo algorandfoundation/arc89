@@ -28,9 +28,13 @@ def test_replace_metadata_slice(
         ),
         params=CommonAppCallParams(sender=asset_manager.address),
     )
+    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
+        asset_id
+    )
+    assert box_value is not None
     updated_metadata = AssetMetadata.from_box_value(
         asset_id,
-        asa_metadata_registry_client.state.box.asset_metadata.get_value(asset_id),
+        box_value,
     )
     replaced_slice = updated_metadata.metadata_bytes[offset : offset + size]
     assert replaced_slice == new_slice

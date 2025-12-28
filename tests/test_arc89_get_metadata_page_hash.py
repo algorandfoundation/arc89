@@ -26,6 +26,7 @@ def test_not_empty_metadata(
         page_hash = asa_metadata_registry_client.send.arc89_get_metadata_page_hash(
             args=Arc89GetMetadataPageHashArgs(asset_id=metadata.asset_id, page=p)
         ).abi_return
+        assert page_hash is not None
         assert bytes(page_hash) == metadata.compute_page_hash(p)
 
 

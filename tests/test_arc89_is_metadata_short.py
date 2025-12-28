@@ -12,6 +12,7 @@ def test_short_metadata(
     is_short = asa_metadata_registry_client.send.arc89_is_metadata_short(
         args=Arc89IsMetadataShortArgs(asset_id=mutable_short_metadata.asset_id),
     ).abi_return
+    assert is_short is not None
     assert is_short.flag
 
 
@@ -22,6 +23,7 @@ def test_long_metadata(
     is_short = asa_metadata_registry_client.send.arc89_is_metadata_short(
         args=Arc89IsMetadataShortArgs(asset_id=mutable_maxed_metadata.asset_id),
     ).abi_return
+    assert is_short is not None
     assert not is_short.flag
 
 

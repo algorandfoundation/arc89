@@ -20,9 +20,13 @@ def test_migrate_metadata(
         params=CommonAppCallParams(sender=asset_manager.address),
     )
 
+    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
+        asset_id
+    )
+    assert box_value is not None
     post_migration = AssetMetadata.from_box_value(
         asset_id,
-        asa_metadata_registry_client.state.box.asset_metadata.get_value(asset_id),
+        box_value,
     )
     assert post_migration.deprecated_by == 42
 

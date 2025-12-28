@@ -1,11 +1,20 @@
+import json
 import logging
 import os
+from pathlib import Path
+from typing import cast
 
 import algokit_utils
 
 from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
+from tests.helpers.factories import (
+    AssetMetadata,
+    compute_arc3_metadata_hash,
+    compute_arc89_partial_uri,
+)
+from tests.helpers.utils import arc90_box_query, create_metadata
 
-from .constants import ACCOUNT_MBR
+from .constants import ACCOUNT_MBR, ARC3_URL_SUFFIX, UINT64_SIZE
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +47,10 @@ def deploy() -> None:
         on_update=algokit_utils.OnUpdate.AppendApp,
         on_schema_break=algokit_utils.OnSchemaBreak.AppendApp,
     )
+    logger.info(f"ASA Metadata Registry ID: {app_client.app_id}")
+
+    arc89_partial_uri = compute_arc89_partial_uri(app_client.app_id)
+    logger.info(f"ARC89 Partial URI: {arc89_partial_uri}")
 
     if result.operation_performed in [
         algokit_utils.OperationPerformed.Create,
@@ -50,3 +63,111 @@ def deploy() -> None:
                 receiver=app_client.app_address,
             )
         )
+
+    # Pure NFT: ARC89 Native, ARC3 Compliant, Immutable
+    arc3_pure_nft_json_path = (
+        Path(__file__).parent.parent
+        / "artifacts"
+        / "asa_example"
+        / "arc3_pure_nft.json"
+    )
+    with open(arc3_pure_nft_json_path, encoding="utf-8") as f:
+        arc3_pure_nft_payload_str = f.read()
+
+    arc3_pure_nft_payload_dict = cast(
+        dict[str, object], json.loads(arc3_pure_nft_payload_str)
+    )
+
+    arc3_pure_nft_metadata_hash = compute_arc3_metadata_hash(
+        arc3_pure_nft_payload_str.encode("utf-8")
+    )
+    arc3_pure_nft_id = algorand.send.asset_create(
+        algokit_utils.AssetCreateParams(
+            sender=deployer_.address,
+            total=1,  # Pure NFT: single unit
+            decimals=int(
+                cast(int, arc3_pure_nft_payload_dict["decimals"])
+            ),  # Pure NFT: not divisible
+            asset_name=str(arc3_pure_nft_payload_dict["name"]),
+            unit_name=str(arc3_pure_nft_payload_dict["unitName"]),
+            url=arc89_partial_uri + ARC3_URL_SUFFIX.decode(),
+            metadata_hash=arc3_pure_nft_metadata_hash,
+            manager=deployer_.address,
+            default_frozen=False,
+        )
+    ).asset_id
+
+    logger.info(f"ARC3 Pure NFT ID: {arc3_pure_nft_id}")
+
+    arc3_pure_nft_metadata = AssetMetadata.create(
+        asset_id=arc3_pure_nft_id,
+        metadata=arc3_pure_nft_payload_dict,
+        immutable=True,
+        arc3_compliant=True,
+        arc89_native=True,
+        asset_metadata_hash=arc3_pure_nft_metadata_hash,
+    )
+    create_metadata(
+        asset_manager=deployer_,
+        asa_metadata_registry_client=app_client,
+        asset_id=arc3_pure_nft_id,
+        metadata=arc3_pure_nft_metadata,
+    )
+    arc3_pure_nft_metadata_uri = (
+        arc90_box_query(
+            algorand,
+            app_client.app_id,
+            int.to_bytes(arc3_pure_nft_id, UINT64_SIZE, "big"),
+        )
+        + ARC3_URL_SUFFIX.decode()
+    )
+    logger.info(f"Pure NFT Asset Metadata URI: {arc3_pure_nft_metadata_uri}")
+
+    # Zero Coupon Bond: ARC89 Native, ARC3 Compliant, Mutable
+    arc3_bond_json_path = (
+        Path(__file__).parent.parent / "artifacts" / "asa_example" / "arc3_bond.json"
+    )
+    with open(arc3_bond_json_path, encoding="utf-8") as f:
+        arc3_bond_payload_str = f.read()
+
+    arc3_bond_payload_dict = cast(dict[str, object], json.loads(arc3_bond_payload_str))
+
+    arc3_bond_id = algorand.send.asset_create(
+        algokit_utils.AssetCreateParams(
+            sender=deployer_.address,
+            total=1,  # Bond: single unit
+            decimals=int(
+                cast(int, arc3_bond_payload_dict["decimals"])
+            ),  # Bond: not divisible
+            asset_name=str(arc3_bond_payload_dict["name"]),
+            unit_name=str(arc3_bond_payload_dict["unitName"]),
+            url=arc89_partial_uri + ARC3_URL_SUFFIX.decode(),
+            manager=deployer_.address,
+            default_frozen=False,
+        )
+    ).asset_id
+
+    logger.info(f"ARC3 Zero Coupon Bond ID: {arc3_bond_id}")
+
+    arc3_bond_metadata = AssetMetadata.create(
+        asset_id=arc3_bond_id,
+        metadata=arc3_bond_payload_dict,
+        immutable=False,
+        arc3_compliant=True,
+        arc89_native=True,
+    )
+    create_metadata(
+        asset_manager=deployer_,
+        asa_metadata_registry_client=app_client,
+        asset_id=arc3_bond_id,
+        metadata=arc3_bond_metadata,
+    )
+    arc3_bond_metadata_uri = (
+        arc90_box_query(
+            algorand,
+            app_client.app_id,
+            int.to_bytes(arc3_bond_id, UINT64_SIZE, "big"),
+        )
+        + ARC3_URL_SUFFIX.decode()
+    )
+    logger.info(f"Zero Coupon Bond Asset Metadata URI: {arc3_bond_metadata_uri}")

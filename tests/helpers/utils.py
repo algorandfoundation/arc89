@@ -1,4 +1,7 @@
+import base64
+import os
 from collections.abc import Callable
+from typing import cast
 
 from algokit_utils import (
     AlgoAmount,
@@ -10,6 +13,7 @@ from algokit_utils import (
 )
 from algosdk.transaction import Transaction
 
+from smart_contracts import constants as const
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
     Arc89CreateMetadataArgs,
     Arc89DeleteMetadataArgs,
@@ -24,6 +28,7 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
     AsaMetadataRegistryComposer,
     MbrDelta,
 )
+from smart_contracts.template_vars import ARC90_NETAUTH
 from tests.helpers.factories import AssetMetadata
 
 
@@ -86,7 +91,7 @@ def pages_min_fee(algorand_client: AlgorandClient, metadata: AssetMetadata) -> i
     Returns:
         int: The estimated total minimum fee, in microAlgos.
     """
-    min_fee = algorand_client.get_suggested_params().min_fee
+    min_fee: int = algorand_client.get_suggested_params().min_fee
     return min_fee * (1 + (metadata.total_pages + 1) // 4)
 
 
@@ -131,10 +136,11 @@ def set_flag_and_verify(
         )
         expected_value = True
 
-    post_set = AssetMetadata.from_box_value(
-        asset_id,
-        asa_metadata_registry_client.state.box.asset_metadata.get_value(asset_id),
+    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
+        asset_id
     )
+    assert box_value is not None, f"Metadata box not found for asset {asset_id}"
+    post_set = AssetMetadata.from_box_value(asset_id, box_value)
     assert check_fn(post_set) == expected_value
 
 
@@ -196,12 +202,16 @@ def create_metadata(
         ),
     )
     _append_extra_payload(create_metadata_composer, asset_manager, metadata)
-    create_metadata_response = (
-        create_metadata_composer.send(
-            send_params=SendParams(cover_app_call_inner_transaction_fees=True)
-        )
-        .returns[0]
-        .value
+    create_metadata_response = cast(
+        tuple[int, int],
+        cast(
+            object,
+            create_metadata_composer.send(
+                send_params=SendParams(cover_app_call_inner_transaction_fees=True)
+            )
+            .returns[0]
+            .value,
+        ),
     )
 
     return MbrDelta(
@@ -234,11 +244,13 @@ def replace_metadata(
     min_fee = asa_metadata_registry_client.algorand.get_suggested_params().min_fee
     replace_metadata_composer = asa_metadata_registry_client.new_group()
 
-    current_metadata_size = (
-        asa_metadata_registry_client.send.arc89_get_metadata_pagination(
-            args=Arc89GetMetadataPaginationArgs(asset_id=asset_id),
-        ).abi_return.metadata_size
-    )
+    pagination_result = asa_metadata_registry_client.send.arc89_get_metadata_pagination(
+        args=Arc89GetMetadataPaginationArgs(asset_id=asset_id),
+    ).abi_return
+    assert (
+        pagination_result is not None
+    ), f"Failed to get metadata pagination for asset {asset_id}"
+    current_metadata_size = pagination_result.metadata_size
     if new_metadata.size <= current_metadata_size:
         replace_metadata_composer.arc89_replace_metadata(
             args=Arc89ReplaceMetadataArgs(
@@ -273,12 +285,16 @@ def replace_metadata(
         )
     _append_extra_payload(replace_metadata_composer, asset_manager, new_metadata)
     add_extra_resources(replace_metadata_composer, extra_resources)
-    replace_metadata_response = (
-        replace_metadata_composer.send(
-            send_params=SendParams(cover_app_call_inner_transaction_fees=True)
-        )
-        .returns[0]
-        .value
+    replace_metadata_response = cast(
+        tuple[int, int],
+        cast(
+            object,
+            replace_metadata_composer.send(
+                send_params=SendParams(cover_app_call_inner_transaction_fees=True)
+            )
+            .returns[0]
+            .value,
+        ),
     )
 
     return MbrDelta(
@@ -316,12 +332,16 @@ def delete_metadata(
         ),
     ),
     add_extra_resources(delete_metadata_composer, extra_resources)
-    delete_metadata_response = (
-        delete_metadata_composer.send(
-            send_params=SendParams(cover_app_call_inner_transaction_fees=True)
-        )
-        .returns[0]
-        .value
+    delete_metadata_response = cast(
+        tuple[int, int],
+        cast(
+            object,
+            delete_metadata_composer.send(
+                send_params=SendParams(cover_app_call_inner_transaction_fees=True)
+            )
+            .returns[0]
+            .value,
+        ),
     )
 
     return MbrDelta(
@@ -396,3 +416,21 @@ def set_immutable(
     if extra_count > 0:
         add_extra_resources(composer, extra_count)
     composer.send()
+
+
+def arc90_box_query(
+    algorand_client: AlgorandClient, app_id: int, box_name: bytes
+) -> str:
+    gh = algorand_client.get_suggested_params().gh
+    if gh == const.MAINNET_GH_B64:
+        arc90_netauth = ""
+    else:
+        arc90_netauth = os.environ[ARC90_NETAUTH]
+    return (
+        const.ARC90_URI_SCHEME.decode()
+        + arc90_netauth
+        + const.ARC90_URI_APP_PATH.decode()
+        + str(app_id)
+        + const.ARC90_URI_BOX_QUERY.decode()
+        + base64.urlsafe_b64encode(box_name).decode()
+    )

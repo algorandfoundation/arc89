@@ -1,5 +1,8 @@
 from typing import Final
 
+# Algorand Genesis Hash
+MAINNET_GH_B64: Final[str] = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8="
+
 # AVM
 MAX_BOX_SIZE: Final[int] = 32768
 MAX_LOG_SIZE: Final[int] = 1024
@@ -32,3 +35,5 @@ ARC90_URI_BOX_QUERY: Final[bytes] = b"?box="
 ARC3_NAME: Final[bytes] = b"arc3"
 ARC3_NAME_SUFFIX: Final[bytes] = b"@arc3"
 ARC3_URL_SUFFIX: Final[bytes] = b"#arc3"
+ARC3_HASH_AM_PREFIX: Final[bytes] = b"arc0003/am"
+ARC3_HASH_AMJ_PREFIX: Final[bytes] = b"arc0003/amj"

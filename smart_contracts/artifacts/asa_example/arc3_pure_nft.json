@@ -1,0 +1,15 @@
+{
+  "name": "Cusma #2",
+  "description": "Cusma autograph #2",
+  "image": "ipfs://bafkreigxshpznrgo5srv3oqegapqez6hpwkiwvyckvlxpbobtrzq3jyzta",
+  "decimals": 0,
+  "unitName": "CUSMA",
+  "image_integrity": "sha256-15HflsTO7KNdugQwHwJnx32Ui1cCVVd3hcGccw2nGZg=",
+  "image_mimetype": "image/png",
+  "properties": {
+    "background_color_hex": "#FFFFFF",
+    "writing_color_hex": "#285FF4",
+    "to": "Fred",
+    "size": 589362
+  }
+}

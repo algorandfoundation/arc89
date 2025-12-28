@@ -26,6 +26,7 @@ def test_non_empty_metadata(
         page = asa_metadata_registry_client.send.arc89_get_metadata(
             args=Arc89GetMetadataArgs(asset_id=metadata.asset_id, page=p),
         ).abi_return
+        assert page is not None
         assert bytes(page.page_content).decode() == metadata.get_page(p).decode()
         assert (
             page.has_next_page
@@ -50,6 +51,7 @@ def test_empty_metadata(
     page = asa_metadata_registry_client.send.arc89_get_metadata(
         args=Arc89GetMetadataArgs(asset_id=metadata.asset_id, page=0),
     ).abi_return
+    assert page is not None
     assert not page.page_content
 
 

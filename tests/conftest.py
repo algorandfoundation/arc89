@@ -23,7 +23,7 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
 from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
 
-from .helpers.factories import AssetMetadata
+from .helpers.factories import AssetMetadata, compute_arc89_partial_uri
 from .helpers.utils import create_metadata, set_immutable
 
 
@@ -92,7 +92,7 @@ def asa_metadata_registry_factory(
 
 
 @pytest.fixture(scope="session")
-def json_obj() -> dict:
+def json_obj() -> dict[str, object]:
     return {
         "name": "Silvio",
         "answer": 42,
@@ -120,21 +120,15 @@ def asa_metadata_registry_client(
 
 
 @pytest.fixture(scope="function")
-def arc90_uri(asa_metadata_registry_client: AsaMetadataRegistryClient) -> str:
-    return (
-        const.ARC90_URI_SCHEME.decode()
-        + os.environ[ARC90_NETAUTH]
-        + const.ARC90_URI_APP_PATH.decode()
-        + str(asa_metadata_registry_client.app_id)
-        + const.ARC90_URI_BOX_QUERY.decode()
-    )
+def arc89_partial_uri(asa_metadata_registry_client: AsaMetadataRegistryClient) -> str:
+    return compute_arc89_partial_uri(asa_metadata_registry_client.app_id)
 
 
 @pytest.fixture(scope="function")
 def arc_89_asa(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    arc90_uri: str,
+    arc89_partial_uri: str,
 ) -> int:
     return asa_metadata_registry_client.algorand.send.asset_create(
         params=AssetCreateParams(
@@ -142,7 +136,7 @@ def arc_89_asa(
             total=42,
             asset_name="ARC89 Mutable",
             unit_name="ARC89",
-            url=arc90_uri,
+            url=arc89_partial_uri,
             decimals=0,
             default_frozen=False,
             manager=asset_manager.address,
@@ -160,7 +154,7 @@ def empty_metadata(arc_89_asa: int) -> AssetMetadata:
 
 
 @pytest.fixture(scope="function")
-def short_metadata(json_obj: dict, arc_89_asa: int) -> AssetMetadata:
+def short_metadata(json_obj: dict[str, object], arc_89_asa: int) -> AssetMetadata:
     metadata = AssetMetadata.create(asset_id=arc_89_asa, metadata=json_obj)
     assert metadata.validate_json()
     assert metadata.size <= const.SHORT_METADATA_SIZE
@@ -194,7 +188,10 @@ def oversized_metadata(arc_89_asa: int) -> AssetMetadata:
 # Uploaded AssetMetadata fixtures
 def _create_uploaded_metadata_fixture(
     metadata_fixture_name: str, *, immutable: bool = False
-) -> Callable[..., AssetMetadata]:
+) -> Callable[
+    [AlgorandClient, SigningAccount, AsaMetadataRegistryClient, pytest.FixtureRequest],
+    AssetMetadata,
+]:
     @pytest.fixture(scope="function")
     def uploaded_metadata(
         algorand_client: AlgorandClient,
@@ -214,9 +211,13 @@ def _create_uploaded_metadata_fixture(
         if immutable:
             set_immutable(asa_metadata_registry_client, asset_manager, metadata)
 
+        box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
+            asset_id
+        )
+        assert box_value is not None
         return AssetMetadata.from_box_value(
             asset_id,
-            asa_metadata_registry_client.state.box.asset_metadata.get_value(asset_id),
+            box_value,
         )
 
     return uploaded_metadata
