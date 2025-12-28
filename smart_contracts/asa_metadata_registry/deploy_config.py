@@ -135,10 +135,10 @@ def deploy() -> None:
     arc3_bond_id = algorand.send.asset_create(
         algokit_utils.AssetCreateParams(
             sender=deployer_.address,
-            total=1,  # Pure NFT: single unit
+            total=1,  # Bond: single unit
             decimals=int(
                 cast(int, arc3_bond_payload_dict["decimals"])
-            ),  # Pure NFT: not divisible
+            ),  # Bond: not divisible
             asset_name=str(arc3_bond_payload_dict["name"]),
             unit_name=str(arc3_bond_payload_dict["unitName"]),
             url=arc89_partial_uri + ARC3_URL_SUFFIX.decode(),
