@@ -616,7 +616,7 @@ def compute_arc3_metadata_hash(json_bytes: bytes) -> bytes:
 
         try:
             extra = base64.b64decode(extra_b64, validate=True)
-        except Exception as e:
+        except base64.binascii.Error as e:
             raise ValueError('Could not base64-decode "extra_metadata".') from e
 
         json_h = sha512_256(const.ARC3_HASH_AMJ_PREFIX + json_bytes)
