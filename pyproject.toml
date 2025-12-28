@@ -10,12 +10,12 @@ package-mode = false
 python = "^3.13"
 algokit-utils = "^4.2.2"
 python-dotenv = "^1.0.0"
-algorand-python = "^3.2.0"
+algorand-python = "^3.3.0"
 
 [tool.poetry.group.dev.dependencies]
 algokit-client-generator = "^2.2.0"
 black = {extras = ["d"], version = "*"}
-ruff = "^0.14.9"
+ruff = "^0.14.10"
 mypy = "^1.18.2"
 pytest = "^8.4.2"
 pytest-cov = "^7.0.0"
