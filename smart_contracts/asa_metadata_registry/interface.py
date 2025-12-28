@@ -120,6 +120,11 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
 
     @abstractmethod
     @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_partial_uri(self) -> arc4.String:
+        pass
+
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
     def arc89_get_metadata_mbr_delta(
         self,
         *,

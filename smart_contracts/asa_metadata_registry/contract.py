@@ -19,6 +19,7 @@ from algopy import (
 
 from smart_contracts.asa_validation import AsaValidation
 from smart_contracts.avm_common import (
+    arc90_box_query,
     ceil_div,
     trimmed_itob,
     umin,
@@ -793,6 +794,18 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface, AsaValidation):
             replace_payload_max_size=arc4.UInt16(const.REPLACE_PAYLOAD_MAX_SIZE),
             flat_mbr=arc4.UInt64(const.FLAT_MBR),
             byte_mbr=arc4.UInt64(const.BYTE_MBR),
+        )
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_partial_uri(self) -> arc4.String:
+        """
+        Return the Asset Metadata ARC-90 partial URI, without compliance fragment (optional)
+
+        Returns:
+            Asset Metadata ARC-90 partial URI, without compliance fragment
+        """
+        return arc4.String.from_bytes(
+            arc90_box_query(Global.current_application_id, Bytes())
         )
 
     @arc4.abimethod(readonly=True)

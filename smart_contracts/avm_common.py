@@ -58,7 +58,7 @@ def endswith(s: Bytes, suffix: Bytes) -> bool:
 @subroutine
 def arc90_box_query(app: Application, box_name: Bytes) -> Bytes:
     if Global.genesis_hash == Bytes.from_base64(MAINNET_GH_B64):
-        arc90_netauth = Bytes(b"")
+        arc90_netauth = Bytes()
     else:
         arc90_netauth = TemplateVar[Bytes](ARC90_NETAUTH)
     return (
