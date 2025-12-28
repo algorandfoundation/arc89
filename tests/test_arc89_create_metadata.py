@@ -186,7 +186,7 @@ def test_arc3_metadata_hash(
         asa_metadata_registry_client.state.box.asset_metadata.get_value(asset_id),
     )
     assert created_metadata.is_arc3
-    assert metadata.metadata_hash == arc3_metadata_hash
+    assert created_metadata.metadata_hash == arc3_metadata_hash
 
 
 # TODO: Test failing conditions
