@@ -47,10 +47,10 @@ def deploy() -> None:
         on_update=algokit_utils.OnUpdate.AppendApp,
         on_schema_break=algokit_utils.OnSchemaBreak.AppendApp,
     )
-    logger.info(f"ASA Metadata Registry ID:\t{app_client.app_id}")
+    logger.info(f"ASA Metadata Registry ID: {app_client.app_id}")
 
     arc89_partial_uri = compute_arc89_partial_uri(app_client.app_id)
-    logger.info(f"ARC89 Partial URI:\t{app_client.app_id}")
+    logger.info(f"ARC89 Partial URI: {arc89_partial_uri}")
 
     if result.operation_performed in [
         algokit_utils.OperationPerformed.Create,
@@ -97,7 +97,7 @@ def deploy() -> None:
         )
     ).asset_id
 
-    logger.info(f"ARC3 Pure NFT ID:\t{arc3_pure_nft_id}")
+    logger.info(f"ARC3 Pure NFT ID: {arc3_pure_nft_id}")
 
     arc3_pure_nft_metadata = AssetMetadata.create(
         asset_id=arc3_pure_nft_id,
@@ -147,7 +147,7 @@ def deploy() -> None:
         )
     ).asset_id
 
-    logger.info(f"ARC3 Zero Coupon Bond ID:\t{arc3_bond_id}")
+    logger.info(f"ARC3 Zero Coupon Bond ID: {arc3_bond_id}")
 
     arc3_bond_metadata = AssetMetadata.create(
         asset_id=arc3_bond_id,
