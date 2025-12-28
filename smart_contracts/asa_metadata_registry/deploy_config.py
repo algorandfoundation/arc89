@@ -85,9 +85,7 @@ def deploy() -> None:
         algokit_utils.AssetCreateParams(
             sender=deployer_.address,
             total=1,  # Pure NFT: single unit
-            decimals=int(
-                cast(int, arc3_pure_nft_payload_dict["decimals"])
-            ),  # Pure NFT: not divisible
+            decimals=int(arc3_pure_nft_payload_dict["decimals"]),  # Pure NFT: not divisible
             asset_name=str(arc3_pure_nft_payload_dict["name"]),
             unit_name=str(arc3_pure_nft_payload_dict["unitName"]),
             url=arc89_partial_uri + ARC3_URL_SUFFIX.decode(),
