@@ -97,6 +97,8 @@ def json_obj() -> dict[str, object]:
         "name": "Silvio",
         "answer": 42,
         "date": {"day": 13, "month": 10, "year": 1954},
+        "gh_b64_url": "f_________8=",  # 2^63 - 1
+        "gh_b64_std": "f/////////8=",  # 2^63 - 1
     }
 
 
