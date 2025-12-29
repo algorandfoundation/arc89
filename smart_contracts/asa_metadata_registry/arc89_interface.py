@@ -5,7 +5,7 @@ from algopy import ARC4Contract, Asset, arc4, gtxn
 from . import abi_types as abi
 
 
-class AsaMetadataRegistryInterface(ARC4Contract, ABC):
+class Arc89Interface(ARC4Contract, ABC):
     @abstractmethod
     @arc4.abimethod
     def arc89_create_metadata(
@@ -255,4 +255,11 @@ class AsaMetadataRegistryInterface(ARC4Contract, ABC):
         asset_id: Asset,
         key: arc4.String,
     ) -> arc4.String:
+        pass
+
+    @abstractmethod
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_b64_bytes_by_key(
+        self, *, asset_id: Asset, key: arc4.String, b64_encoding: arc4.UInt8
+    ) -> arc4.DynamicBytes:
         pass
