@@ -6,9 +6,9 @@ main:
     intcblock 1 0 8 2 1007 1006 30506
     bytecblock 0x151f7c75 0x 0x00 0x37ac755d 0x068101 0x151f7c7501 TMPL_TRUSTED_DEPLOYER TMPL_ARC90_NETAUTH
     // smart_contracts/asa_metadata_registry/contract.py:37
-    // class AsaMetadataRegistry(AsaMetadataRegistryInterface, AsaValidation):
+    // class AsaMetadataRegistry(Arc89Interface, AsaValidation):
     txn NumAppArgs
-    bz main_deploy@37
+    bz main_deploy@38
     txn OnCompletion
     !
     assert
@@ -16,13 +16,13 @@ main:
     assert
     pushbytess 0x78407831 0xb82ea7ef 0x1245fafb 0x045f2e6e 0xddffcb92 0x15b275b2 // method "arc89_create_metadata(uint64,byte,byte,uint16,byte[],pay)(uint8,uint64)", method "arc89_replace_metadata(uint64,uint16,byte[])(uint8,uint64)", method "arc89_replace_metadata_larger(uint64,uint16,byte[],pay)(uint8,uint64)", method "arc89_replace_metadata_slice(uint64,uint16,byte[])void", method "arc89_migrate_metadata(uint64,uint64)void", method "arc89_delete_metadata(uint64)(uint8,uint64)"
     bytec_3 // method "arc89_extra_payload(uint64,byte[])void"
-    pushbytess 0xb5121d8a 0x49fbae91 0x0b538ce3 0x9aa9af25 0x089faea1 0x8e5e1024 0x244c47c4 0x2d59f6e0 0xee85b473 0xb75931bc 0x8f25ef72 0x11c38476 0xb0abf65b 0xce9dbed7 0xca52fb1e 0x226391b9 0x7a13d532 0x53c22203 0xd3772ad3 0x0056d9c1 0xb92e267a // method "arc89_set_reversible_flag(uint64,uint8,bool)void", method "arc89_set_irreversible_flag(uint64,uint8)void", method "arc89_set_immutable(uint64)void", method "arc89_get_metadata_registry_parameters()(uint16,uint16,uint16,uint16,uint16,uint16,uint16,uint64,uint64)", method "arc89_get_metadata_partial_uri()string", method "arc89_get_metadata_mbr_delta(uint64,uint16)(uint8,uint64)", method "arc89_check_metadata_exists(uint64)(bool,bool)", method "arc89_is_metadata_immutable(uint64)bool", method "arc89_is_metadata_short(uint64)(bool,uint64)", method "arc89_get_metadata_header(uint64)(byte,byte,byte,byte[32],uint64,uint64)", method "arc89_get_metadata_pagination(uint64)(uint16,uint16,uint8)", method "arc89_get_metadata(uint64,uint8)(bool,uint64,byte[])", method "arc89_get_metadata_slice(uint64,uint16,uint16)byte[]", method "arc89_get_metadata_header_hash(uint64)byte[32]", method "arc89_get_metadata_page_hash(uint64,uint8)byte[32]", method "arc89_get_metadata_hash(uint64)byte[32]", method "arc89_get_metadata_string_by_key(uint64,string)string", method "arc89_get_metadata_uint64_by_key(uint64,string)uint64", method "arc89_get_metadata_object_by_key(uint64,string)string", method "extra_resources()void", method "withdraw_balance_excess()void"
+    pushbytess 0xb5121d8a 0x49fbae91 0x0b538ce3 0x9aa9af25 0x089faea1 0x8e5e1024 0x244c47c4 0x2d59f6e0 0xee85b473 0xb75931bc 0x8f25ef72 0x11c38476 0xb0abf65b 0xce9dbed7 0xca52fb1e 0x226391b9 0x7a13d532 0x53c22203 0xd3772ad3 0x7da2af40 0x0056d9c1 0xb92e267a // method "arc89_set_reversible_flag(uint64,uint8,bool)void", method "arc89_set_irreversible_flag(uint64,uint8)void", method "arc89_set_immutable(uint64)void", method "arc89_get_metadata_registry_parameters()(uint16,uint16,uint16,uint16,uint16,uint16,uint16,uint64,uint64)", method "arc89_get_metadata_partial_uri()string", method "arc89_get_metadata_mbr_delta(uint64,uint16)(uint8,uint64)", method "arc89_check_metadata_exists(uint64)(bool,bool)", method "arc89_is_metadata_immutable(uint64)bool", method "arc89_is_metadata_short(uint64)(bool,uint64)", method "arc89_get_metadata_header(uint64)(byte,byte,byte,byte[32],uint64,uint64)", method "arc89_get_metadata_pagination(uint64)(uint16,uint16,uint8)", method "arc89_get_metadata(uint64,uint8)(bool,uint64,byte[])", method "arc89_get_metadata_slice(uint64,uint16,uint16)byte[]", method "arc89_get_metadata_header_hash(uint64)byte[32]", method "arc89_get_metadata_page_hash(uint64,uint8)byte[32]", method "arc89_get_metadata_hash(uint64)byte[32]", method "arc89_get_metadata_string_by_key(uint64,string)string", method "arc89_get_metadata_uint64_by_key(uint64,string)uint64", method "arc89_get_metadata_object_by_key(uint64,string)string", method "arc89_get_metadata_b64_bytes_by_key(uint64,string,uint8)byte[]", method "extra_resources()void", method "withdraw_balance_excess()void"
     txna ApplicationArgs 0
-    match arc89_create_metadata arc89_replace_metadata arc89_replace_metadata_larger arc89_replace_metadata_slice arc89_migrate_metadata arc89_delete_metadata arc89_extra_payload arc89_set_reversible_flag arc89_set_irreversible_flag arc89_set_immutable main_arc89_get_metadata_registry_parameters_route@16 arc89_get_metadata_partial_uri arc89_get_metadata_mbr_delta arc89_check_metadata_exists arc89_is_metadata_immutable arc89_is_metadata_short arc89_get_metadata_header arc89_get_metadata_pagination arc89_get_metadata arc89_get_metadata_slice arc89_get_metadata_header_hash arc89_get_metadata_page_hash arc89_get_metadata_hash arc89_get_metadata_string_by_key arc89_get_metadata_uint64_by_key arc89_get_metadata_object_by_key main_extra_resources_route@32 withdraw_balance_excess
+    match arc89_create_metadata arc89_replace_metadata arc89_replace_metadata_larger arc89_replace_metadata_slice arc89_migrate_metadata arc89_delete_metadata arc89_extra_payload arc89_set_reversible_flag arc89_set_irreversible_flag arc89_set_immutable main_arc89_get_metadata_registry_parameters_route@16 arc89_get_metadata_partial_uri arc89_get_metadata_mbr_delta arc89_check_metadata_exists arc89_is_metadata_immutable arc89_is_metadata_short arc89_get_metadata_header arc89_get_metadata_pagination arc89_get_metadata arc89_get_metadata_slice arc89_get_metadata_header_hash arc89_get_metadata_page_hash arc89_get_metadata_hash arc89_get_metadata_string_by_key arc89_get_metadata_uint64_by_key arc89_get_metadata_object_by_key arc89_get_metadata_b64_bytes_by_key main_extra_resources_route@33 withdraw_balance_excess
     err
 
-main_extra_resources_route@32:
-    // smart_contracts/asa_metadata_registry/contract.py:1196
+main_extra_resources_route@33:
+    // smart_contracts/asa_metadata_registry/contract.py:1258
     // @arc4.abimethod
     intc_0 // 1
     return
@@ -35,7 +35,7 @@ main_arc89_get_metadata_registry_parameters_route@16:
     intc_0 // 1
     return
 
-main_deploy@37:
+main_deploy@38:
     // smart_contracts/asa_metadata_registry/contract.py:367
     // @arc4.baremethod(create="require")
     txn OnCompletion
@@ -2809,21 +2809,26 @@ arc89_get_metadata_string_by_key:
     len
     ==
     assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
-    // smart_contracts/asa_metadata_registry/contract.py:1130-1131
+    // smart_contracts/asa_metadata_registry/contract.py:1131-1132
     // # Preconditions
     // self._check_existence_preconditions(asset_id)
     dig 1
     callsub _check_existence_preconditions
-    // smart_contracts/asa_metadata_registry/contract.py:1133
+    // smart_contracts/asa_metadata_registry/contract.py:1134-1139
+    // # Fetch key's value
+    // # ⚠️ WARNING: The following conditions cause AVM runtime error:
+    // # - The short Metadata is not a valid UTF-8 encoded JSON object
+    // # - The top-level key does not exist
+    // # - The top-level key's value is not a JSON String
     // obj = self._get_short_metadata(asset_id)
     swap
     callsub _get_short_metadata
-    // smart_contracts/asa_metadata_registry/contract.py:1134
+    // smart_contracts/asa_metadata_registry/contract.py:1140
     // value = op.JsonRef.json_string(obj, key.native.bytes)
     swap
     extract 2 0
     json_ref JSONString
-    // smart_contracts/asa_metadata_registry/contract.py:1136-1137
+    // smart_contracts/asa_metadata_registry/contract.py:1142-1143
     // # Postconditions
     // assert value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
     dup
@@ -2843,7 +2848,7 @@ arc89_get_metadata_string_by_key:
 
 // smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_get_metadata_uint64_by_key[routing]() -> void:
 arc89_get_metadata_uint64_by_key:
-    // smart_contracts/asa_metadata_registry/contract.py:1141
+    // smart_contracts/asa_metadata_registry/contract.py:1147
     // @arc4.abimethod(readonly=True)
     txna ApplicationArgs 1
     dup
@@ -2862,24 +2867,29 @@ arc89_get_metadata_uint64_by_key:
     len
     ==
     assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
-    // smart_contracts/asa_metadata_registry/contract.py:1159-1160
+    // smart_contracts/asa_metadata_registry/contract.py:1166-1167
     // # Preconditions
     // self._check_existence_preconditions(asset_id)
     dig 1
     callsub _check_existence_preconditions
-    // smart_contracts/asa_metadata_registry/contract.py:1162
+    // smart_contracts/asa_metadata_registry/contract.py:1169-1174
+    // # Fetch key's value
+    // # ⚠️ WARNING: The following conditions cause AVM runtime error:
+    // # - The short Metadata is not a valid UTF-8 encoded JSON object
+    // # - The top-level key does not exist
+    // # - The top-level key's value is not a JSON Uint64
     // obj = self._get_short_metadata(asset_id)
     swap
     callsub _get_short_metadata
-    // smart_contracts/asa_metadata_registry/contract.py:1163
+    // smart_contracts/asa_metadata_registry/contract.py:1175
     // value = op.JsonRef.json_uint64(obj, key.native.bytes)
     swap
     extract 2 0
     json_ref JSONUint64
-    // smart_contracts/asa_metadata_registry/contract.py:1165
+    // smart_contracts/asa_metadata_registry/contract.py:1177
     // return arc4.UInt64(value)
     itob
-    // smart_contracts/asa_metadata_registry/contract.py:1141
+    // smart_contracts/asa_metadata_registry/contract.py:1147
     // @arc4.abimethod(readonly=True)
     bytec_0 // 0x151f7c75
     swap
@@ -2891,7 +2901,7 @@ arc89_get_metadata_uint64_by_key:
 
 // smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_get_metadata_object_by_key[routing]() -> void:
 arc89_get_metadata_object_by_key:
-    // smart_contracts/asa_metadata_registry/contract.py:1167
+    // smart_contracts/asa_metadata_registry/contract.py:1179
     // @arc4.abimethod(readonly=True)
     txna ApplicationArgs 1
     dup
@@ -2910,21 +2920,26 @@ arc89_get_metadata_object_by_key:
     len
     ==
     assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
-    // smart_contracts/asa_metadata_registry/contract.py:1185-1186
+    // smart_contracts/asa_metadata_registry/contract.py:1198-1199
     // # Preconditions
     // self._check_existence_preconditions(asset_id)
     dig 1
     callsub _check_existence_preconditions
-    // smart_contracts/asa_metadata_registry/contract.py:1188
+    // smart_contracts/asa_metadata_registry/contract.py:1201-1206
+    // # Fetch key's value
+    // # ⚠️ WARNING: The following conditions cause AVM runtime error:
+    // # - The short Metadata is not a valid UTF-8 encoded JSON object
+    // # - The top-level key does not exist
+    // # - The top-level key's value is not a JSON Object
     // obj = self._get_short_metadata(asset_id)
     swap
     callsub _get_short_metadata
-    // smart_contracts/asa_metadata_registry/contract.py:1189
+    // smart_contracts/asa_metadata_registry/contract.py:1207
     // value = op.JsonRef.json_object(obj, key.native.bytes)
     swap
     extract 2 0
     json_ref JSONObject
-    // smart_contracts/asa_metadata_registry/contract.py:1191-1192
+    // smart_contracts/asa_metadata_registry/contract.py:1209-1210
     // # Postconditions
     // assert value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
     dup
@@ -2932,7 +2947,7 @@ arc89_get_metadata_object_by_key:
     intc 4 // 1007
     <=
     assert // Payload exceeds page size
-    // smart_contracts/asa_metadata_registry/contract.py:1167
+    // smart_contracts/asa_metadata_registry/contract.py:1179
     // @arc4.abimethod(readonly=True)
     bytec_0 // 0x151f7c75
     swap
@@ -2942,46 +2957,139 @@ arc89_get_metadata_object_by_key:
     return
 
 
+// smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.arc89_get_metadata_b64_bytes_by_key[routing]() -> void:
+arc89_get_metadata_b64_bytes_by_key:
+    // smart_contracts/asa_metadata_registry/contract.py:1214
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 2
+    dup
+    intc_1 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_3 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_0 // 1
+    ==
+    assert // invalid number of bytes for arc4.uint8
+    // smart_contracts/asa_metadata_registry/contract.py:1231-1232
+    // # Preconditions
+    // self._check_existence_preconditions(asset_id)
+    dig 2
+    callsub _check_existence_preconditions
+    // smart_contracts/asa_metadata_registry/contract.py:1234
+    // b64_encoding.as_uint64() <= enums.B64_STD_ENCODING
+    btoi
+    dup
+    intc_0 // 1
+    <=
+    // smart_contracts/asa_metadata_registry/contract.py:1233-1235
+    // assert (
+    //     b64_encoding.as_uint64() <= enums.B64_STD_ENCODING
+    // ), err.B64_ENCODING_INVALID
+    assert // Invalid base64 encoding, must be 0 (URL safe) or 1 (Std)
+    // smart_contracts/asa_metadata_registry/contract.py:1237-1242
+    // # Fetch key's value
+    // # ⚠️ WARNING: The following conditions cause AVM runtime error:
+    // # - The short Metadata is not a valid UTF-8 encoded JSON object
+    // # - The top-level key does not exist
+    // # - The top-level key's value is not a JSON String
+    // obj = self._get_short_metadata(asset_id)
+    uncover 2
+    callsub _get_short_metadata
+    // smart_contracts/asa_metadata_registry/contract.py:1243
+    // value = op.JsonRef.json_string(obj, key.native.bytes)
+    uncover 2
+    extract 2 0
+    json_ref JSONString
+    swap
+    // smart_contracts/asa_metadata_registry/contract.py:1245-1248
+    // # Decode value
+    // # ⚠️ WARNING: The following conditions cause AVM runtime error:
+    // # - The top-level key's value is not a valid base64-encoding for the chosen encoding.
+    // if b64_encoding.as_uint64() == enums.B64_URL_ENCODING:
+    bnz arc89_get_metadata_b64_bytes_by_key_else_body@3
+    // smart_contracts/asa_metadata_registry/contract.py:1249
+    // decoded_value = op.base64_decode(op.Base64.URLEncoding, value)
+    base64_decode URLEncoding
+
+arc89_get_metadata_b64_bytes_by_key_after_if_else@4:
+    // smart_contracts/asa_metadata_registry/contract.py:1253-1254
+    // # Postconditions
+    // assert decoded_value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
+    dup
+    len
+    intc 4 // 1007
+    <=
+    assert // Payload exceeds page size
+    // smart_contracts/asa_metadata_registry/contract.py:1214
+    // @arc4.abimethod(readonly=True)
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+arc89_get_metadata_b64_bytes_by_key_else_body@3:
+    // smart_contracts/asa_metadata_registry/contract.py:1251
+    // decoded_value = op.base64_decode(op.Base64.StdEncoding, value)
+    base64_decode StdEncoding
+    b arc89_get_metadata_b64_bytes_by_key_after_if_else@4
+
+
 // smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.withdraw_balance_excess[routing]() -> void:
 withdraw_balance_excess:
-    // smart_contracts/asa_metadata_registry/contract.py:1212
+    // smart_contracts/asa_metadata_registry/contract.py:1274
     // Global.current_application_address.balance
     global CurrentApplicationAddress
     acct_params_get AcctBalance
     assert // account funded
-    // smart_contracts/asa_metadata_registry/contract.py:1213
+    // smart_contracts/asa_metadata_registry/contract.py:1275
     // - Global.current_application_address.min_balance
     global CurrentApplicationAddress
     acct_params_get AcctMinBalance
     assert // account funded
-    // smart_contracts/asa_metadata_registry/contract.py:1212-1213
+    // smart_contracts/asa_metadata_registry/contract.py:1274-1275
     // Global.current_application_address.balance
     // - Global.current_application_address.min_balance
     -
-    // smart_contracts/asa_metadata_registry/contract.py:1215-1218
+    // smart_contracts/asa_metadata_registry/contract.py:1277-1280
     // itxn.Payment(
     //     receiver=Global.creator_address,
     //     amount=excess_balance,
     // ).submit()
     itxn_begin
-    // smart_contracts/asa_metadata_registry/contract.py:1216
+    // smart_contracts/asa_metadata_registry/contract.py:1278
     // receiver=Global.creator_address,
     global CreatorAddress
     itxn_field Receiver
     itxn_field Amount
-    // smart_contracts/asa_metadata_registry/contract.py:1215
+    // smart_contracts/asa_metadata_registry/contract.py:1277
     // itxn.Payment(
     intc_0 // pay
     itxn_field TypeEnum
     intc_1 // 0
     itxn_field Fee
-    // smart_contracts/asa_metadata_registry/contract.py:1215-1218
+    // smart_contracts/asa_metadata_registry/contract.py:1277-1280
     // itxn.Payment(
     //     receiver=Global.creator_address,
     //     amount=excess_balance,
     // ).submit()
     itxn_submit
-    // smart_contracts/asa_metadata_registry/contract.py:1203
+    // smart_contracts/asa_metadata_registry/contract.py:1265
     // @arc4.abimethod
     intc_0 // 1
     return
@@ -3175,7 +3283,7 @@ _set_metadata_payload_bool_merge@14:
     // smart_contracts/asa_metadata_registry/contract.py:188-191
     // self._is_registry_call(txn)
     // and txn.app_args(const.ARC4_ARG_METHOD_SELECTOR)
-    // == arc4.arc4_signature(AsaMetadataRegistryInterface.arc89_extra_payload)
+    // == arc4.arc4_signature(Arc89Interface.arc89_extra_payload)
     // and txn.app_args(const.ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID) == op.itob(asa.id)
     bz _set_metadata_payload_bool_false@18
     // smart_contracts/asa_metadata_registry/contract.py:189
@@ -3184,16 +3292,16 @@ _set_metadata_payload_bool_merge@14:
     intc_1 // 0
     gtxnsas ApplicationArgs
     // smart_contracts/asa_metadata_registry/contract.py:190
-    // == arc4.arc4_signature(AsaMetadataRegistryInterface.arc89_extra_payload)
+    // == arc4.arc4_signature(Arc89Interface.arc89_extra_payload)
     bytec_3 // method "arc89_extra_payload(uint64,byte[])void"
     // smart_contracts/asa_metadata_registry/contract.py:189-190
     // and txn.app_args(const.ARC4_ARG_METHOD_SELECTOR)
-    // == arc4.arc4_signature(AsaMetadataRegistryInterface.arc89_extra_payload)
+    // == arc4.arc4_signature(Arc89Interface.arc89_extra_payload)
     ==
     // smart_contracts/asa_metadata_registry/contract.py:188-191
     // self._is_registry_call(txn)
     // and txn.app_args(const.ARC4_ARG_METHOD_SELECTOR)
-    // == arc4.arc4_signature(AsaMetadataRegistryInterface.arc89_extra_payload)
+    // == arc4.arc4_signature(Arc89Interface.arc89_extra_payload)
     // and txn.app_args(const.ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID) == op.itob(asa.id)
     bz _set_metadata_payload_bool_false@18
     // smart_contracts/asa_metadata_registry/contract.py:191
@@ -3206,7 +3314,7 @@ _set_metadata_payload_bool_merge@14:
     // smart_contracts/asa_metadata_registry/contract.py:188-191
     // self._is_registry_call(txn)
     // and txn.app_args(const.ARC4_ARG_METHOD_SELECTOR)
-    // == arc4.arc4_signature(AsaMetadataRegistryInterface.arc89_extra_payload)
+    // == arc4.arc4_signature(Arc89Interface.arc89_extra_payload)
     // and txn.app_args(const.ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID) == op.itob(asa.id)
     bz _set_metadata_payload_bool_false@18
     intc_0 // 1
