@@ -31,10 +31,10 @@ from . import constants as const
 from . import enums as enums
 from . import errors as err
 from . import flags as flg
-from .interface import AsaMetadataRegistryInterface
+from .arc89_interface import Arc89Interface
 
 
-class AsaMetadataRegistry(AsaMetadataRegistryInterface, AsaValidation):
+class AsaMetadataRegistry(Arc89Interface, AsaValidation):
     """
     Singleton Application providing ASA metadata via Algod API and AVM
     """
@@ -187,7 +187,7 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface, AsaValidation):
         return (
             self._is_registry_call(txn)
             and txn.app_args(const.ARC4_ARG_METHOD_SELECTOR)
-            == arc4.arc4_signature(AsaMetadataRegistryInterface.arc89_extra_payload)
+            == arc4.arc4_signature(Arc89Interface.arc89_extra_payload)
             and txn.app_args(const.ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID) == op.itob(asa.id)
         )
 
@@ -1117,19 +1117,25 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface, AsaValidation):
         key: arc4.String,
     ) -> arc4.String:
         """
-        Return the UTF 8 string value for a top level JSON key from short Metadata for an ASA;
-        errors if the key is not a string or does not exist
+        Return the UTF-8 string value for a top-level JSON key of type JSON String
+        from short Metadata for an ASA; errors if the key does not exists or is not
+        a JSON String
 
         Args:
             asset_id: The Asset ID to get the key value for
             key: The top level JSON key whose string value to fetch
 
         Returns:
-            The string value from valid UTF 8 JSON Metadata (size limited to PAGE_SIZE)
+            The string value from valid UTF-8 JSON Metadata (size limited to PAGE_SIZE)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
+        # Fetch key's value
+        # ⚠️ WARNING: The following conditions cause AVM runtime error:
+        # - The short Metadata is not a valid UTF-8 encoded JSON object
+        # - The top-level key does not exist
+        # - The top-level key's value is not a JSON String
         obj = self._get_short_metadata(asset_id)
         value = op.JsonRef.json_string(obj, key.native.bytes)
 
@@ -1146,19 +1152,25 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface, AsaValidation):
         key: arc4.String,
     ) -> arc4.UInt64:
         """
-        Return the uint64 value for a top level JSON key from short Metadata for an ASA;
-        errors if the key is not an uint64 or does not exist
+        Return the uint64 value for a top-level JSON key of type JSON Uint64 from
+        short Metadata for an ASA; errors if the key does not exist or is not a JSON
+        Uint64
 
         Args:
             asset_id: The Asset ID to get the key value for
             key: The top level JSON key whose uint64 value to fetch
 
         Returns:
-            The uint64 value from valid UTF 8 JSON Metadata
+            The uint64 value from valid UTF-8 JSON Metadata
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
+        # Fetch key's value
+        # ⚠️ WARNING: The following conditions cause AVM runtime error:
+        # - The short Metadata is not a valid UTF-8 encoded JSON object
+        # - The top-level key does not exist
+        # - The top-level key's value is not a JSON Uint64
         obj = self._get_short_metadata(asset_id)
         value = op.JsonRef.json_uint64(obj, key.native.bytes)
 
@@ -1172,19 +1184,25 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface, AsaValidation):
         key: arc4.String,
     ) -> arc4.String:
         """
-        Return the UTF 8 object value for a top level JSON key from short Metadata for an ASA;
-        errors if the key is not an object or does not exist
+        Return the UTF-8 object value for a top-level JSON key of type JSON Object
+        from short Metadata for an ASA; errors if the key does not exist or is not
+        a JSON Object
 
         Args:
             asset_id: The Asset ID to get the key value for
             key: The top level JSON key whose object value to fetch
 
         Returns:
-            The object value from valid UTF 8 JSON Metadata (size limited to PAGE_SIZE)
+            The object value from valid UTF-8 JSON Metadata (size limited to PAGE_SIZE)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
+        # Fetch key's value
+        # ⚠️ WARNING: The following conditions cause AVM runtime error:
+        # - The short Metadata is not a valid UTF-8 encoded JSON object
+        # - The top-level key does not exist
+        # - The top-level key's value is not a JSON Object
         obj = self._get_short_metadata(asset_id)
         value = op.JsonRef.json_object(obj, key.native.bytes)
 
@@ -1192,6 +1210,50 @@ class AsaMetadataRegistry(AsaMetadataRegistryInterface, AsaValidation):
         assert value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
 
         return arc4.String.from_bytes(value)
+
+    @arc4.abimethod(readonly=True)
+    def arc89_get_metadata_b64_bytes_by_key(
+        self, *, asset_id: Asset, key: arc4.String, b64_encoding: arc4.UInt8
+    ) -> arc4.DynamicBytes:
+        """
+        Return the base64-decoded bytes for a top-level JSON key of type JSON String
+        from short Metadata for an ASA; errors if the key does not exist, is not
+        a JSON String, or is not valid base64 for the chosen encoding
+
+        Args:
+            asset_id: The Asset ID to get the key value for
+            key: The top-level JSON key whose base64 string value to fetch and decode
+            b64_encoding: base64 encoding enum: 0 = URLEncoding, 1 = StdEncoding
+
+        Returns:
+            The b64 decoded bytes from valid UTF-8 JSON Metadata (size limited to PAGE_SIZE)
+        """
+        # Preconditions
+        self._check_existence_preconditions(asset_id)
+        assert (
+            b64_encoding.as_uint64() <= enums.B64_STD_ENCODING
+        ), err.B64_ENCODING_INVALID
+
+        # Fetch key's value
+        # ⚠️ WARNING: The following conditions cause AVM runtime error:
+        # - The short Metadata is not a valid UTF-8 encoded JSON object
+        # - The top-level key does not exist
+        # - The top-level key's value is not a JSON String
+        obj = self._get_short_metadata(asset_id)
+        value = op.JsonRef.json_string(obj, key.native.bytes)
+
+        # Decode value
+        # ⚠️ WARNING: The following conditions cause AVM runtime error:
+        # - The top-level key's value is not a valid base64-encoding for the chosen encoding.
+        if b64_encoding.as_uint64() == enums.B64_URL_ENCODING:
+            decoded_value = op.base64_decode(op.Base64.URLEncoding, value)
+        else:
+            decoded_value = op.base64_decode(op.Base64.StdEncoding, value)
+
+        # Postconditions
+        assert decoded_value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
+
+        return arc4.DynamicBytes.from_bytes(decoded_value)
 
     @arc4.abimethod
     def extra_resources(self) -> None:
