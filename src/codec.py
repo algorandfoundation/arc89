@@ -280,7 +280,7 @@ class Arc90Uri:
         else:
             try:
                 box_name = b64url_decode(box_value)
-            except binascii.Error as e:
+            except (binascii.Error, ValueError, UnicodeDecodeError) as e:
                 raise InvalidArc90UriError("Invalid base64url box name") from e
             if len(box_name) != const.ASSET_METADATA_BOX_KEY_SIZE:
                 raise InvalidArc90UriError(
