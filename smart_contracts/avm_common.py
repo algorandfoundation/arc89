@@ -63,15 +63,15 @@ def arc90_box_query(app: Application, box_name: Bytes) -> Bytes:
         arc90_netauth = Bytes()
     else:
         arc90_netauth = (
-            Bytes(ARC90_URI_NETAUTH_PREFIX)
+            ARC90_URI_NETAUTH_PREFIX
             + TemplateVar[Bytes](ARC90_NETAUTH)
-            + Bytes(ARC90_URI_PATH_SEP)
+            + ARC90_URI_PATH_SEP
         )
     return (
-        Bytes(ARC90_URI_SCHEME)
+        ARC90_URI_SCHEME
         + arc90_netauth
-        + Bytes(ARC90_URI_APP_PATH)
+        + ARC90_URI_APP_PATH
         + itoa(app.id)
-        + Bytes(ARC90_URI_BOX_QUERY)
+        + ARC90_URI_BOX_QUERY
         + box_name
     )
