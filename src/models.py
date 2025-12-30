@@ -520,7 +520,7 @@ class MetadataBody:
     def is_empty(self) -> bool:
         return self.size == 0
 
-    @cached_property
+    @property
     def json(self) -> dict[str, object]:
         """Decode metadata bytes to JSON object."""
         return decode_metadata_json(self.raw_bytes)
