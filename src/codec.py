@@ -25,7 +25,9 @@ def box_name_to_asset_id(box_name: bytes) -> int:
     Convert an ARC-89 box key (8-byte big-endian) into an Asset ID (uint64).
     """
     if len(box_name) != const.ASSET_METADATA_BOX_KEY_SIZE:
-        raise ValueError(f"box_name must be {const.ASSET_METADATA_BOX_KEY_SIZE} bytes")
+        raise ValueError(
+            f"box_name must be {const.ASSET_METADATA_BOX_KEY_SIZE} bytes, got {len(box_name)}"
+        )
     return int.from_bytes(box_name, "big", signed=False)
 
 
