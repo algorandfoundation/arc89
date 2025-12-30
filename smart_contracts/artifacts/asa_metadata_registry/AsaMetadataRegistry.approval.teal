@@ -160,20 +160,20 @@ arc90_box_query:
 
 arc90_box_query_after_if_else@3:
     // smart_contracts/avm_common.py:71
-    // Bytes(ARC90_URI_SCHEME)
+    // ARC90_URI_SCHEME
     pushbytes 0x616c676f72616e643a2f2f
     // smart_contracts/avm_common.py:71-72
-    // Bytes(ARC90_URI_SCHEME)
+    // ARC90_URI_SCHEME
     // + arc90_netauth
     swap
     concat
     // smart_contracts/avm_common.py:73
-    // + Bytes(ARC90_URI_APP_PATH)
+    // + ARC90_URI_APP_PATH
     pushbytes 0x6170702f
     // smart_contracts/avm_common.py:71-73
-    // Bytes(ARC90_URI_SCHEME)
+    // ARC90_URI_SCHEME
     // + arc90_netauth
-    // + Bytes(ARC90_URI_APP_PATH)
+    // + ARC90_URI_APP_PATH
     concat
     frame_bury 1
     // smart_contracts/avm_common.py:38
@@ -246,39 +246,39 @@ arc90_box_query_after_while@7:
     cover 2
     select
     // smart_contracts/avm_common.py:71-74
-    // Bytes(ARC90_URI_SCHEME)
+    // ARC90_URI_SCHEME
     // + arc90_netauth
-    // + Bytes(ARC90_URI_APP_PATH)
+    // + ARC90_URI_APP_PATH
     // + itoa(app.id)
     frame_dig 1
     swap
     concat
     // smart_contracts/avm_common.py:75
-    // + Bytes(ARC90_URI_BOX_QUERY)
+    // + ARC90_URI_BOX_QUERY
     pushbytes 0x3f626f783d
     // smart_contracts/avm_common.py:71-75
-    // Bytes(ARC90_URI_SCHEME)
+    // ARC90_URI_SCHEME
     // + arc90_netauth
-    // + Bytes(ARC90_URI_APP_PATH)
+    // + ARC90_URI_APP_PATH
     // + itoa(app.id)
-    // + Bytes(ARC90_URI_BOX_QUERY)
+    // + ARC90_URI_BOX_QUERY
     concat
     // smart_contracts/avm_common.py:71-76
-    // Bytes(ARC90_URI_SCHEME)
+    // ARC90_URI_SCHEME
     // + arc90_netauth
-    // + Bytes(ARC90_URI_APP_PATH)
+    // + ARC90_URI_APP_PATH
     // + itoa(app.id)
-    // + Bytes(ARC90_URI_BOX_QUERY)
+    // + ARC90_URI_BOX_QUERY
     // + box_name
     frame_dig -1
     concat
     // smart_contracts/avm_common.py:70-77
     // return (
-    //     Bytes(ARC90_URI_SCHEME)
+    //     ARC90_URI_SCHEME
     //     + arc90_netauth
-    //     + Bytes(ARC90_URI_APP_PATH)
+    //     + ARC90_URI_APP_PATH
     //     + itoa(app.id)
-    //     + Bytes(ARC90_URI_BOX_QUERY)
+    //     + ARC90_URI_BOX_QUERY
     //     + box_name
     // )
     frame_bury 0
@@ -286,22 +286,22 @@ arc90_box_query_after_while@7:
 
 arc90_box_query_else_body@2:
     // smart_contracts/avm_common.py:66
-    // Bytes(ARC90_URI_NETAUTH_PREFIX)
+    // ARC90_URI_NETAUTH_PREFIX
     pushbytes 0x6e65743a
     // smart_contracts/avm_common.py:67
     // + TemplateVar[Bytes](ARC90_NETAUTH)
     bytec 7 // TMPL_ARC90_NETAUTH
     // smart_contracts/avm_common.py:66-67
-    // Bytes(ARC90_URI_NETAUTH_PREFIX)
+    // ARC90_URI_NETAUTH_PREFIX
     // + TemplateVar[Bytes](ARC90_NETAUTH)
     concat
     // smart_contracts/avm_common.py:68
-    // + Bytes(ARC90_URI_PATH_SEP)
+    // + ARC90_URI_PATH_SEP
     pushbytes 0x2f
     // smart_contracts/avm_common.py:66-68
-    // Bytes(ARC90_URI_NETAUTH_PREFIX)
+    // ARC90_URI_NETAUTH_PREFIX
     // + TemplateVar[Bytes](ARC90_NETAUTH)
-    // + Bytes(ARC90_URI_PATH_SEP)
+    // + ARC90_URI_PATH_SEP
     concat
     b arc90_box_query_after_if_else@3
 
