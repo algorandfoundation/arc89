@@ -597,9 +597,12 @@ class PaginatedMetadata:
                 "Expected (has_next_page, last_modified_round, page_content)"
             )
         v0, v1, v2 = value[0], value[1], value[2]
-        assert isinstance(v0, bool), "has_next_page must be bool"
-        assert isinstance(v1, int), "last_modified_round must be int"
-        assert isinstance(v2, bytes), "page_content must be bytes"
+        if not isinstance(v0, bool):
+            raise TypeError("has_next_page must be bool")
+        if not isinstance(v1, int):
+            raise TypeError("last_modified_round must be int")
+        if not isinstance(v2, bytes):
+            raise TypeError("page_content must be bytes")
         return PaginatedMetadata(
             has_next_page=v0,
             last_modified_round=v1,
