@@ -1118,7 +1118,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
     ) -> arc4.String:
         """
         Return the UTF-8 string value for a top-level JSON key of type JSON String
-        from short Metadata for an ASA; errors if the key does not exists or is not
+        from short Metadata for an ASA; errors if the key does not exist or is not
         a JSON String
 
         Args:
@@ -1226,7 +1226,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             b64_encoding: base64 encoding enum: 0 = URLEncoding, 1 = StdEncoding
 
         Returns:
-            The b64 decoded bytes from valid UTF-8 JSON Metadata (size limited to PAGE_SIZE)
+            The base64-decoded bytes from valid UTF-8 JSON Metadata (size limited to PAGE_SIZE)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
@@ -1244,7 +1244,8 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
         # Decode value
         # ⚠️ WARNING: The following conditions cause AVM runtime error:
-        # - The top-level key's value is not a valid base64-encoding for the chosen encoding.
+        # - The top-level key's value is not a valid base64-encoding string for
+        # the chosen encoding.
         if b64_encoding.as_uint64() == enums.B64_URL_ENCODING:
             decoded_value = op.base64_decode(op.Base64.URLEncoding, value)
         else:
