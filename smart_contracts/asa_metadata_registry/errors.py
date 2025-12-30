@@ -36,6 +36,8 @@ IMMUTABLE = "Metadata is immutable"
 FLAG_IDX_INVALID = "Invalid flag index"
 PAGE_IDX_INVALID = "Invalid page index"
 
+B64_ENCODING_INVALID = "Invalid base64 encoding, must be 0 (URL safe) or 1 (Std)"
+
 NEW_REGISTRY_ID_INVALID = (
     "Invalid new ASA Metadata Registry ID, must be different from current"
 )
