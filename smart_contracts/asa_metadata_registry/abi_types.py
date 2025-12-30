@@ -1,13 +1,13 @@
 from typing import Literal, TypeAlias
 
-from algopy import UInt64, arc4
+from algopy import Bytes, FixedBytes, UInt64, arc4
 
 # Type Aliases
 MicroAlgo: TypeAlias = UInt64
+Timestamp: TypeAlias = UInt64
 
 # ARC-4 Types
-Hash = arc4.StaticArray[arc4.Byte, Literal[32]]
-Timestamp = arc4.UIntN[Literal[64]]
+Hash = FixedBytes[Literal[32]]
 
 
 class MetadataHeader(arc4.Struct, kw_only=True):
@@ -17,8 +17,8 @@ class MetadataHeader(arc4.Struct, kw_only=True):
     reversible_flags: arc4.Byte
     irreversible_flags: arc4.Byte
     hash: Hash
-    last_modified_round: arc4.UInt64
-    deprecated_by: arc4.UInt64
+    last_modified_round: UInt64
+    deprecated_by: UInt64
 
 
 class MbrDelta(arc4.Struct, kw_only=True):
@@ -28,21 +28,21 @@ class MbrDelta(arc4.Struct, kw_only=True):
     """
 
     sign: arc4.UInt8  # Enum: null (0), positive (1), or negative (255)
-    amount: arc4.UInt64  # MBR amount expressed in microALGO
+    amount: MicroAlgo  # MBR amount expressed in microALGO
 
 
 class MutableFlag(arc4.Struct, kw_only=True):
     """Mutable Metadata Identifier or Flag"""
 
-    flag: arc4.Bool
-    last_modified_round: arc4.UInt64
+    flag: bool
+    last_modified_round: UInt64
 
 
 class MetadataExistence(arc4.Struct, kw_only=True):
     """Metadata Existence"""
 
-    asa_exists: arc4.Bool
-    metadata_exists: arc4.Bool
+    asa_exists: bool
+    metadata_exists: bool
 
 
 class Pagination(arc4.Struct, kw_only=True):
@@ -56,9 +56,9 @@ class Pagination(arc4.Struct, kw_only=True):
 class PaginatedMetadata(arc4.Struct, kw_only=True):
     """Paginated Asset Metadata"""
 
-    has_next_page: arc4.Bool
-    last_modified_round: arc4.UInt64
-    page_content: arc4.DynamicBytes
+    has_next_page: bool
+    last_modified_round: UInt64
+    page_content: Bytes
 
 
 class RegistryParameters(arc4.Struct, kw_only=True):
@@ -71,35 +71,35 @@ class RegistryParameters(arc4.Struct, kw_only=True):
     first_payload_max_size: arc4.UInt16
     extra_payload_max_size: arc4.UInt16
     replace_payload_max_size: arc4.UInt16
-    flat_mbr: arc4.UInt64
-    byte_mbr: arc4.UInt64
+    flat_mbr: UInt64
+    byte_mbr: UInt64
 
 
 # ARC-28 Events
 class Arc89MetadataUpdated(arc4.Struct, kw_only=True):
     """Event emitted when Asset Metadata is created or updated"""
 
-    asset_id: arc4.UInt64
-    round: arc4.UInt64
+    asset_id: UInt64
+    round: UInt64
     timestamp: Timestamp
     reversible_flags: arc4.Byte
     irreversible_flags: arc4.Byte
-    is_short: arc4.Bool
+    is_short: bool
     hash: Hash
 
 
 class Arc89MetadataMigrated(arc4.Struct, kw_only=True):
     """Event emitted when Asset Metadata has been migrated to a new ASA Metadata Registry version"""
 
-    asset_id: arc4.UInt64
-    new_registry_id: arc4.UInt64
-    round: arc4.UInt64
+    asset_id: UInt64
+    new_registry_id: UInt64
+    round: UInt64
     timestamp: Timestamp
 
 
 class Arc89MetadataDeleted(arc4.Struct, kw_only=True):
     """Event emitted when Asset Metadata is deleted"""
 
-    asset_id: arc4.UInt64
-    round: arc4.UInt64
+    asset_id: UInt64
+    round: UInt64
     timestamp: Timestamp

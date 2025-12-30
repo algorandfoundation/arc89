@@ -345,14 +345,14 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
     def _emit_updated_event(self, asa: Asset, metadata_hash: Bytes) -> None:
         arc4.emit(
             abi.Arc89MetadataUpdated(
-                asset_id=arc4.UInt64(asa.id),
-                round=arc4.UInt64(Global.round),
-                timestamp=arc4.UInt64(Global.latest_timestamp),
+                asset_id=asa.id,
+                round=Global.round,
+                timestamp=Global.latest_timestamp,
                 reversible_flags=arc4.Byte(op.btoi(self._get_reversible_flags(asa))),
                 irreversible_flags=arc4.Byte(
                     op.btoi(self._get_irreversible_flags(asa))
                 ),
-                is_short=arc4.Bool(self._is_short(asa)),
+                is_short=self._is_short(asa),
                 hash=abi.Hash.from_bytes(metadata_hash),
             )
         )
@@ -383,7 +383,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         reversible_flags: arc4.Byte,
         irreversible_flags: arc4.Byte,
         metadata_size: arc4.UInt16,
-        payload: arc4.DynamicBytes,
+        payload: Bytes,
         mbr_delta_payment: gtxn.PaymentTransaction,
     ) -> abi.MbrDelta:
         """
@@ -413,9 +413,9 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         _exists = self.asset_metadata.box(asset_id).create(size=UInt64(0))
 
         # Set Metadata Body
-        if payload.native.length > 0:
+        if payload.length > 0:
             ensure_budget(required_budget=const.APP_CALL_OP_BUDGET)
-        self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload.native)
+        self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload)
 
         # Update Metadata Header
         self._identify_metadata(asset_id)
@@ -456,7 +456,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         ), err.MBR_DELTA_AMOUNT_INVALID
 
         return abi.MbrDelta(
-            sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
+            sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=mbr_delta_amount
         )
 
     @arc4.abimethod
@@ -465,7 +465,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         *,
         asset_id: Asset,
         metadata_size: arc4.UInt16,
-        payload: arc4.DynamicBytes,
+        payload: Bytes,
     ) -> abi.MbrDelta:
         """
         Replace mutable Metadata with a smaller or equal size payload for an existing ASA,
@@ -488,7 +488,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
         # Update Metadata Body
         mbr_i = Global.current_application_address.min_balance
-        self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload.native)
+        self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload)
 
         # Update Metadata Header
         self._update_header_excluding_flags_and_emit(asset_id)
@@ -499,7 +499,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         ), err.METADATA_SIZE_MISMATCH
 
         mbr_delta_amount = mbr_i - Global.current_application_address.min_balance
-        if mbr_delta_amount == 0:
+        if mbr_delta_amount == UInt64(0):
             sign = UInt64(enums.MBR_DELTA_NULL)
         else:
             sign = UInt64(enums.MBR_DELTA_NEG)
@@ -508,7 +508,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
                 amount=mbr_delta_amount,
             ).submit()
 
-        return abi.MbrDelta(sign=arc4.UInt8(sign), amount=arc4.UInt64(mbr_delta_amount))
+        return abi.MbrDelta(sign=arc4.UInt8(sign), amount=mbr_delta_amount)
 
     @arc4.abimethod
     def arc89_replace_metadata_larger(
@@ -516,7 +516,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         *,
         asset_id: Asset,
         metadata_size: arc4.UInt16,
-        payload: arc4.DynamicBytes,
+        payload: Bytes,
         mbr_delta_payment: gtxn.PaymentTransaction,
     ) -> abi.MbrDelta:
         """
@@ -544,7 +544,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
         # Update Metadata Body
         mbr_i = Global.current_application_address.min_balance
-        self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload.native)
+        self._set_metadata_payload(asset_id, metadata_size.as_uint64(), payload)
 
         # Update Metadata Header
         self._update_header_excluding_flags_and_emit(asset_id)
@@ -560,7 +560,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         ), err.MBR_DELTA_AMOUNT_INVALID
 
         return abi.MbrDelta(
-            sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=arc4.UInt64(mbr_delta_amount)
+            sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=mbr_delta_amount
         )
 
     @arc4.abimethod
@@ -569,7 +569,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         *,
         asset_id: Asset,
         offset: arc4.UInt16,
-        payload: arc4.DynamicBytes,
+        payload: Bytes,
     ) -> None:
         """
         Replace a slice of the Asset Metadata for an ASA with a payload of the same size,
@@ -582,19 +582,17 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         """
         # Preconditions
         self._check_update_preconditions(asset_id, self._get_metadata_size(asset_id))
-        assert offset.as_uint64() + payload.native.length <= self._get_metadata_size(
+        assert offset.as_uint64() + payload.length <= self._get_metadata_size(
             asset_id
         ), err.EXCEEDS_METADATA_SIZE
 
         # Handle Not Idempotent
-        existing_slice = self._get_slice(
-            asset_id, offset.as_uint64(), payload.native.length
-        )
-        if payload.native != existing_slice:
+        existing_slice = self._get_slice(asset_id, offset.as_uint64(), payload.length)
+        if payload != existing_slice:
             # Update Metadata Body
             self.asset_metadata.box(asset_id).replace(
                 start_index=const.IDX_METADATA + offset.as_uint64(),
-                value=payload.native,
+                value=payload,
             )
 
             # Update Metadata Header
@@ -605,7 +603,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self,
         *,
         asset_id: Asset,
-        new_registry_id: arc4.UInt64,
+        new_registry_id: UInt64,
     ) -> None:
         """
         Migrate the Asset Metadata for an ASA to a new ASA Metadata Registry version,
@@ -618,18 +616,18 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         # Preconditions
         self._check_set_flag_preconditions(asset_id)
         assert (
-            new_registry_id.as_uint64() != Global.current_application_id.id
+            new_registry_id != Global.current_application_id.id
         ), err.NEW_REGISTRY_ID_INVALID
 
         # Update Deprecated By
-        self._set_deprecated_by(asset_id, new_registry_id.as_uint64())
+        self._set_deprecated_by(asset_id, new_registry_id)
 
         arc4.emit(
             abi.Arc89MetadataMigrated(
-                asset_id=arc4.UInt64(asset_id.id),
-                round=arc4.UInt64(Global.round),
-                timestamp=arc4.UInt64(Global.latest_timestamp),
-                new_registry_id=arc4.UInt64(self._get_deprecated_by(asset_id)),
+                asset_id=asset_id.id,
+                round=Global.round,
+                timestamp=Global.latest_timestamp,
+                new_registry_id=self._get_deprecated_by(asset_id),
             )
         )
 
@@ -665,14 +663,14 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
         arc4.emit(
             abi.Arc89MetadataDeleted(
-                asset_id=arc4.UInt64(asset_id.id),
-                round=arc4.UInt64(Global.round),
-                timestamp=arc4.UInt64(Global.latest_timestamp),
+                asset_id=asset_id.id,
+                round=Global.round,
+                timestamp=Global.latest_timestamp,
             )
         )
 
         return abi.MbrDelta(
-            sign=arc4.UInt8(enums.MBR_DELTA_NEG), amount=arc4.UInt64(mbr_delta_amount)
+            sign=arc4.UInt8(enums.MBR_DELTA_NEG), amount=mbr_delta_amount
         )
 
     @arc4.abimethod
@@ -680,7 +678,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self,
         *,
         asset_id: Asset,
-        payload: arc4.DynamicBytes,
+        payload: Bytes,
     ) -> None:
         """
         Concatenate extra payload to Asset Metadata head call methods (creation or replacement).
@@ -701,7 +699,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         *,
         asset_id: Asset,
         flag: arc4.UInt8,
-        value: arc4.Bool,
+        value: bool,
     ) -> None:
         """
         Set a reversible Asset Metadata Flag, restricted to the ASA Manager Address
@@ -717,11 +715,9 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
         # Handle Not Idempotent
         existing_value = self._get_reversible_flag_value(asset_id, flag.as_uint64())
-        if value.native != existing_value:
+        if value != existing_value:
             # Set Reversible Flag
-            self._set_reversible_flag_value(
-                asset_id, flag.as_uint64(), value=value.native
-            )
+            self._set_reversible_flag_value(asset_id, flag.as_uint64(), value=value)
 
             # Update Metadata Header
             self._update_header_excluding_flags_and_emit(asset_id)
@@ -793,8 +789,8 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             first_payload_max_size=arc4.UInt16(const.FIRST_PAYLOAD_MAX_SIZE),
             extra_payload_max_size=arc4.UInt16(const.EXTRA_PAYLOAD_MAX_SIZE),
             replace_payload_max_size=arc4.UInt16(const.REPLACE_PAYLOAD_MAX_SIZE),
-            flat_mbr=arc4.UInt64(const.FLAT_MBR),
-            byte_mbr=arc4.UInt64(const.BYTE_MBR),
+            flat_mbr=UInt64(const.FLAT_MBR),
+            byte_mbr=UInt64(const.BYTE_MBR),
         )
 
     @arc4.abimethod(readonly=True)
@@ -855,7 +851,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
         delta_amount = flat_mbr + const.BYTE_MBR * delta_size
 
-        return abi.MbrDelta(sign=arc4.UInt8(sign), amount=arc4.UInt64(delta_amount))
+        return abi.MbrDelta(sign=arc4.UInt8(sign), amount=delta_amount)
 
     @arc4.abimethod(readonly=True)
     def arc89_check_metadata_exists(
@@ -873,8 +869,8 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             Tuple of (ASA exists, Asset Metadata exists)
         """
         return abi.MetadataExistence(
-            asa_exists=arc4.Bool(self._asa_exists(asset_id)),
-            metadata_exists=arc4.Bool(self._metadata_exists(asset_id)),
+            asa_exists=self._asa_exists(asset_id),
+            metadata_exists=self._metadata_exists(asset_id),
         )
 
     @arc4.abimethod(readonly=True)
@@ -882,7 +878,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self,
         *,
         asset_id: Asset,
-    ) -> arc4.Bool:
+    ) -> bool:
         """
         Return True if the Asset Metadata for an ASA is immutable, False otherwise.
 
@@ -895,9 +891,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
-        return arc4.Bool(
-            self._is_immutable(asset_id) or asset_id.manager == Global.zero_address
-        )
+        return self._is_immutable(asset_id) or asset_id.manager == Global.zero_address
 
     @arc4.abimethod(readonly=True)
     def arc89_is_metadata_short(
@@ -918,8 +912,8 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self._check_existence_preconditions(asset_id)
 
         return abi.MutableFlag(
-            flag=arc4.Bool(self._is_short(asset_id)),
-            last_modified_round=arc4.UInt64(self._get_last_modified_round(asset_id)),
+            flag=self._is_short(asset_id),
+            last_modified_round=self._get_last_modified_round(asset_id),
         )
 
     @arc4.abimethod(readonly=True)
@@ -948,8 +942,8 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
                 self._get_irreversible_flags(asset_id)
             ),
             hash=abi.Hash.from_bytes(self._get_metadata_hash(asset_id)),
-            last_modified_round=arc4.UInt64(self._get_last_modified_round(asset_id)),
-            deprecated_by=arc4.UInt64(self._get_deprecated_by(asset_id)),
+            last_modified_round=self._get_last_modified_round(asset_id),
+            deprecated_by=self._get_deprecated_by(asset_id),
         )
 
     @arc4.abimethod(readonly=True)
@@ -1005,9 +999,9 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             page_content = Bytes()
 
         return abi.PaginatedMetadata(
-            has_next_page=arc4.Bool(has_next_page),
-            last_modified_round=arc4.UInt64(self._get_last_modified_round(asset_id)),
-            page_content=arc4.DynamicBytes(page_content),
+            has_next_page=has_next_page,
+            last_modified_round=self._get_last_modified_round(asset_id),
+            page_content=page_content,
         )
 
     @arc4.abimethod(readonly=True)
@@ -1115,7 +1109,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self,
         *,
         asset_id: Asset,
-        key: arc4.String,
+        key: String,
     ) -> String:
         """
         Return the UTF-8 string value for a top-level JSON key of type JSON String
@@ -1138,7 +1132,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         # - The top-level key does not exist
         # - The top-level key's value is not a JSON String
         obj = self._get_short_metadata(asset_id)
-        value = op.JsonRef.json_string(obj, key.native.bytes)
+        value = op.JsonRef.json_string(obj, key.bytes)
 
         # Postconditions
         assert value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
@@ -1150,8 +1144,8 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self,
         *,
         asset_id: Asset,
-        key: arc4.String,
-    ) -> arc4.UInt64:
+        key: String,
+    ) -> UInt64:
         """
         Return the uint64 value for a top-level JSON key of type JSON Uint64 from
         short Metadata for an ASA; errors if the key does not exist or is not a JSON
@@ -1173,16 +1167,16 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         # - The top-level key does not exist
         # - The top-level key's value is not a JSON Uint64
         obj = self._get_short_metadata(asset_id)
-        value = op.JsonRef.json_uint64(obj, key.native.bytes)
+        value = op.JsonRef.json_uint64(obj, key.bytes)
 
-        return arc4.UInt64(value)
+        return value
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_object_by_key(
         self,
         *,
         asset_id: Asset,
-        key: arc4.String,
+        key: String,
     ) -> String:
         """
         Return the UTF-8 object value for a top-level JSON key of type JSON Object
@@ -1205,7 +1199,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         # - The top-level key does not exist
         # - The top-level key's value is not a JSON Object
         obj = self._get_short_metadata(asset_id)
-        value = op.JsonRef.json_object(obj, key.native.bytes)
+        value = op.JsonRef.json_object(obj, key.bytes)
 
         # Postconditions
         assert value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
@@ -1214,7 +1208,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_b64_bytes_by_key(
-        self, *, asset_id: Asset, key: arc4.String, b64_encoding: arc4.UInt8
+        self, *, asset_id: Asset, key: String, b64_encoding: arc4.UInt8
     ) -> Bytes:
         """
         Return the base64-decoded bytes for a top-level JSON key of type JSON String
@@ -1241,7 +1235,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         # - The top-level key does not exist
         # - The top-level key's value is not a JSON String
         obj = self._get_short_metadata(asset_id)
-        value = op.JsonRef.json_string(obj, key.native.bytes)
+        value = op.JsonRef.json_string(obj, key.bytes)
 
         # Decode value
         # ⚠️ WARNING: The following conditions cause AVM runtime error:
