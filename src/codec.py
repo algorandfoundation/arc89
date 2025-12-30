@@ -66,7 +66,9 @@ def build_netauth_from_env(netauth_value: str) -> str:
         Full netauth string (e.g., "net:localnet", "net:testnet")
     """
     if const.ARC90_URI_NETAUTH_PREFIX.decode() in netauth_value:
-        raise ValueError("netauth_value must not contain 'net:' prefix")
+        raise ValueError(
+            f"netauth_value must not contain 'net:' prefix, got: {netauth_value}"
+        )
     return f"{const.ARC90_URI_NETAUTH_PREFIX.decode()}{netauth_value}"
 
 
