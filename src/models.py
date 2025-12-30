@@ -400,12 +400,18 @@ class MetadataHeader:
             value[4],
             value[5],
         )
-        assert isinstance(v0, int), "identifiers must be int"
-        assert isinstance(v1, int), "reversible_flags must be int"
-        assert isinstance(v2, int), "irreversible_flags must be int"
-        assert isinstance(v3, bytes), "metadata_hash must be bytes"
-        assert isinstance(v4, int), "last_modified_round must be int"
-        assert isinstance(v5, int), "deprecated_by must be int"
+        if not isinstance(v0, int):
+            raise TypeError("identifiers must be int")
+        if not isinstance(v1, int):
+            raise TypeError("reversible_flags must be int")
+        if not isinstance(v2, int):
+            raise TypeError("irreversible_flags must be int")
+        if not isinstance(v3, bytes):
+            raise TypeError("metadata_hash must be bytes")
+        if not isinstance(v4, int):
+            raise TypeError("last_modified_round must be int")
+        if not isinstance(v5, int):
+            raise TypeError("deprecated_by must be int")
         return MetadataHeader(
             identifiers=v0,
             flags=MetadataFlags.from_bytes(v1, v2),
