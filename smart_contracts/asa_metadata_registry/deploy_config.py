@@ -6,6 +6,7 @@ from typing import cast
 
 import algokit_utils
 
+from smart_contracts.constants import ACCOUNT_MBR, ARC3_URL_SUFFIX, UINT64_SIZE
 from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
 from tests.helpers.factories import (
     AssetMetadata,
@@ -13,8 +14,6 @@ from tests.helpers.factories import (
     compute_arc89_partial_uri,
 )
 from tests.helpers.utils import arc90_box_query, create_metadata
-
-from .constants import ACCOUNT_MBR, ARC3_URL_SUFFIX, UINT64_SIZE
 
 logger = logging.getLogger(__name__)
 

@@ -1,10 +1,10 @@
 import pytest
 
+from smart_contracts import constants as const
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
     Arc89GetMetadataPaginationArgs,
     AsaMetadataRegistryClient,
 )
-from smart_contracts.asa_metadata_registry import constants as const
 from tests.helpers.factories import AssetMetadata
 
 

@@ -27,8 +27,8 @@ from smart_contracts.avm_common import (
 )
 from smart_contracts.template_vars import TRUSTED_DEPLOYER
 
+from .. import constants as const
 from . import abi_types as abi
-from . import constants as const
 from . import enums as enums
 from . import errors as err
 from . import flags as flg

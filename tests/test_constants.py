@@ -1,6 +1,6 @@
 import math
 
-from smart_contracts.asa_metadata_registry import constants as const
+from smart_contracts import constants as const
 
 
 def test_constants() -> None:

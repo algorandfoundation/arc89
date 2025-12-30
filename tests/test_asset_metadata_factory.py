@@ -1,6 +1,6 @@
 """Tests for the AssetMetadata factory class."""
 
-from smart_contracts.asa_metadata_registry import constants as const
+from smart_contracts import constants as const
 from smart_contracts.asa_metadata_registry import enums
 from tests.helpers.factories import (
     AssetMetadata,

@@ -20,8 +20,8 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )
-from smart_contracts.asa_metadata_registry import constants as const
 from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
+from src import constants as const
 
 from .helpers.factories import AssetMetadata, compute_arc89_partial_uri
 from .helpers.utils import create_metadata, set_immutable
