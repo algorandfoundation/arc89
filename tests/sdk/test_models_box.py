@@ -101,6 +101,25 @@ class TestAssetMetadataBoxParse:
         assert box.header.last_modified_round == 12345
         assert box.header.deprecated_by == 67890
 
+    def test_parse_box_with_rounds_and_metadata(self) -> None:
+        """Test parsing box with round values AND metadata.
+
+        This test catches a bug where deprecated_by was parsed with value[43:]
+        instead of value[43:51], which would include metadata bytes when present.
+        """
+        metadata = b'{"name":"Test Asset"}'
+        box_value = self._create_minimal_box_value(
+            last_modified_round=12345,
+            deprecated_by=67890,
+            metadata=metadata,
+        )
+        box = AssetMetadataBox.parse(asset_id=222, value=box_value)
+
+        # These would fail with the buggy implementation that used value[43:]
+        assert box.header.last_modified_round == 12345
+        assert box.header.deprecated_by == 67890
+        assert box.body.raw_bytes == metadata
+
     def test_parse_box_with_custom_hash(self) -> None:
         """Test parsing box with custom metadata hash."""
         custom_hash = b"\xaa" * 32
