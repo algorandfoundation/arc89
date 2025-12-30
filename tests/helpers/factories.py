@@ -1,25 +1,12 @@
 """Factory helpers for creating test fixtures for ASA Metadata Registry tests."""
 
-import base64
-import binascii
-import hashlib
 import json
 from dataclasses import dataclass, field
 
 from algokit_utils import AlgoAmount
 
-from src import bitmasks, enums
+from src import bitmasks, enums, hashing
 from src import constants as const
-
-
-def sha512_256(preimage: bytes) -> bytes:
-    h = hashlib.new("sha512_256")
-    h.update(preimage)
-    return h.digest()
-
-
-def sha256(preimage: bytes) -> bytes:
-    return hashlib.sha256(preimage).digest()
 
 
 @dataclass
@@ -220,86 +207,30 @@ class AssetMetadata:
     # ==================== HASH COMPUTATION ====================
 
     def compute_header_hash(self) -> bytes:
-        """
-        Compute the Metadata Header Hash (hh) according to ARC-89.
-
-        Formula:
-        hh = SHA-512/256("arc0089/header" || Asset ID || Metadata Identifiers ||
-                         Reversible Flags || Irreversible Flags || Metadata Size)
-
-        Returns:
-            32-byte header hash
-        """
-        domain = const.HASH_DOMAIN_HEADER
-        asset_id_bytes = self.asset_id.to_bytes(const.UINT64_SIZE, "big")
-        identifiers = self.identifiers.to_bytes(const.BYTE_SIZE, "big")
-        rev_flags = self.reversible_flags.to_bytes(const.BYTE_SIZE, "big")
-        irr_flags = self.irreversible_flags.to_bytes(const.BYTE_SIZE, "big")
-        size = self.size.to_bytes(const.UINT16_SIZE, "big")
-
-        preimage = domain + asset_id_bytes + identifiers + rev_flags + irr_flags + size
-        return sha512_256(preimage)
+        return hashing.compute_header_hash(
+            asset_id=self.asset_id,
+            metadata_identifiers=self.identifiers,
+            reversible_flags=self.reversible_flags,
+            irreversible_flags=self.irreversible_flags,
+            metadata_size=self.size,
+        )
 
     def compute_page_hash(self, page_index: int) -> bytes:
-        """
-        Compute the Page Hash (ph[i]) for a specific page according to ARC-89.
-
-        Formula:
-        ph[i] = SHA-512/256("arc0089/page" || Asset ID || Page Index ||
-                            Page Size || Page Content)
-
-        Args:
-            page_index: 0-based page index
-
-        Returns:
-            32-byte page hash
-        """
-        if page_index >= self.total_pages:
-            raise ValueError(
-                f"Page index {page_index} out of range (total pages: {self.total_pages})"
-            )
-
-        domain = const.HASH_DOMAIN_PAGE
-        asset_id_bytes = self.asset_id.to_bytes(const.UINT64_SIZE, "big")
-        page_index_byte = page_index.to_bytes(const.UINT8_SIZE, "big")
-
-        # Get page content
-        start = page_index * const.PAGE_SIZE
-        end = min(start + const.PAGE_SIZE, self.size)
-        page_content = self.metadata_bytes[start:end]
-        page_size = len(page_content)
-        page_size_bytes = page_size.to_bytes(const.UINT16_SIZE, "big")
-
-        preimage = (
-            domain + asset_id_bytes + page_index_byte + page_size_bytes + page_content
+        return hashing.compute_page_hash(
+            asset_id=self.asset_id,
+            page_index=page_index,
+            page_content=self.get_page(page_index),
         )
-        return sha512_256(preimage)
 
     def compute_metadata_hash(self) -> bytes:
-        """
-        Compute the complete Asset Metadata Hash (am) according to ARC-89.
-
-        Formula:
-        - If total_pages > 0:
-          am = SHA-512/256("arc0089/am" || hh || ph[0] || ph[1] || ... || ph[n-1])
-        - If total_pages == 0:
-          am = SHA-512/256("arc0089/am" || hh)
-
-        Returns:
-            32-byte metadata hash
-        """
-        domain = const.HASH_DOMAIN_METADATA
-        hh = self.compute_header_hash()
-
-        # Start with domain and header hash
-        preimage = domain + hh
-
-        # Append all page hashes if pages exist
-        for i in range(self.total_pages):
-            ph = self.compute_page_hash(i)
-            preimage += ph
-
-        return sha512_256(preimage)
+        return hashing.compute_metadata_hash(
+            asset_id=self.asset_id,
+            metadata_identifiers=self.identifiers,
+            reversible_flags=self.reversible_flags,
+            irreversible_flags=self.irreversible_flags,
+            metadata=self.metadata_bytes,
+            page_size=const.PAGE_SIZE,
+        )
 
     def update_metadata_hash(self) -> None:
         """Recompute and update the stored metadata hash."""
@@ -599,28 +530,7 @@ def create_arc3_payload(
 
 
 def compute_arc3_metadata_hash(json_bytes: bytes) -> bytes:
-    try:
-        obj = json.loads(json_bytes.decode("utf-8"))
-    except UnicodeDecodeError as e:
-        raise ValueError("Metadata file must be UTF-8 encoded JSON.") from e
-    except json.JSONDecodeError as e:
-        raise ValueError("Invalid JSON metadata file.") from e
-
-    if isinstance(obj, dict) and "extra_metadata" in obj:
-        extra_b64 = obj.get("extra_metadata")
-        if not isinstance(extra_b64, str):
-            raise ValueError('"extra_metadata" must be a base64 string when present.')
-
-        try:
-            extra = base64.b64decode(extra_b64, validate=True)
-        except binascii.Error as e:
-            raise ValueError('Could not base64-decode "extra_metadata".') from e
-
-        json_h = sha512_256(const.ARC3_HASH_AMJ_PREFIX + json_bytes)
-        am = sha512_256(const.ARC3_HASH_AM_PREFIX + json_h + extra)
-        return am
-    else:
-        return sha256(json_bytes)
+    return hashing.compute_arc3_metadata_hash(json_bytes)
 
 
 def create_test_metadata(
