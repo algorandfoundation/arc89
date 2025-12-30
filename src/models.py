@@ -689,7 +689,7 @@ class AssetMetadataRecord:
     header: MetadataHeader
     body: MetadataBody
 
-    @cached_property
+    @property
     def json(self) -> dict[str, object]:
         return decode_metadata_json(self.body.raw_bytes)
 
