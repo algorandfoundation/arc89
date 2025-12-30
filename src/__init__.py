@@ -13,6 +13,7 @@ an AlgoKit-generated ARC-56 AppClient for simulation and write operations.
 from __future__ import annotations
 
 from smart_contracts import constants
+from smart_contracts.asa_metadata_registry import enums, flags
 
 from .deployments import (
     DEFAULT_DEPLOYMENTS,
@@ -48,4 +49,8 @@ __all__ = [
     "RegistryResolutionError",
     # Constants
     "constants",
+    # Enums
+    "enums",
+    # Flags
+    "flags",
 ]
