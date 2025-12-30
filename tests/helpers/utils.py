@@ -1,5 +1,3 @@
-import base64
-import os
 from collections.abc import Callable
 from typing import cast
 
@@ -27,8 +25,6 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
     AsaMetadataRegistryComposer,
     MbrDelta,
 )
-from smart_contracts.template_vars import ARC90_NETAUTH
-from src import constants as const
 from tests.helpers.factories import AssetMetadata
 
 
@@ -416,21 +412,3 @@ def set_immutable(
     if extra_count > 0:
         add_extra_resources(composer, extra_count)
     composer.send()
-
-
-def arc90_box_query(
-    algorand_client: AlgorandClient, app_id: int, box_name: bytes
-) -> str:
-    gh = algorand_client.get_suggested_params().gh
-    if gh == const.MAINNET_GH_B64:
-        arc90_netauth = ""
-    else:
-        arc90_netauth = os.environ[ARC90_NETAUTH]
-    return (
-        const.ARC90_URI_SCHEME.decode()
-        + arc90_netauth
-        + const.ARC90_URI_APP_PATH.decode()
-        + str(app_id)
-        + const.ARC90_URI_BOX_QUERY.decode()
-        + base64.urlsafe_b64encode(box_name).decode()
-    )
