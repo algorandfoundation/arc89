@@ -168,8 +168,10 @@ class RegistryParameters:
         delta = new_mbr - old_mbr
 
         if delete:
-            assert old_metadata_size is not None
-            assert new_metadata_size == 0
+            if old_metadata_size is None:
+                raise ValueError("old_metadata_size must be provided when delete=True")
+            if new_metadata_size != 0:
+                raise ValueError("new_metadata_size must be 0 when delete=True")
             delta = -self.mbr_for_box(old_metadata_size)
 
         if delta == 0:
