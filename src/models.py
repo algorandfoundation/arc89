@@ -448,8 +448,8 @@ def validate_arc3_schema(obj: Mapping[str, object]) -> None:
         "extra_metadata",
     }
 
-    # decimals can be either string or integer in ARC-3
-    # unitName can be either string
+    # Note: this implementation requires 'decimals' to be a non-negative integer
+    # and 'unitName' to be a string (see string_fields above).
 
     for key, value in obj.items():
         if key == "decimals":
