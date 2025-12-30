@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import binascii
 from dataclasses import dataclass
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
@@ -64,9 +65,8 @@ def build_netauth_from_env(netauth_value: str) -> str:
     Returns:
         Full netauth string (e.g., "net:localnet", "net:testnet")
     """
-    assert (
-        const.ARC90_URI_NETAUTH_PREFIX.decode() not in netauth_value
-    ), "netauth_value must not contain 'net:' prefix"
+    if const.ARC90_URI_NETAUTH_PREFIX.decode() in netauth_value:
+        raise ValueError("netauth_value must not contain 'net:' prefix")
     return f"{const.ARC90_URI_NETAUTH_PREFIX.decode()}{netauth_value}"
 
 
@@ -278,7 +278,7 @@ class Arc90Uri:
         else:
             try:
                 box_name = b64url_decode(box_value)
-            except Exception as e:
+            except binascii.Error as e:
                 raise InvalidArc90UriError("Invalid base64url box name") from e
             if len(box_name) != const.ASSET_METADATA_BOX_KEY_SIZE:
                 raise InvalidArc90UriError(
