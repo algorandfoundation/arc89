@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from algopy import ARC4Contract, Asset, arc4, gtxn
+from algopy import ARC4Contract, Asset, Bytes, String, UInt64, arc4, gtxn
 
 from . import abi_types as abi
 
@@ -15,7 +15,7 @@ class Arc89Interface(ARC4Contract, ABC):
         reversible_flags: arc4.Byte,
         irreversible_flags: arc4.Byte,
         metadata_size: arc4.UInt16,
-        payload: arc4.DynamicBytes,
+        payload: Bytes,
         mbr_delta_payment: gtxn.PaymentTransaction,
     ) -> abi.MbrDelta:
         pass
@@ -27,7 +27,7 @@ class Arc89Interface(ARC4Contract, ABC):
         *,
         asset_id: Asset,
         metadata_size: arc4.UInt16,
-        payload: arc4.DynamicBytes,
+        payload: Bytes,
     ) -> abi.MbrDelta:
         pass
 
@@ -38,7 +38,7 @@ class Arc89Interface(ARC4Contract, ABC):
         *,
         asset_id: Asset,
         metadata_size: arc4.UInt16,
-        payload: arc4.DynamicBytes,
+        payload: Bytes,
         mbr_delta_payment: gtxn.PaymentTransaction,
     ) -> abi.MbrDelta:
         pass
@@ -50,7 +50,7 @@ class Arc89Interface(ARC4Contract, ABC):
         *,
         asset_id: Asset,
         offset: arc4.UInt16,
-        payload: arc4.DynamicBytes,
+        payload: Bytes,
     ) -> None:
         pass
 
@@ -60,7 +60,7 @@ class Arc89Interface(ARC4Contract, ABC):
         self,
         *,
         asset_id: Asset,
-        new_registry_id: arc4.UInt64,
+        new_registry_id: UInt64,
     ) -> None:
         pass
 
@@ -79,7 +79,7 @@ class Arc89Interface(ARC4Contract, ABC):
         self,
         *,
         asset_id: Asset,
-        payload: arc4.DynamicBytes,
+        payload: Bytes,
     ) -> None:
         pass
 
@@ -90,7 +90,7 @@ class Arc89Interface(ARC4Contract, ABC):
         *,
         asset_id: Asset,
         flag: arc4.UInt8,
-        value: arc4.Bool,
+        value: bool,
     ) -> None:
         pass
 
@@ -120,7 +120,7 @@ class Arc89Interface(ARC4Contract, ABC):
 
     @abstractmethod
     @arc4.abimethod(readonly=True)
-    def arc89_get_metadata_partial_uri(self) -> arc4.String:
+    def arc89_get_metadata_partial_uri(self) -> String:
         pass
 
     @abstractmethod
@@ -148,7 +148,7 @@ class Arc89Interface(ARC4Contract, ABC):
         self,
         *,
         asset_id: Asset,
-    ) -> arc4.Bool:
+    ) -> bool:
         pass
 
     @abstractmethod
@@ -196,7 +196,7 @@ class Arc89Interface(ARC4Contract, ABC):
         asset_id: Asset,
         offset: arc4.UInt16,
         size: arc4.UInt16,
-    ) -> arc4.DynamicBytes:
+    ) -> Bytes:
         pass
 
     @abstractmethod
@@ -233,8 +233,8 @@ class Arc89Interface(ARC4Contract, ABC):
         self,
         *,
         asset_id: Asset,
-        key: arc4.String,
-    ) -> arc4.String:
+        key: String,
+    ) -> String:
         pass
 
     @abstractmethod
@@ -243,8 +243,8 @@ class Arc89Interface(ARC4Contract, ABC):
         self,
         *,
         asset_id: Asset,
-        key: arc4.String,
-    ) -> arc4.UInt64:
+        key: String,
+    ) -> UInt64:
         pass
 
     @abstractmethod
@@ -253,13 +253,13 @@ class Arc89Interface(ARC4Contract, ABC):
         self,
         *,
         asset_id: Asset,
-        key: arc4.String,
-    ) -> arc4.String:
+        key: String,
+    ) -> String:
         pass
 
     @abstractmethod
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_b64_bytes_by_key(
-        self, *, asset_id: Asset, key: arc4.String, b64_encoding: arc4.UInt8
-    ) -> arc4.DynamicBytes:
+        self, *, asset_id: Asset, key: String, b64_encoding: arc4.UInt8
+    ) -> Bytes:
         pass
