@@ -35,8 +35,8 @@ class MetadataEncodingError(AsaMetadataRegistryError, ValueError):
 
 class MetadataArc3Error(AsaMetadataRegistryError, ValueError):
     """
-    Raised when metadata bytes are not valid UTF-8 JSON object encoding (RFC 8259)
-    with ARC-3 JSON schema.
+    Raised when metadata bytes decode to valid UTF-8 JSON but the resulting object
+    does not conform to the ARC-3 JSON schema.
     """
 
 
