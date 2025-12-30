@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from algopy import ARC4Contract, Asset, arc4, gtxn
+from algopy import ARC4Contract, Asset, Bytes, String, arc4, gtxn
 
 from . import abi_types as abi
 
@@ -120,7 +120,7 @@ class Arc89Interface(ARC4Contract, ABC):
 
     @abstractmethod
     @arc4.abimethod(readonly=True)
-    def arc89_get_metadata_partial_uri(self) -> arc4.String:
+    def arc89_get_metadata_partial_uri(self) -> String:
         pass
 
     @abstractmethod
@@ -196,7 +196,7 @@ class Arc89Interface(ARC4Contract, ABC):
         asset_id: Asset,
         offset: arc4.UInt16,
         size: arc4.UInt16,
-    ) -> arc4.DynamicBytes:
+    ) -> Bytes:
         pass
 
     @abstractmethod
@@ -234,7 +234,7 @@ class Arc89Interface(ARC4Contract, ABC):
         *,
         asset_id: Asset,
         key: arc4.String,
-    ) -> arc4.String:
+    ) -> String:
         pass
 
     @abstractmethod
@@ -254,12 +254,12 @@ class Arc89Interface(ARC4Contract, ABC):
         *,
         asset_id: Asset,
         key: arc4.String,
-    ) -> arc4.String:
+    ) -> String:
         pass
 
     @abstractmethod
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_b64_bytes_by_key(
         self, *, asset_id: Asset, key: arc4.String, b64_encoding: arc4.UInt8
-    ) -> arc4.DynamicBytes:
+    ) -> Bytes:
         pass

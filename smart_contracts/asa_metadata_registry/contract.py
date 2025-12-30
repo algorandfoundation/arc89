@@ -5,6 +5,7 @@ from algopy import (
     Bytes,
     Global,
     OnCompleteAction,
+    String,
     TemplateVar,
     TransactionType,
     Txn,
@@ -797,14 +798,14 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         )
 
     @arc4.abimethod(readonly=True)
-    def arc89_get_metadata_partial_uri(self) -> arc4.String:
+    def arc89_get_metadata_partial_uri(self) -> String:
         """
         Return the Asset Metadata ARC-90 partial URI, without compliance fragment (optional)
 
         Returns:
             Asset Metadata ARC-90 partial URI, without compliance fragment
         """
-        return arc4.String.from_bytes(
+        return String.from_bytes(
             arc90_box_query(Global.current_application_id, Bytes())
         )
 
@@ -1016,7 +1017,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         asset_id: Asset,
         offset: arc4.UInt16,
         size: arc4.UInt16,
-    ) -> arc4.DynamicBytes:
+    ) -> Bytes:
         """
         Return a slice of the Asset Metadata for an ASA.
 
@@ -1038,7 +1039,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         metadata_slice = self.asset_metadata.box(asset_id).extract(
             start_index=const.IDX_METADATA + offset.as_uint64(), length=size.as_uint64()
         )
-        return arc4.DynamicBytes.from_bytes(metadata_slice)
+        return metadata_slice
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_header_hash(
@@ -1115,7 +1116,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         *,
         asset_id: Asset,
         key: arc4.String,
-    ) -> arc4.String:
+    ) -> String:
         """
         Return the UTF-8 string value for a top-level JSON key of type JSON String
         from short Metadata for an ASA; errors if the key does not exist or is not
@@ -1142,7 +1143,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         # Postconditions
         assert value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
 
-        return arc4.String.from_bytes(value)
+        return String.from_bytes(value)
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_uint64_by_key(
@@ -1182,7 +1183,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         *,
         asset_id: Asset,
         key: arc4.String,
-    ) -> arc4.String:
+    ) -> String:
         """
         Return the UTF-8 object value for a top-level JSON key of type JSON Object
         from short Metadata for an ASA; errors if the key does not exist or is not
@@ -1209,12 +1210,12 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         # Postconditions
         assert value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
 
-        return arc4.String.from_bytes(value)
+        return String.from_bytes(value)
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_b64_bytes_by_key(
         self, *, asset_id: Asset, key: arc4.String, b64_encoding: arc4.UInt8
-    ) -> arc4.DynamicBytes:
+    ) -> Bytes:
         """
         Return the base64-decoded bytes for a top-level JSON key of type JSON String
         from short Metadata for an ASA; errors if the key does not exist, is not
@@ -1254,7 +1255,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         # Postconditions
         assert decoded_value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
 
-        return arc4.DynamicBytes.from_bytes(decoded_value)
+        return decoded_value
 
     @arc4.abimethod
     def extra_resources(self) -> None:
