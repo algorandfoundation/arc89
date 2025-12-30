@@ -353,7 +353,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
                     op.btoi(self._get_irreversible_flags(asa))
                 ),
                 is_short=self._is_short(asa),
-                hash=abi.Hash.from_bytes(metadata_hash),
+                hash=abi.Hash.from_bytes(metadata_hash),  # No length validation
             )
         )
 
@@ -941,7 +941,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             irreversible_flags=arc4.Byte.from_bytes(
                 self._get_irreversible_flags(asset_id)
             ),
-            hash=abi.Hash.from_bytes(self._get_metadata_hash(asset_id)),
+            hash=abi.Hash(self._get_metadata_hash(asset_id)),
             last_modified_round=self._get_last_modified_round(asset_id),
             deprecated_by=self._get_deprecated_by(asset_id),
         )
@@ -1053,7 +1053,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
-        return abi.Hash.from_bytes(self._compute_header_hash(asset_id))
+        return abi.Hash(self._compute_header_hash(asset_id))
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_page_hash(
@@ -1082,7 +1082,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
         page_content = self._get_metadata_page(asset_id, page.as_uint64())
         page_hash = self._compute_page_hash(asset_id, page.as_uint64(), page_content)
-        return abi.Hash.from_bytes(page_hash)
+        return abi.Hash(page_hash)
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_hash(
@@ -1102,7 +1102,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
-        return abi.Hash.from_bytes(self._get_metadata_hash(asset_id))
+        return abi.Hash(self._get_metadata_hash(asset_id))
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_string_by_key(
