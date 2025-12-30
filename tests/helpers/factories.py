@@ -10,10 +10,8 @@ from dataclasses import dataclass, field
 from algokit_utils import AlgoAmount
 
 from smart_contracts.template_vars import ARC90_NETAUTH
+from src import bitmasks, enums
 from src import constants as const
-from src import enums
-
-from . import bitmasks
 
 
 def sha512_256(preimage: bytes) -> bytes:

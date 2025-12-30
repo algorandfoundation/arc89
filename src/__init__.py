@@ -15,6 +15,7 @@ from __future__ import annotations
 from smart_contracts import constants
 from smart_contracts.asa_metadata_registry import enums, flags
 
+from . import bitmasks
 from .deployments import (
     DEFAULT_DEPLOYMENTS,
 )
@@ -47,6 +48,8 @@ __all__ = [
     "MetadataNotFoundError",
     "MissingAppClientError",
     "RegistryResolutionError",
+    # Bitmasks
+    "bitmasks",
     # Constants
     "constants",
     # Enums
