@@ -5,9 +5,7 @@ from algopy import Bytes, FixedBytes, UInt64, arc4
 # Type Aliases
 MicroAlgo: TypeAlias = UInt64
 Timestamp: TypeAlias = UInt64
-
-# ARC-4 Types
-Hash = FixedBytes[Literal[32]]
+Hash: TypeAlias = FixedBytes[Literal[32]]
 
 
 class MetadataHeader(arc4.Struct, kw_only=True):
