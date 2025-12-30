@@ -45,9 +45,35 @@ ARC4_DYNAMIC_LENGTH_SIZE: Final[int] = 2
 # ---------------------------------------------------------------------------
 # ARC-3 constants
 # ---------------------------------------------------------------------------
-ARC90_URI_SCHEME: Final[bytes] = b"algorand://"
-ARC90_URI_APP_PATH: Final[bytes] = b"app/"
-ARC90_URI_BOX_QUERY: Final[bytes] = b"?box="
+ARC3_NAME: Final[bytes] = b"arc3"
+ARC3_NAME_SUFFIX: Final[bytes] = b"@arc3"
+ARC3_URL_SUFFIX: Final[bytes] = b"#arc3"
+ARC3_HASH_AM_PREFIX: Final[bytes] = b"arc0003/am"
+ARC3_HASH_AMJ_PREFIX: Final[bytes] = b"arc0003/amj"
+
+
+# ---------------------------------------------------------------------------
+# ARC-90 constants
+# ---------------------------------------------------------------------------
+# ARC-90 URI Structure:
+#   algorand://<netauth>/app/<app_id>?box=<base64url_box_name>#<fragment>
+#
+# Examples:
+#   - TestNet:  algorand://net:testnet/app/752790676?box=AAAAAAAAAAE%3D#arc89
+#   - LocalNet: algorand://net:localnet/app/1002?box=AAAAAAAAA-w%3D#arc3
+#   - MainNet:  algorand://app/123456789?box=AAAAAAAAAAE%3D#arc89
+#
+
+ARC90_URI_SCHEME_NAME: Final[bytes] = b"algorand"
+ARC90_URI_APP_PATH_NAME: Final[bytes] = b"app"
+ARC90_URI_BOX_QUERY_NAME: Final[bytes] = b"box"
+
+ARC90_URI_PATH_SEP: Final[bytes] = b"/"
+ARC90_URI_NETAUTH_PREFIX: Final[bytes] = b"net:"
+
+ARC90_URI_SCHEME: Final[bytes] = ARC90_URI_SCHEME_NAME + b"://"
+ARC90_URI_APP_PATH: Final[bytes] = ARC90_URI_APP_PATH_NAME + ARC90_URI_PATH_SEP
+ARC90_URI_BOX_QUERY: Final[bytes] = b"?" + ARC90_URI_BOX_QUERY_NAME + b"="
 
 
 # ---------------------------------------------------------------------------
@@ -139,13 +165,3 @@ SHORT_METADATA_SIZE: Final[int] = MAX_STK_SIZE
 HASH_DOMAIN_HEADER: Final[bytes] = b"arc0089/header"
 HASH_DOMAIN_PAGE: Final[bytes] = b"arc0089/page"
 HASH_DOMAIN_METADATA: Final[bytes] = b"arc0089/am"
-
-
-# ---------------------------------------------------------------------------
-# ARC-90 constants
-# ---------------------------------------------------------------------------
-ARC3_NAME: Final[bytes] = b"arc3"
-ARC3_NAME_SUFFIX: Final[bytes] = b"@arc3"
-ARC3_URL_SUFFIX: Final[bytes] = b"#arc3"
-ARC3_HASH_AM_PREFIX: Final[bytes] = b"arc0003/am"
-ARC3_HASH_AMJ_PREFIX: Final[bytes] = b"arc0003/amj"

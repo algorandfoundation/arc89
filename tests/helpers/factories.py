@@ -4,12 +4,10 @@ import base64
 import binascii
 import hashlib
 import json
-import os
 from dataclasses import dataclass, field
 
 from algokit_utils import AlgoAmount
 
-from smart_contracts.template_vars import ARC90_NETAUTH
 from src import bitmasks, enums
 from src import constants as const
 
@@ -623,16 +621,6 @@ def compute_arc3_metadata_hash(json_bytes: bytes) -> bytes:
         return am
     else:
         return sha256(json_bytes)
-
-
-def compute_arc89_partial_uri(asa_metadata_registry_app_id: int) -> str:
-    return (
-        const.ARC90_URI_SCHEME.decode()
-        + os.environ[ARC90_NETAUTH]
-        + const.ARC90_URI_APP_PATH.decode()
-        + str(asa_metadata_registry_app_id)
-        + const.ARC90_URI_BOX_QUERY.decode()
-    )
 
 
 def create_test_metadata(

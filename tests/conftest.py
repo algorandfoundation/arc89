@@ -22,8 +22,9 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
 )
 from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
 from src import constants as const
+from src.codec import Arc90Uri, build_netauth_from_env
 
-from .helpers.factories import AssetMetadata, compute_arc89_partial_uri
+from .helpers.factories import AssetMetadata
 from .helpers.utils import create_metadata, set_immutable
 
 
@@ -123,7 +124,11 @@ def asa_metadata_registry_client(
 
 @pytest.fixture(scope="function")
 def arc89_partial_uri(asa_metadata_registry_client: AsaMetadataRegistryClient) -> str:
-    return compute_arc89_partial_uri(asa_metadata_registry_client.app_id)
+    return Arc90Uri(
+        netauth=build_netauth_from_env(os.environ[ARC90_NETAUTH]),
+        app_id=asa_metadata_registry_client.app_id,
+        box_name=None,  # Partial URI has no box name
+    ).to_uri()
 
 
 @pytest.fixture(scope="function")
