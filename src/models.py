@@ -4,7 +4,6 @@ import enum
 import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from functools import cached_property
 
 from src import bitmasks, enums
 from src import constants as const
@@ -653,7 +652,7 @@ class AssetMetadataBox:
                 signed=False,
             )
             deprecated_by = int.from_bytes(
-                value[const.IDX_DEPRECATED_BY:header_size], "big", signed=False
+                value[const.IDX_DEPRECATED_BY : header_size], "big", signed=False
             )
         except Exception as e:
             raise BoxParseError("Failed to parse ARC-89 metadata header") from e
