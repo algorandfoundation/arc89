@@ -22,7 +22,7 @@ main:
     err
 
 main_extra_resources_route@33:
-    // smart_contracts/asa_metadata_registry/contract.py:1258
+    // smart_contracts/asa_metadata_registry/contract.py:1259
     // @arc4.abimethod
     intc_0 // 1
     return
@@ -3015,18 +3015,19 @@ arc89_get_metadata_b64_bytes_by_key:
     extract 2 0
     json_ref JSONString
     swap
-    // smart_contracts/asa_metadata_registry/contract.py:1245-1248
+    // smart_contracts/asa_metadata_registry/contract.py:1245-1249
     // # Decode value
     // # ⚠️ WARNING: The following conditions cause AVM runtime error:
-    // # - The top-level key's value is not a valid base64-encoding for the chosen encoding.
+    // # - The top-level key's value is not a valid base64-encoding string for
+    // # the chosen encoding.
     // if b64_encoding.as_uint64() == enums.B64_URL_ENCODING:
     bnz arc89_get_metadata_b64_bytes_by_key_else_body@3
-    // smart_contracts/asa_metadata_registry/contract.py:1249
+    // smart_contracts/asa_metadata_registry/contract.py:1250
     // decoded_value = op.base64_decode(op.Base64.URLEncoding, value)
     base64_decode URLEncoding
 
 arc89_get_metadata_b64_bytes_by_key_after_if_else@4:
-    // smart_contracts/asa_metadata_registry/contract.py:1253-1254
+    // smart_contracts/asa_metadata_registry/contract.py:1254-1255
     // # Postconditions
     // assert decoded_value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
     dup
@@ -3044,7 +3045,7 @@ arc89_get_metadata_b64_bytes_by_key_after_if_else@4:
     return
 
 arc89_get_metadata_b64_bytes_by_key_else_body@3:
-    // smart_contracts/asa_metadata_registry/contract.py:1251
+    // smart_contracts/asa_metadata_registry/contract.py:1252
     // decoded_value = op.base64_decode(op.Base64.StdEncoding, value)
     base64_decode StdEncoding
     b arc89_get_metadata_b64_bytes_by_key_after_if_else@4
@@ -3052,44 +3053,44 @@ arc89_get_metadata_b64_bytes_by_key_else_body@3:
 
 // smart_contracts.asa_metadata_registry.contract.AsaMetadataRegistry.withdraw_balance_excess[routing]() -> void:
 withdraw_balance_excess:
-    // smart_contracts/asa_metadata_registry/contract.py:1274
+    // smart_contracts/asa_metadata_registry/contract.py:1275
     // Global.current_application_address.balance
     global CurrentApplicationAddress
     acct_params_get AcctBalance
     assert // account funded
-    // smart_contracts/asa_metadata_registry/contract.py:1275
+    // smart_contracts/asa_metadata_registry/contract.py:1276
     // - Global.current_application_address.min_balance
     global CurrentApplicationAddress
     acct_params_get AcctMinBalance
     assert // account funded
-    // smart_contracts/asa_metadata_registry/contract.py:1274-1275
+    // smart_contracts/asa_metadata_registry/contract.py:1275-1276
     // Global.current_application_address.balance
     // - Global.current_application_address.min_balance
     -
-    // smart_contracts/asa_metadata_registry/contract.py:1277-1280
+    // smart_contracts/asa_metadata_registry/contract.py:1278-1281
     // itxn.Payment(
     //     receiver=Global.creator_address,
     //     amount=excess_balance,
     // ).submit()
     itxn_begin
-    // smart_contracts/asa_metadata_registry/contract.py:1278
+    // smart_contracts/asa_metadata_registry/contract.py:1279
     // receiver=Global.creator_address,
     global CreatorAddress
     itxn_field Receiver
     itxn_field Amount
-    // smart_contracts/asa_metadata_registry/contract.py:1277
+    // smart_contracts/asa_metadata_registry/contract.py:1278
     // itxn.Payment(
     intc_0 // pay
     itxn_field TypeEnum
     intc_1 // 0
     itxn_field Fee
-    // smart_contracts/asa_metadata_registry/contract.py:1277-1280
+    // smart_contracts/asa_metadata_registry/contract.py:1278-1281
     // itxn.Payment(
     //     receiver=Global.creator_address,
     //     amount=excess_balance,
     // ).submit()
     itxn_submit
-    // smart_contracts/asa_metadata_registry/contract.py:1265
+    // smart_contracts/asa_metadata_registry/contract.py:1266
     // @arc4.abimethod
     intc_0 // 1
     return
