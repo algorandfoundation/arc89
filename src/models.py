@@ -433,7 +433,6 @@ def validate_arc3_schema(obj: Mapping[str, object]) -> None:
     # Define ARC-3 schema field types
     string_fields = {
         "name",
-        "decimals",
         "description",
         "image",
         "image_integrity",
