@@ -177,7 +177,7 @@ def test_mbr_delta_calculation() -> None:
 
 def test_json_operations() -> None:
     """Test JSON encoding/decoding."""
-    metadata_dict = {
+    metadata_dict: dict[str, object] = {
         "name": "Test Asset",
         "description": "A test",
         "properties": {"test": True, "value": 42},
@@ -222,7 +222,9 @@ def test_create_test_metadata_helper() -> None:
     # Should have sensible defaults
     json_data = metadata.to_json()
     assert "name" in json_data
-    assert "Test Asset 999" in json_data["name"]
+    name_value = json_data["name"]
+    assert isinstance(name_value, str)
+    assert "Test Asset 999" in name_value
 
 
 def test_flag_toggling() -> None:

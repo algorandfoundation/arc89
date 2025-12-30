@@ -27,7 +27,9 @@ def test_get_b64_url_decoded_value(
     )
 
     assert decoded_value is not None
-    assert bytes(decoded_value) == base64.urlsafe_b64decode(json_obj["gh_b64_url"])
+    b64_value = json_obj["gh_b64_url"]
+    assert isinstance(b64_value, str)
+    assert bytes(decoded_value) == base64.urlsafe_b64decode(b64_value)
 
 
 def test_get_b64_std_decoded_value(
@@ -46,7 +48,9 @@ def test_get_b64_std_decoded_value(
     )
 
     assert decoded_value is not None
-    assert bytes(decoded_value) == base64.standard_b64decode(json_obj["gh_b64_std"])
+    b64_value = json_obj["gh_b64_std"]
+    assert isinstance(b64_value, str)
+    assert bytes(decoded_value) == base64.standard_b64decode(b64_value)
 
 
 # TODO: Test failing conditions
