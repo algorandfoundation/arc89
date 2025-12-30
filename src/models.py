@@ -654,7 +654,7 @@ class AssetMetadataBox:
                 signed=False,
             )
             deprecated_by = int.from_bytes(
-                value[const.IDX_DEPRECATED_BY :], "big", signed=False
+                value[const.IDX_DEPRECATED_BY:header_size], "big", signed=False
             )
         except Exception as e:
             raise BoxParseError("Failed to parse ARC-89 metadata header") from e
