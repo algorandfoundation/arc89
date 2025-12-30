@@ -2257,6 +2257,13 @@ arc89_get_metadata_header:
     //     start_index=const.IDX_METADATA_HASH, length=const.METADATA_HASH_SIZE
     // )
     box_extract
+    // smart_contracts/asa_metadata_registry/contract.py:944
+    // hash=abi.Hash(self._get_metadata_hash(asset_id)),
+    dup
+    len
+    pushint 32
+    ==
+    assert // expected bytes to be length 32
     // smart_contracts/asa_metadata_registry/contract.py:133-136
     // self.asset_metadata.box(asa).extract(
     //     start_index=const.IDX_LAST_MODIFIED_ROUND,
@@ -2316,7 +2323,7 @@ arc89_get_metadata_header:
     //     irreversible_flags=arc4.Byte.from_bytes(
     //         self._get_irreversible_flags(asset_id)
     //     ),
-    //     hash=abi.Hash.from_bytes(self._get_metadata_hash(asset_id)),
+    //     hash=abi.Hash(self._get_metadata_hash(asset_id)),
     //     last_modified_round=self._get_last_modified_round(asset_id),
     //     deprecated_by=self._get_deprecated_by(asset_id),
     // )
@@ -2660,8 +2667,13 @@ arc89_get_metadata_header_hash:
     dup
     callsub _check_existence_preconditions
     // smart_contracts/asa_metadata_registry/contract.py:1056
-    // return abi.Hash.from_bytes(self._compute_header_hash(asset_id))
+    // return abi.Hash(self._compute_header_hash(asset_id))
     callsub _compute_header_hash
+    dup
+    len
+    pushint 32
+    ==
+    assert // expected bytes to be length 32
     // smart_contracts/asa_metadata_registry/contract.py:1038
     // @arc4.abimethod(readonly=True)
     bytec_0 // 0x151f7c75
@@ -2727,6 +2739,13 @@ arc89_get_metadata_page_hash:
     // smart_contracts/asa_metadata_registry/contract.py:1084
     // page_hash = self._compute_page_hash(asset_id, page.as_uint64(), page_content)
     callsub _compute_page_hash
+    // smart_contracts/asa_metadata_registry/contract.py:1085
+    // return abi.Hash(page_hash)
+    dup
+    len
+    pushint 32
+    ==
+    assert // expected bytes to be length 32
     // smart_contracts/asa_metadata_registry/contract.py:1058
     // @arc4.abimethod(readonly=True)
     bytec_0 // 0x151f7c75
@@ -2764,6 +2783,13 @@ arc89_get_metadata_hash:
     //     start_index=const.IDX_METADATA_HASH, length=const.METADATA_HASH_SIZE
     // )
     box_extract
+    // smart_contracts/asa_metadata_registry/contract.py:1105
+    // return abi.Hash(self._get_metadata_hash(asset_id))
+    dup
+    len
+    pushint 32
+    ==
+    assert // expected bytes to be length 32
     // smart_contracts/asa_metadata_registry/contract.py:1087
     // @arc4.abimethod(readonly=True)
     bytec_0 // 0x151f7c75
@@ -4104,7 +4130,7 @@ _emit_updated_event:
     //         op.btoi(self._get_irreversible_flags(asa))
     //     ),
     //     is_short=self._is_short(asa),
-    //     hash=abi.Hash.from_bytes(metadata_hash),
+    //     hash=abi.Hash.from_bytes(metadata_hash),  # No length validation
     // )
     uncover 5
     itob
@@ -4136,7 +4162,7 @@ _emit_updated_event:
     //             op.btoi(self._get_irreversible_flags(asa))
     //         ),
     //         is_short=self._is_short(asa),
-    //         hash=abi.Hash.from_bytes(metadata_hash),
+    //         hash=abi.Hash.from_bytes(metadata_hash),  # No length validation
     //     )
     // )
     pushbytes 0x8b035084 // method "Arc89MetadataUpdated(uint64,uint64,uint64,byte,byte,bool,byte[32])"
