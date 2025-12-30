@@ -7,6 +7,7 @@ from algokit_utils import AlgoAmount
 
 from src import bitmasks, enums, hashing
 from src import constants as const
+from src.models import _chunk_metadata_payload
 
 
 @dataclass
@@ -367,23 +368,13 @@ class AssetMetadata:
         """
         Split payload into chunks:
         - First chunk: up to FIRST_PAYLOAD_MAX_SIZE.
-        - Subsequent chunks: up to OTHER_PAYLOAD_MAX_SIZE.
+        - Subsequent chunks: up to EXTRA_PAYLOAD_MAX_SIZE.
         """
-        if payload == b"":
-            return [b""]
-
-        chunks: list[bytes] = []
-        # First chunk
-        first = payload[: const.FIRST_PAYLOAD_MAX_SIZE]
-        chunks.append(first)
-
-        # Remaining chunks
-        remaining = payload[len(first) :]
-        if remaining:
-            for i in range(0, len(remaining), const.EXTRA_PAYLOAD_MAX_SIZE):
-                chunks.append(remaining[i : i + const.EXTRA_PAYLOAD_MAX_SIZE])
-
-        return chunks
+        return _chunk_metadata_payload(
+            payload,
+            head_max_size=const.FIRST_PAYLOAD_MAX_SIZE,
+            extra_max_size=const.EXTRA_PAYLOAD_MAX_SIZE,
+        )
 
     @classmethod
     def from_box_value(cls, asset_id: int, box_value: bytes) -> "AssetMetadata":

@@ -41,6 +41,22 @@ from .hashing import (
     sha256,
     sha512_256,
 )
+from .models import (
+    AssetMetadata,
+    AssetMetadataBox,
+    AssetMetadataRecord,
+    IrreversibleFlags,
+    MbrDelta,
+    MbrDeltaSign,
+    MetadataBody,
+    MetadataExistence,
+    MetadataFlags,
+    MetadataHeader,
+    PaginatedMetadata,
+    Pagination,
+    RegistryParameters,
+    ReversibleFlags,
+)
 
 __all__ = [
     # Deployments
@@ -61,6 +77,21 @@ __all__ = [
     "MetadataNotFoundError",
     "MissingAppClientError",
     "RegistryResolutionError",
+    # Models
+    "AssetMetadata",
+    "AssetMetadataBox",
+    "AssetMetadataRecord",
+    "IrreversibleFlags",
+    "MbrDelta",
+    "MbrDeltaSign",
+    "MetadataBody",
+    "MetadataExistence",
+    "MetadataFlags",
+    "MetadataHeader",
+    "PaginatedMetadata",
+    "Pagination",
+    "RegistryParameters",
+    "ReversibleFlags",
     # Bitmasks
     "bitmasks",
     # Constants
