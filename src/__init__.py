@@ -34,6 +34,13 @@ from .errors import (
     MissingAppClientError,
     RegistryResolutionError,
 )
+from .hashing import (
+    compute_header_hash,
+    compute_metadata_hash,
+    compute_page_hash,
+    sha256,
+    sha512_256,
+)
 
 __all__ = [
     # Deployments
@@ -62,4 +69,10 @@ __all__ = [
     "enums",
     # Flags
     "flags",
+    # Hashing
+    "compute_header_hash",
+    "compute_page_hash",
+    "compute_metadata_hash",
+    "sha256",
+    "sha512_256",
 ]
