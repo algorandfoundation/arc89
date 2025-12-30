@@ -1,6 +1,6 @@
 """Tests demonstrating the use of metadata size fixtures."""
 
-from smart_contracts import constants as const
+from src import constants as const
 from tests.helpers.factories import AssetMetadata
 
 

@@ -3,10 +3,10 @@ import json
 import pytest
 from algokit_utils import AssetCreateParams, SigningAccount
 
-from smart_contracts import constants as const
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
+from src import constants as const
 from tests.helpers.factories import (
     AssetMetadata,
     compute_arc3_metadata_hash,

@@ -1,4 +1,4 @@
-from smart_contracts.asa_metadata_registry import flags
+from src import flags
 
 # Metadata Identifiers byte (set by the ASA Metadata Registry; clients just read)
 MASK_ID_SHORT = 1 << flags.ID_SHORT

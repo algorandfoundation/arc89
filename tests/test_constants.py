@@ -1,6 +1,6 @@
 import math
 
-from smart_contracts import constants as const
+from src import constants as const
 
 
 def test_constants() -> None:

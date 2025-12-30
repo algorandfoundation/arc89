@@ -13,7 +13,6 @@ from algokit_utils import (
 )
 from algosdk.transaction import Transaction
 
-from smart_contracts import constants as const
 from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
     Arc89CreateMetadataArgs,
     Arc89DeleteMetadataArgs,
@@ -29,6 +28,7 @@ from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_clien
     MbrDelta,
 )
 from smart_contracts.template_vars import ARC90_NETAUTH
+from src import constants as const
 from tests.helpers.factories import AssetMetadata
 
 
