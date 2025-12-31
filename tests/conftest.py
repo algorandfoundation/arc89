@@ -18,14 +18,33 @@ from dotenv import load_dotenv
 
 from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
 from src import constants as const
+from src.algod import AlgodBoxReader
 from src.codec import Arc90Uri, build_netauth_from_env
 from src.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )
+from src.models import MetadataHeader
+from src.read.avm import AsaMetadataRegistryAvmRead
+from src.read.reader import AsaMetadataRegistryRead
 
 from .helpers.factories import AssetMetadata
 from .helpers.utils import create_metadata, set_immutable
+
+
+def serialize_metadata_header(header: "MetadataHeader") -> bytes:
+    """Helper to serialize MetadataHeader to bytes for testing."""
+    if not isinstance(header, MetadataHeader):
+        raise TypeError("Expected MetadataHeader")
+
+    result = bytearray()
+    result.append(header.identifiers)
+    result.append(header.flags.reversible_byte)
+    result.append(header.flags.irreversible_byte)
+    result.extend(header.metadata_hash)
+    result.extend(header.last_modified_round.to_bytes(8, "big", signed=False))
+    result.extend(header.deprecated_by.to_bytes(8, "big", signed=False))
+    return bytes(result)
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -245,3 +264,51 @@ immutable_short_metadata = _create_uploaded_metadata_fixture(
 immutable_maxed_metadata = _create_uploaded_metadata_fixture(
     "maxed_metadata", immutable=True
 )
+
+
+# Reader-specific fixtures
+@pytest.fixture(scope="function")
+def reader_with_algod(
+    algorand_client: AlgorandClient,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+) -> AsaMetadataRegistryRead:
+    algod_reader = AlgodBoxReader(algod=algorand_client.client.algod)
+    return AsaMetadataRegistryRead(
+        app_id=asa_metadata_registry_client.app_id,
+        algod=algod_reader,
+    )
+
+
+@pytest.fixture(scope="function")
+def reader_with_avm(
+    algorand_client: AlgorandClient,
+    asa_metadata_registry_factory: AsaMetadataRegistryFactory,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+) -> AsaMetadataRegistryRead:
+    def avm_factory(app_id: int) -> AsaMetadataRegistryAvmRead:
+        client = asa_metadata_registry_factory.get_app_client_by_id(app_id)
+        return AsaMetadataRegistryAvmRead(client=client)
+
+    return AsaMetadataRegistryRead(
+        app_id=asa_metadata_registry_client.app_id,
+        avm_factory=avm_factory,
+    )
+
+
+@pytest.fixture(scope="function")
+def reader_full(
+    algorand_client: AlgorandClient,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    asa_metadata_registry_factory: AsaMetadataRegistryFactory,
+) -> "AsaMetadataRegistryRead":
+    algod_reader = AlgodBoxReader(algod=algorand_client.client.algod)
+
+    def avm_factory(app_id: int) -> AsaMetadataRegistryAvmRead:
+        client = asa_metadata_registry_factory.get_app_client_by_id(app_id)
+        return AsaMetadataRegistryAvmRead(client=client)
+
+    return AsaMetadataRegistryRead(
+        app_id=asa_metadata_registry_client.app_id,
+        algod=algod_reader,
+        avm_factory=avm_factory,
+    )
