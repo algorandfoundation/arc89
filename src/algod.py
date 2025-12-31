@@ -137,7 +137,7 @@ class AlgodBoxReader:
             resp = self.algod.asset_info(asset_id)
         except Exception as e:
             msg = str(e).lower()
-            if "404" in msg or "not found" in msg:
+            if "404" in msg or "not found" in msg or "does not exist" in msg:
                 raise AsaNotFoundError(f"ASA {asset_id} not found") from e
             raise
         if not isinstance(resp, Mapping):
