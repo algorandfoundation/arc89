@@ -2,7 +2,7 @@ import pytest
 from algokit_utils import AssetConfigParams, SigningAccount
 from algosdk.constants import ZERO_ADDRESS
 
-from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
+from src.generated.asa_metadata_registry_client import (
     Arc89IsMetadataImmutableArgs,
     AsaMetadataRegistryClient,
 )

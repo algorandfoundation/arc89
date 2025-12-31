@@ -16,13 +16,13 @@ from algokit_utils import (
 from algokit_utils.config import config
 from dotenv import load_dotenv
 
-from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
-    AsaMetadataRegistryClient,
-    AsaMetadataRegistryFactory,
-)
 from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
 from src import constants as const
 from src.codec import Arc90Uri, build_netauth_from_env
+from src.generated.asa_metadata_registry_client import (
+    AsaMetadataRegistryClient,
+    AsaMetadataRegistryFactory,
+)
 
 from .helpers.factories import AssetMetadata
 from .helpers.utils import create_metadata, set_immutable

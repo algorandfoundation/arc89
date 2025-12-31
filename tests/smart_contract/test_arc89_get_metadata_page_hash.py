@@ -1,6 +1,6 @@
 import pytest
 
-from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
+from src.generated.asa_metadata_registry_client import (
     Arc89GetMetadataPageHashArgs,
     AsaMetadataRegistryClient,
 )
