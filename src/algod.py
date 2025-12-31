@@ -55,7 +55,7 @@ class AlgodBoxReader:
                 value_b64 = resp.get("value")  # type: ignore[assignment]
             elif "box" in resp and isinstance(resp.get("box"), Mapping):
                 value_b64 = resp["box"].get("value")  # type: ignore[index]
-        if not value_b64:
+        if value_b64 is None:
             raise RuntimeError(
                 "Unexpected algod response shape for application_box_by_name"
             )
