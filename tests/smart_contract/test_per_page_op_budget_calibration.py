@@ -6,11 +6,11 @@ from algokit_utils import (
     SigningAccount,
 )
 
-from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
+from src import constants as const
+from src.generated.asa_metadata_registry_client import (
     Arc89ReplaceMetadataSliceArgs,
     AsaMetadataRegistryClient,
 )
-from src import constants as const
 from tests.helpers.factories import AssetMetadata, create_metadata_with_page_count
 from tests.helpers.utils import (
     add_extra_resources,

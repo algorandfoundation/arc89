@@ -3,10 +3,10 @@ from collections.abc import Callable
 import pytest
 from algokit_utils import SigningAccount
 
-from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
+from src import bitmasks, flags
+from src.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
-from src import bitmasks, flags
 from tests.helpers.factories import AssetMetadata
 from tests.helpers.utils import set_flag_and_verify
 
