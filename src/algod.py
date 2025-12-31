@@ -189,8 +189,6 @@ class AlgodBoxReader:
         try:
             full = complete_partial_asset_url(url, asset_id)
             return Arc90Uri.parse(full)
-        except InvalidArc90UriError:
-            raise
         except Exception as e:
             raise InvalidArc90UriError(
                 "Failed to resolve ARC-89 URI from ASA url"
