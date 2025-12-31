@@ -105,6 +105,21 @@ class AlgodBoxReader:
         asset_id: int,
         params: RegistryParameters | None = None,
     ) -> AssetMetadataRecord:
+        """
+        Retrieve the ARC-89 asset metadata box and return it as an AssetMetadataRecord.
+
+        Args:
+            app_id: The application ID of the ARC-89 registry.
+            asset_id: The ASA ID whose metadata should be read.
+            params: Optional registry parameters; if omitted, default parameters are used.
+
+        Returns:
+            An AssetMetadataRecord containing the parsed header and body of the
+            asset's metadata box.
+
+        Raises:
+            BoxNotFoundError: If the metadata box for the given asset does not exist.
+        """
         box = self.get_metadata_box(app_id=app_id, asset_id=asset_id, params=params)
         return AssetMetadataRecord(
             app_id=app_id,
