@@ -93,6 +93,20 @@ class AlgodBoxReader:
         asset_id: int,
         params: RegistryParameters | None = None,
     ) -> AssetMetadataBox:
+        """
+        Retrieve the parsed metadata box, raising if it does not exist.
+
+        Args:
+            app_id: Application ID of the ARC-89 registry.
+            asset_id: ID of the ASA whose metadata box should be read.
+            params: Optional registry parameters controlling header and metadata sizes.
+
+        Returns:
+            The parsed :class:`AssetMetadataBox` for the given asset.
+
+        Raises:
+            BoxNotFoundError: If the metadata box for the given asset does not exist.
+        """
         box = self.try_get_metadata_box(app_id=app_id, asset_id=asset_id, params=params)
         if box is None:
             raise BoxNotFoundError("Metadata box not found")
