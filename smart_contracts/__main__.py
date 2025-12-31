@@ -110,6 +110,8 @@ def build(
     # Prepare client output directory if specified
     if client_output_dir is not None:
         client_output_dir = client_output_dir.resolve()
+        if client_output_dir.exists():
+            rmtree(client_output_dir)
         client_output_dir.mkdir(exist_ok=True, parents=True)
 
     logger.info(f"Exporting {contract_path} to {output_dir}")
