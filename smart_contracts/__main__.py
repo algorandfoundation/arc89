@@ -89,15 +89,29 @@ def _get_output_path(output_dir: Path, deployment_extension: str) -> Path:
     )
 
 
-def build(output_dir: Path, contract_path: Path) -> Path:
+def build(
+    output_dir: Path, contract_path: Path, client_output_dir: Path | None = None
+) -> Path:
     """
     Builds the contract by exporting (compiling) its source and generating a client.
     If the output directory already exists, it is cleared.
+
+    Args:
+        output_dir: Directory where contract artifacts will be saved
+        contract_path: Path to the contract.py file
+        client_output_dir: Optional directory where the generated client will be saved.
+                          If None, client is saved to output_dir.
     """
     output_dir = output_dir.resolve()
     if output_dir.exists():
         rmtree(output_dir)
     output_dir.mkdir(exist_ok=True, parents=True)
+
+    # Prepare client output directory if specified
+    if client_output_dir is not None:
+        client_output_dir = client_output_dir.resolve()
+        client_output_dir.mkdir(exist_ok=True, parents=True)
+
     logger.info(f"Exporting {contract_path} to {output_dir}")
 
     build_result = subprocess.run(
@@ -133,6 +147,9 @@ def build(output_dir: Path, contract_path: Path) -> Path:
             "No '*.arc56.json' file found (likely a logic signature being compiled). Skipping client generation."
         )
     else:
+        # Determine where to save the client
+        target_dir = client_output_dir if client_output_dir is not None else output_dir
+
         for file_name in app_spec_file_names:
             client_file = file_name
             print(file_name)
@@ -143,7 +160,7 @@ def build(output_dir: Path, contract_path: Path) -> Path:
                     "client",
                     str(output_dir),
                     "--output",
-                    str(_get_output_path(output_dir, deployment_extension)),
+                    str(_get_output_path(target_dir, deployment_extension)),
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -173,6 +190,9 @@ def build(output_dir: Path, contract_path: Path) -> Path:
 def main(action: str, contract_name: str | None = None) -> None:
     """Main entry point to build and/or deploy smart contracts."""
     artifact_path = root_path / "artifacts"
+    # Define the client output directory
+    client_output_path = root_path.parent / "src" / "generated"
+
     # Filter contracts based on an optional specific contract name.
     filtered_contracts = [
         contract
@@ -184,7 +204,7 @@ def main(action: str, contract_name: str | None = None) -> None:
         case "build":
             for contract in filtered_contracts:
                 logger.info(f"Building app at {contract.path}")
-                build(artifact_path / contract.name, contract.path)
+                build(artifact_path / contract.name, contract.path, client_output_path)
         case "deploy":
             for contract in filtered_contracts:
                 output_dir = artifact_path / contract.name
@@ -204,7 +224,7 @@ def main(action: str, contract_name: str | None = None) -> None:
         case "all":
             for contract in filtered_contracts:
                 logger.info(f"Building app at {contract.path}")
-                build(artifact_path / contract.name, contract.path)
+                build(artifact_path / contract.name, contract.path, client_output_path)
                 if contract.deploy:
                     logger.info(f"Deploying {contract.name}")
                     contract.deploy()
