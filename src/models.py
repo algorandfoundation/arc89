@@ -407,8 +407,15 @@ class MetadataHeader:
             raise TypeError("reversible_flags must be int")
         if not isinstance(v2, int):
             raise TypeError("irreversible_flags must be int")
-        if not isinstance(v3, bytes):
-            raise TypeError("metadata_hash must be bytes")
+
+        # Handle metadata_hash - AVM may return as list of ints
+        if isinstance(v3, list):
+            metadata_hash = bytes(v3)
+        elif isinstance(v3, bytes):
+            metadata_hash = v3
+        else:
+            raise TypeError("metadata_hash must be bytes or list of ints")
+
         if not isinstance(v4, int):
             raise TypeError("last_modified_round must be int")
         if not isinstance(v5, int):
@@ -416,7 +423,7 @@ class MetadataHeader:
         return MetadataHeader(
             identifiers=v0,
             flags=MetadataFlags.from_bytes(v1, v2),
-            metadata_hash=v3,
+            metadata_hash=metadata_hash,
             last_modified_round=v4,
             deprecated_by=v5,
         )
@@ -599,12 +606,19 @@ class PaginatedMetadata:
             raise TypeError("has_next_page must be bool")
         if not isinstance(v1, int):
             raise TypeError("last_modified_round must be int")
-        if not isinstance(v2, bytes):
-            raise TypeError("page_content must be bytes")
+
+        # Handle page_content - AVM may return as list of ints
+        if isinstance(v2, list):
+            page_content = bytes(v2)
+        elif isinstance(v2, bytes):
+            page_content = v2
+        else:
+            raise TypeError("page_content must be bytes or list of ints")
+
         return PaginatedMetadata(
             has_next_page=v0,
             last_modified_round=v1,
-            page_content=v2,
+            page_content=page_content,
         )
 
 
