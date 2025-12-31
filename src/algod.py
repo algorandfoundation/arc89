@@ -145,6 +145,16 @@ class AlgodBoxReader:
         return resp
 
     def get_asset_url(self, asset_id: int) -> str | None:
+        """
+        Return the ASA's URL field as a string, or None if no URL is present.
+
+        Args:
+            asset_id: The ID of the ASA whose URL field should be retrieved.
+
+        Returns:
+            The URL from the ASA's params as a string, or None if the params
+            object is missing or does not contain a non-null "url" field.
+        """
         info = self.get_asset_info(asset_id)
         params = info.get("params") if isinstance(info.get("params"), Mapping) else None
         url = params.get("url") if params else None
