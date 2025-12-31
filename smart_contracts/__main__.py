@@ -110,9 +110,12 @@ def build(
     # Prepare client output directory if specified
     if client_output_dir is not None:
         client_output_dir = client_output_dir.resolve()
-        if client_output_dir.exists():
-            rmtree(client_output_dir)
+        # Only create the directory if it doesn't exist, don't remove it
         client_output_dir.mkdir(exist_ok=True, parents=True)
+        # Remove the specific client file that will be regenerated
+        client_file_path = _get_output_path(client_output_dir, deployment_extension)
+        if client_file_path.exists():
+            client_file_path.unlink()
 
     logger.info(f"Exporting {contract_path} to {output_dir}")
 
