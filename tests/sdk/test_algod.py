@@ -651,7 +651,6 @@ class TestAlgodBoxReaderIntegration:
         mutable_maxed_metadata: MockAssetMetadata,
     ) -> None:
         """Test reading metadata box with maximum size metadata."""
-        from src import constants as const
 
         app_id = asa_metadata_registry_client.app_id
         asset_id = mutable_maxed_metadata.asset_id
