@@ -206,7 +206,7 @@ class TestAlgodBoxReaderTryGetMetadataBox:
         reader = AlgodBoxReader(algod=algod_mock)
 
         asset_id = 67890
-        header = b"\x00" * 51
+        header = b"\x00" * const.HEADER_SIZE
         body = b"test"
         box_value = header + body
 
@@ -232,7 +232,7 @@ class TestAlgodBoxReaderGetMetadataBox:
         reader = AlgodBoxReader(algod=algod_mock)
 
         asset_id = 99999
-        header = b"\x00" * 51
+        header = b"\x00" * const.HEADER_SIZE
         body = b'{"name": "Test Asset"}'
         box_value = header + body
 
@@ -267,7 +267,7 @@ class TestAlgodBoxReaderGetAssetMetadataRecord:
 
         app_id = 789
         asset_id = 54321
-        header = b"\x00" * 51
+        header = b"\x00" * const.HEADER_SIZE
         body = b'{"description": "Test metadata"}'
         box_value = header + body
 
@@ -290,7 +290,7 @@ class TestAlgodBoxReaderGetAssetMetadataRecord:
 
         app_id = 111
         asset_id = 222
-        header = b"\x00" * 51
+        header = b"\x00" * const.HEADER_SIZE
         body = b"{}"
         box_value = header + body
 
@@ -563,16 +563,7 @@ class TestAlgodBoxReaderIntegration:
 
     def test_get_asset_info_invalid_asset(self, algod_reader: AlgodBoxReader) -> None:
         """Test get_asset_info raises AsaNotFoundError for invalid asset ID."""
-        # The algod client raises AlgodHTTPError with message "asset does not exist"
-        # which contains "not" so should be caught and wrapped as AsaNotFoundError
-        # However, the check is for "not found" specifically, so it won't match.
-        # Let's just verify an error is raised
-        from algosdk.error import AlgodHTTPError
-
-        # The actual behavior: algod raises AlgodHTTPError, but our code only
-        # wraps it if the message contains "404" or "not found"
-        # "asset does not exist" contains neither, so it gets re-raised
-        with pytest.raises(AlgodHTTPError, match="asset does not exist"):
+        with pytest.raises(AsaNotFoundError, match="ASA 999999999999 not found"):
             algod_reader.get_asset_info(999999999999)
 
     def test_full_flow_with_uploaded_metadata(
@@ -706,7 +697,7 @@ class TestAlgodBoxReaderIntegration:
         value = algod_reader.get_box_value(app_id=app_id, box_name=box_name)
 
         assert isinstance(value, bytes)
-        assert len(value) >= 51  # At least header size
+        assert len(value) >= const.HEADER_SIZE  # At least header size
 
     def test_custom_registry_parameters(
         self,
