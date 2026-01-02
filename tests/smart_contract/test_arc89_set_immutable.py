@@ -4,7 +4,7 @@ from src.generated.asa_metadata_registry_client import (
     Arc89SetImmutableArgs,
     AsaMetadataRegistryClient,
 )
-from tests.helpers.factories import AssetMetadata
+from src.models import AssetMetadata, AssetMetadataBox
 
 
 def test_set_immutable_flag(
@@ -15,7 +15,7 @@ def test_set_immutable_flag(
     asset_id = mutable_short_metadata.asset_id
 
     # Verify initial state is False
-    assert not mutable_short_metadata.is_immutable
+    assert not mutable_short_metadata.flags.irreversible.immutable
 
     # Set metadata as immutable and verify
     asa_metadata_registry_client.send.arc89_set_immutable(
@@ -27,11 +27,14 @@ def test_set_immutable_flag(
         asset_id
     )
     assert box_value is not None
-    post_set = AssetMetadata.from_box_value(
-        asset_id,
-        box_value,
+    parsed_box = AssetMetadataBox.parse(asset_id=asset_id, value=box_value)
+    post_set = AssetMetadata(
+        asset_id=asset_id,
+        body=parsed_box.body,
+        flags=parsed_box.header.flags,
+        deprecated_by=parsed_box.header.deprecated_by,
     )
-    assert post_set.is_immutable
+    assert post_set.flags.irreversible.immutable
 
 
 # TODO: Test failing conditions

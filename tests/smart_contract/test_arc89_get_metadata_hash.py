@@ -4,7 +4,7 @@ from src.generated.asa_metadata_registry_client import (
     Arc89GetMetadataHashArgs,
     AsaMetadataRegistryClient,
 )
-from tests.helpers.factories import AssetMetadata
+from src.models import AssetMetadata
 
 
 @pytest.mark.parametrize(

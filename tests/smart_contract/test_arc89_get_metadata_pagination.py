@@ -5,7 +5,7 @@ from src.generated.asa_metadata_registry_client import (
     Arc89GetMetadataPaginationArgs,
     AsaMetadataRegistryClient,
 )
-from tests.helpers.factories import AssetMetadata
+from src.models import AssetMetadata
 
 
 def _verify_metadata_pagination(
@@ -17,9 +17,9 @@ def _verify_metadata_pagination(
         args=Arc89GetMetadataPaginationArgs(asset_id=metadata.asset_id),
     ).abi_return
     assert pagination is not None
-    assert pagination.metadata_size == metadata.size
+    assert pagination.metadata_size == metadata.body.size
     assert pagination.page_size == const.PAGE_SIZE
-    assert pagination.total_pages == metadata.total_pages
+    assert pagination.total_pages == metadata.body.total_pages()
 
 
 @pytest.mark.parametrize(

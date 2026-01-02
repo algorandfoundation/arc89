@@ -4,7 +4,7 @@ from src.generated.asa_metadata_registry_client import (
     Arc89GetMetadataSliceArgs,
     AsaMetadataRegistryClient,
 )
-from tests.helpers.factories import AssetMetadata
+from src.models import AssetMetadata
 
 
 @pytest.mark.parametrize(
@@ -31,7 +31,7 @@ def test_get_slice(
         ),
     ).abi_return
     assert metadata_slice is not None
-    assert bytes(metadata_slice) == metadata.metadata_bytes[offset : offset + size]
+    assert bytes(metadata_slice) == metadata.body.raw_bytes[offset : offset + size]
 
 
 # TODO: Test failing conditions

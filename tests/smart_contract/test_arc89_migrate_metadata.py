@@ -4,7 +4,7 @@ from src.generated.asa_metadata_registry_client import (
     Arc89MigrateMetadataArgs,
     AsaMetadataRegistryClient,
 )
-from tests.helpers.factories import AssetMetadata
+from src.models import AssetMetadata, AssetMetadataBox
 
 
 def test_migrate_metadata(
@@ -24,11 +24,11 @@ def test_migrate_metadata(
         asset_id
     )
     assert box_value is not None
-    post_migration = AssetMetadata.from_box_value(
-        asset_id,
-        box_value,
+    post_migration = AssetMetadataBox.parse(
+        asset_id=asset_id,
+        value=box_value,
     )
-    assert post_migration.deprecated_by == 42
+    assert post_migration.header.deprecated_by == 42
 
 
 # TODO: Test failing conditions

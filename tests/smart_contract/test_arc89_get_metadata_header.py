@@ -4,7 +4,7 @@ from src.generated.asa_metadata_registry_client import (
     Arc89GetMetadataHeaderArgs,
     AsaMetadataRegistryClient,
 )
-from tests.helpers.factories import AssetMetadata
+from src.models import AssetMetadata
 
 
 @pytest.mark.parametrize(
@@ -30,9 +30,8 @@ def test_get_metadata_header(
     ).abi_return
     assert header is not None
 
-    assert header.identifiers == metadata.identifiers
-    assert header.reversible_flags == metadata.reversible_flags
-    assert header.irreversible_flags == metadata.irreversible_flags
-    assert bytes(header.hash) == metadata.metadata_hash
-    assert header.last_modified_round == metadata.last_modified_round
+    assert header.identifiers == metadata.identifiers_byte
+    assert header.reversible_flags == metadata.flags.reversible_byte
+    assert header.irreversible_flags == metadata.flags.irreversible_byte
+    assert bytes(header.hash) == metadata.compute_metadata_hash()
     assert header.deprecated_by == metadata.deprecated_by
