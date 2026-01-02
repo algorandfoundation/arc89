@@ -58,7 +58,7 @@ def _coerce_bytes(v: object, *, name: str) -> bytes:
     if isinstance(v, Sequence) and not isinstance(v, (str, bytes, bytearray)):
         # Best-effort: if this is not a sequence of ints, `bytes(...)` will raise.
         try:
-            return bytes(v)  # type: ignore[arg-type]
+            return bytes(v)
         except Exception as e:
             raise TypeError(f"{name} must be bytes or a sequence of ints") from e
     raise TypeError(f"{name} must be bytes or a sequence of ints")
