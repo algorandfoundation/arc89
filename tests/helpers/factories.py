@@ -1,6 +1,6 @@
 """Factory helpers for creating test fixtures for ASA Metadata Registry tests."""
 
-from src import AssetMetadata, hashing
+from src import AssetMetadata, MetadataFlags, hashing
 from src import constants as const
 
 
@@ -46,8 +46,11 @@ def compute_arc3_metadata_hash(json_bytes: bytes) -> bytes:
 
 def create_test_metadata(
     asset_id: int,
+    *,
     metadata_content: dict[str, object] | None = None,
-    **kwargs: object,
+    flags: MetadataFlags | None = None,
+    deprecated_by: int = 0,
+    arc3_compliant: bool = False,
 ) -> AssetMetadata:
     """
     Convenience function to create test metadata with sensible defaults.
@@ -55,7 +58,9 @@ def create_test_metadata(
     Args:
         asset_id: The asset ID
         metadata_content: Optional metadata dict (defaults to simple ARC-3 metadata)
-        **kwargs: Additional arguments passed to AssetMetadata.create()
+        flags: Optional metadata flags
+        deprecated_by: Optional deprecated_by asset ID
+        arc3_compliant: Whether to validate ARC-3 compliance
 
     Returns:
         AssetMetadata instance
@@ -66,7 +71,13 @@ def create_test_metadata(
             description="Test asset metadata",
         )
 
-    return AssetMetadata.create(asset_id=asset_id, metadata=metadata_content, **kwargs)  # type: ignore[arg-type]
+    return AssetMetadata.from_json(
+        asset_id=asset_id,
+        json_obj=metadata_content,
+        flags=flags,
+        deprecated_by=deprecated_by,
+        arc3_compliant=arc3_compliant,
+    )
 
 
 def create_metadata_with_page_count(
