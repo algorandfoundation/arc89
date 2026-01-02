@@ -17,6 +17,7 @@ from .hashing import (
 from .validation import (
     decode_metadata_json,
     encode_metadata_json,
+    is_arc3_metadata,
     validate_arc3_schema,
 )
 
@@ -40,7 +41,7 @@ def get_default_registry_params() -> RegistryParameters:
     return _DEFAULT_REGISTRY_PARAMS
 
 
-def _set_bit(bits: int, mask: int, value: bool) -> int:
+def _set_bit(*, bits: int, mask: int, value: bool) -> int:
     """Set/clear `mask` within an 8-bit integer and return the 0..255 result."""
     return (bits | mask) if value else (bits & ~mask & 0xFF)
 
@@ -362,8 +363,19 @@ class IrreversibleFlags:
 class MetadataFlags:
     """Combined reversible and irreversible flags."""
 
-    reversible: ReversibleFlags
-    irreversible: IrreversibleFlags
+    reversible: ReversibleFlags | int
+    irreversible: IrreversibleFlags | int
+
+    def __post_init__(self) -> None:
+        # Convert integers to flag objects if needed
+        if isinstance(self.reversible, int):
+            object.__setattr__(
+                self, "reversible", ReversibleFlags.from_byte(self.reversible)
+            )
+        if isinstance(self.irreversible, int):
+            object.__setattr__(
+                self, "irreversible", IrreversibleFlags.from_byte(self.irreversible)
+            )
 
     @property
     def reversible_byte(self) -> int:
@@ -397,7 +409,7 @@ class MetadataHeader:
 
     @property
     def is_short(self) -> bool:
-        return self.identifiers & bitmasks.MASK_ID_SHORT
+        return bool(self.identifiers & bitmasks.MASK_ID_SHORT)
 
     @property
     def is_immutable(self) -> bool:
@@ -448,7 +460,9 @@ class MetadataHeader:
         """
         p = params or get_default_registry_params()
         is_short = body.size <= p.short_metadata_size
-        return _set_bit(self.identifiers & 0xFF, bitmasks.MASK_ID_SHORT, is_short)
+        return _set_bit(
+            bits=self.identifiers & 0xFF, mask=bitmasks.MASK_ID_SHORT, value=is_short
+        )
 
     @staticmethod
     def from_tuple(value: Sequence[AbiValue]) -> MetadataHeader:
@@ -967,15 +981,31 @@ class AssetMetadata:
         deprecated_by: int = 0,
         arc3_compliant: bool = False,
     ) -> AssetMetadata:
-        if arc3_compliant:
+        # Auto-detect ARC-3 metadata if not explicitly specified
+        is_arc3 = arc3_compliant or is_arc3_metadata(json_obj)
+
+        # Validate ARC-3 schema if metadata contains ARC-3 fields
+        if is_arc3:
             validate_arc3_schema(json_obj)
+
         body_raw_bytes = encode_metadata_json(json_obj)
         # Validate round-trip and schema constraints (object)
         decode_metadata_json(body_raw_bytes)
+
+        # Set arc3 flag if detected and not overridden by explicit flags
+        final_flags = flags
+        if final_flags is None and is_arc3:
+            final_flags = MetadataFlags(
+                reversible=ReversibleFlags.empty(),
+                irreversible=IrreversibleFlags(arc3=True),
+            )
+        elif final_flags is None:
+            final_flags = MetadataFlags.empty()
+
         return cls(
             asset_id=asset_id,
             body=MetadataBody(body_raw_bytes),
-            flags=flags or MetadataFlags.empty(),
+            flags=final_flags,
             deprecated_by=deprecated_by,
         )
 
