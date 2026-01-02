@@ -522,8 +522,8 @@ class TestAssetMetadata:
             asset_id=789,
             json_obj=obj,
             flags=MetadataFlags(
-                reversible=bitmasks.MASK_REV_ARC20,
-                irreversible=bitmasks.MASK_IRR_ARC3,
+                reversible=ReversibleFlags(arc20=True),
+                irreversible=IrreversibleFlags(arc3=True),
             ),
         )
         assert metadata.asset_id == 789
