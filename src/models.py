@@ -1,18 +1,71 @@
 from __future__ import annotations
 
 import enum
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from src import bitmasks, enums
 from src import constants as const
 
-from .errors import BoxParseError, MetadataArc3Error, MetadataEncodingError
-from .hashing import MAX_UINT8, compute_metadata_hash
+from .errors import BoxParseError
+from .hashing import (
+    MAX_UINT8,
+    compute_header_hash,
+    compute_metadata_hash,
+    compute_page_hash,
+)
+from .validation import (
+    decode_metadata_json,
+    encode_metadata_json,
+    validate_arc3_schema,
+)
 
 # Type aliases for ABI tuple values
 AbiValue = int | bytes | bool | Sequence["AbiValue"]
+
+# Module-level cached default registry parameters (frozen dataclass; safe to share)
+_DEFAULT_REGISTRY_PARAMS: RegistryParameters | None = None
+
+
+def get_default_registry_params() -> RegistryParameters:
+    """
+    Get cached default registry parameters.
+
+    Returns a singleton instance of the default RegistryParameters to avoid
+    repeatedly creating the same object.
+    """
+    global _DEFAULT_REGISTRY_PARAMS
+    if _DEFAULT_REGISTRY_PARAMS is None:
+        _DEFAULT_REGISTRY_PARAMS = RegistryParameters.defaults()
+    return _DEFAULT_REGISTRY_PARAMS
+
+
+def _set_bit(bits: int, mask: int, value: bool) -> int:
+    """Set/clear `mask` within an 8-bit integer and return the 0..255 result."""
+    return (bits | mask) if value else (bits & ~mask & 0xFF)
+
+
+def _coerce_bytes(v: object, *, name: str) -> bytes:
+    """
+    Coerce Algod/ABI values into `bytes`.
+
+    AVM/Algod commonly returns byte arrays as `bytes` or as `list[int]`.
+    We accept any non-bytes sequence of ints for a bit of extra robustness.
+    """
+    if isinstance(v, (bytes, bytearray)):
+        return bytes(v)
+    if isinstance(v, Sequence) and not isinstance(v, (str, bytes, bytearray)):
+        # Best-effort: if this is not a sequence of ints, `bytes(...)` will raise.
+        try:
+            return bytes(v)  # type: ignore[arg-type]
+        except Exception as e:
+            raise TypeError(f"{name} must be bytes or a sequence of ints") from e
+    raise TypeError(f"{name} must be bytes or a sequence of ints")
+
+
+def _is_nonzero_32(am: bytes) -> bool:
+    """True if am is 32 bytes and not all-zero."""
+    return len(am) == 32 and any(b != 0 for b in am)
 
 
 def _chunk_metadata_payload(
@@ -22,25 +75,14 @@ def _chunk_metadata_payload(
     extra_max_size: int,
 ) -> list[bytes]:
     """
-    Split metadata bytes into head + extra payload chunks.
+    Chunk the metadata payload into a head chunk and zero or more extra chunks.
 
-    Args:
-        data: The metadata bytes to chunk
-        head_max_size: Max size for the first chunk
-        extra_max_size: Max size for subsequent chunks
-
-    Returns:
-        List of byte chunks
-
-    Raises:
-        ValueError: If chunk sizes are invalid
+    This is a pure splitting helper; size validation is handled elsewhere.
     """
-    if head_max_size <= 0 or extra_max_size <= 0:
-        raise ValueError("Chunk sizes must be > 0")
-    if len(data) == 0:
-        return [b""]
+    if len(data) <= head_max_size:
+        return [data]
 
-    chunks: list[bytes] = [data[:head_max_size]]
+    chunks = [data[:head_max_size]]
     i = head_max_size
     while i < len(data):
         chunks.append(data[i : i + extra_max_size])
@@ -75,10 +117,9 @@ class MbrDelta:
     def signed_amount(self) -> int:
         if self.is_positive:
             return self.amount
-        elif self.is_negative:
+        if self.is_negative:
             return -self.amount
-        else:
-            return 0
+        return 0
 
     @staticmethod
     def from_tuple(value: Sequence[int]) -> MbrDelta:
@@ -90,7 +131,7 @@ class MbrDelta:
             enums.MBR_DELTA_NEG,
         ):
             raise ValueError(f"Invalid MBR delta sign: {value[0]}")
-        if value[1] < 0:
+        if int(value[1]) < 0:
             raise ValueError("MBR delta amount must be non-negative")
         return MbrDelta(sign=MbrDeltaSign(int(value[0])), amount=int(value[1]))
 
@@ -109,7 +150,6 @@ class RegistryParameters:
 
     @staticmethod
     def defaults() -> RegistryParameters:
-        # ARC-89 specs constants; callers should prefer params from registry if possible.
         return RegistryParameters(
             header_size=const.HEADER_SIZE,
             max_metadata_size=const.MAX_METADATA_SIZE,
@@ -141,9 +181,9 @@ class RegistryParameters:
     def mbr_for_box(self, metadata_size: int) -> int:
         """
         Compute the minimum balance requirement for a metadata box holding `metadata_size` bytes.
-
-        This uses the flat/byte MBR parameters returned by the registry.
         """
+        if metadata_size < 0:
+            raise ValueError("metadata_size must be non-negative")
         return self.flat_mbr + self.byte_mbr * (
             const.ASSET_METADATA_BOX_KEY_SIZE + self.header_size + metadata_size
         )
@@ -158,12 +198,16 @@ class RegistryParameters:
         """
         Compute MBR delta from old->new box size using the registry MBR parameters.
 
-        If old_metadata_size is None, the box is assumed not to exist (creation).
+        - If old_metadata_size is None, this is treated as creating a new box.
+        - If delete=True, this is treated as deleting the old box (new_metadata_size must be 0).
         """
-        new_mbr = self.mbr_for_box(new_metadata_size)
+        if new_metadata_size < 0:
+            raise ValueError("new_metadata_size must be non-negative")
+
         old_mbr = (
             0 if old_metadata_size is None else self.mbr_for_box(old_metadata_size)
         )
+        new_mbr = self.mbr_for_box(new_metadata_size)
         delta = new_mbr - old_mbr
 
         if delete:
@@ -177,7 +221,7 @@ class RegistryParameters:
             return MbrDelta(MbrDeltaSign.NULL, 0)
         if delta > 0:
             return MbrDelta(MbrDeltaSign.POS, delta)
-        return MbrDelta(MbrDeltaSign.NEG, -delta)
+        return MbrDelta(MbrDeltaSign.NEG, abs(delta))
 
 
 @dataclass(frozen=True, slots=True)
@@ -215,7 +259,6 @@ class ReversibleFlags:
 
     @property
     def byte_value(self) -> int:
-        """Get the byte representation of these flags."""
         value = 0
         if self.arc20:
             value |= bitmasks.MASK_REV_ARC20
@@ -237,7 +280,6 @@ class ReversibleFlags:
 
     @staticmethod
     def from_byte(value: int) -> ReversibleFlags:
-        """Create ReversibleFlags from a byte value."""
         if not 0 <= value <= MAX_UINT8:
             raise ValueError(f"Byte value must be 0-255, got {value}")
         return ReversibleFlags(
@@ -253,7 +295,6 @@ class ReversibleFlags:
 
     @staticmethod
     def empty() -> ReversibleFlags:
-        """Create an empty flags instance (all flags False)."""
         return ReversibleFlags()
 
 
@@ -278,7 +319,6 @@ class IrreversibleFlags:
 
     @property
     def byte_value(self) -> int:
-        """Get the byte representation of these flags."""
         value = 0
         if self.arc3:
             value |= bitmasks.MASK_IRR_ARC3
@@ -300,7 +340,6 @@ class IrreversibleFlags:
 
     @staticmethod
     def from_byte(value: int) -> IrreversibleFlags:
-        """Create IrreversibleFlags from a byte value."""
         if not 0 <= value <= MAX_UINT8:
             raise ValueError(f"Byte value must be 0-255, got {value}")
         return IrreversibleFlags(
@@ -316,7 +355,6 @@ class IrreversibleFlags:
 
     @staticmethod
     def empty() -> IrreversibleFlags:
-        """Create an empty flags instance (all flags False)."""
         return IrreversibleFlags()
 
 
@@ -329,17 +367,14 @@ class MetadataFlags:
 
     @property
     def reversible_byte(self) -> int:
-        """Get the reversible flags as a byte value."""
         return self.reversible.byte_value
 
     @property
     def irreversible_byte(self) -> int:
-        """Get the irreversible flags as a byte value."""
         return self.irreversible.byte_value
 
     @staticmethod
     def from_bytes(reversible: int, irreversible: int) -> MetadataFlags:
-        """Create MetadataFlags from byte values."""
         return MetadataFlags(
             reversible=ReversibleFlags.from_byte(reversible),
             irreversible=IrreversibleFlags.from_byte(irreversible),
@@ -347,10 +382,8 @@ class MetadataFlags:
 
     @staticmethod
     def empty() -> MetadataFlags:
-        """Create empty flags (all False)."""
         return MetadataFlags(
-            reversible=ReversibleFlags.empty(),
-            irreversible=IrreversibleFlags.empty(),
+            reversible=ReversibleFlags.empty(), irreversible=IrreversibleFlags.empty()
         )
 
 
@@ -363,28 +396,31 @@ class MetadataHeader:
     deprecated_by: int
 
     @property
-    def is_short(self) -> bool:
-        return bool(self.identifiers & bitmasks.MASK_ID_SHORT)
+    def serialized(self) -> bytes:
+        result = bytearray()
+        result.append(self.identifiers & 0xFF)
+        result.append(self.flags.reversible_byte & 0xFF)
+        result.append(self.flags.irreversible_byte & 0xFF)
+        result.extend(self.metadata_hash)
+        result.extend(
+            self.last_modified_round.to_bytes(const.UINT64_SIZE, "big", signed=False)
+        )
+        result.extend(
+            self.deprecated_by.to_bytes(const.UINT64_SIZE, "big", signed=False)
+        )
+        return bytes(result)
 
-    @property
-    def is_immutable(self) -> bool:
-        return self.flags.irreversible.immutable
+    def expected_identifiers(
+        self, *, body: MetadataBody, params: RegistryParameters | None = None
+    ) -> int:
+        """
+        Return an identifiers byte whose shortness bit is consistent with `body`.
 
-    @property
-    def is_arc3_compliant(self) -> bool:
-        return self.flags.irreversible.arc3
-
-    @property
-    def is_arc89_native(self) -> bool:
-        return self.flags.irreversible.arc89_native
-
-    @property
-    def is_arc20_smart_asa(self) -> bool:
-        return self.flags.reversible.arc20
-
-    @property
-    def is_arc62_circulating_supply(self) -> bool:
-        return self.flags.reversible.arc62
+        Reserved bits are preserved from the observed header.
+        """
+        p = params or get_default_registry_params()
+        is_short = body.size <= p.short_metadata_size
+        return _set_bit(self.identifiers & 0xFF, bitmasks.MASK_ID_SHORT, is_short)
 
     @staticmethod
     def from_tuple(value: Sequence[AbiValue]) -> MetadataHeader:
@@ -401,25 +437,26 @@ class MetadataHeader:
             value[4],
             value[5],
         )
+
         if not isinstance(v0, int):
             raise TypeError("identifiers must be int")
-        if not isinstance(v1, int):
-            raise TypeError("reversible_flags must be int")
-        if not isinstance(v2, int):
-            raise TypeError("irreversible_flags must be int")
+        if not 0 <= v0 <= MAX_UINT8:
+            raise ValueError("identifiers must fit in uint8")
 
-        # Handle metadata_hash - AVM may return as list of ints
-        if isinstance(v3, list):
-            metadata_hash = bytes(v3)
-        elif isinstance(v3, bytes):
-            metadata_hash = v3
-        else:
-            raise TypeError("metadata_hash must be bytes or list of ints")
+        if not isinstance(v1, int) or not 0 <= v1 <= MAX_UINT8:
+            raise TypeError("reversible_flags must be int 0..255")
+        if not isinstance(v2, int) or not 0 <= v2 <= MAX_UINT8:
+            raise TypeError("irreversible_flags must be int 0..255")
+
+        metadata_hash = _coerce_bytes(v3, name="metadata_hash")
+        if len(metadata_hash) != 32:
+            raise ValueError("metadata_hash must be 32 bytes")
 
         if not isinstance(v4, int):
             raise TypeError("last_modified_round must be int")
         if not isinstance(v5, int):
             raise TypeError("deprecated_by must be int")
+
         return MetadataHeader(
             identifiers=v0,
             flags=MetadataFlags.from_bytes(v1, v2),
@@ -427,87 +464,6 @@ class MetadataHeader:
             last_modified_round=v4,
             deprecated_by=v5,
         )
-
-
-def validate_arc3_schema(obj: Mapping[str, object]) -> None:
-    """
-    Validate that a JSON object conforms to the ARC-3 JSON metadata schema according
-    to ARC-3 (https://dev.algorand.co/arc-standards/arc-0003/#json-metadata-file-schema).
-
-    Raises MetadataArc3Error if validation fails.
-    """
-    # Define ARC-3 schema field types
-    string_fields = {
-        "name",
-        "description",
-        "image",
-        "image_integrity",
-        "image_mimetype",
-        "background_color",
-        "external_url",
-        "external_url_integrity",
-        "external_url_mimetype",
-        "animation_url",
-        "animation_url_integrity",
-        "animation_url_mimetype",
-        "unitName",
-        "extra_metadata",
-    }
-
-    # Note: this implementation requires 'decimals' to be a non-negative integer
-    # and 'unitName' to be a string (see string_fields above).
-
-    for key, value in obj.items():
-        if key == "decimals":
-            # decimals must be an integer (non-negative)
-            if not isinstance(value, int) or isinstance(value, bool):
-                raise MetadataArc3Error(
-                    f"ARC-3 field 'decimals' must be an integer, got {type(value).__name__}"
-                )
-            if value < 0:
-                raise MetadataArc3Error(
-                    f"ARC-3 field 'decimals' must be non-negative, got {value}"
-                )
-        elif key == "properties":
-            if not isinstance(value, dict):
-                raise MetadataArc3Error(
-                    f"ARC-3 field 'properties' must be an object, got {type(value).__name__}"
-                )
-        elif key == "localization":
-            if not isinstance(value, dict):
-                raise MetadataArc3Error(
-                    f"ARC-3 field 'localization' must be an object, got {type(value).__name__}"
-                )
-            # Validate localization structure (must have 'uri' and 'default' and 'locales')
-            if "uri" not in value:
-                raise MetadataArc3Error(
-                    "ARC-3 'localization' object must have 'uri' field"
-                )
-            if "default" not in value:
-                raise MetadataArc3Error(
-                    "ARC-3 'localization' object must have 'default' field"
-                )
-            if "locales" not in value:
-                raise MetadataArc3Error(
-                    "ARC-3 'localization' object must have 'locales' field"
-                )
-            if not isinstance(value["uri"], str):
-                raise MetadataArc3Error("ARC-3 'localization.uri' must be a string")
-            if not isinstance(value["default"], str):
-                raise MetadataArc3Error("ARC-3 'localization.default' must be a string")
-            if not isinstance(value["locales"], list):
-                raise MetadataArc3Error("ARC-3 'localization.locales' must be an array")
-            for locale in value["locales"]:
-                if not isinstance(locale, str):
-                    raise MetadataArc3Error(
-                        "ARC-3 'localization.locales' entries must be strings"
-                    )
-        elif key in string_fields:
-            if not isinstance(value, str):
-                raise MetadataArc3Error(
-                    f"ARC-3 field '{key}' must be a string, got {type(value).__name__}"
-                )
-        # Other fields are allowed (for extensibility) but we don't validate them
 
 
 @dataclass(frozen=True, slots=True)
@@ -520,7 +476,8 @@ class MetadataBody:
 
     @property
     def is_short(self) -> bool:
-        return self.size <= const.SHORT_METADATA_SIZE
+        p = get_default_registry_params()
+        return self.size <= p.short_metadata_size
 
     @property
     def is_empty(self) -> bool:
@@ -531,31 +488,48 @@ class MetadataBody:
         """Decode metadata bytes to JSON object."""
         return decode_metadata_json(self.raw_bytes)
 
-    def total_pages(self, params: RegistryParameters) -> int:
+    def total_pages(self, params: RegistryParameters | None = None) -> int:
         if self.size == 0:
             return 0
-        return (self.size + params.page_size - 1) // params.page_size
+        p = params or get_default_registry_params()
+        return (self.size + p.page_size - 1) // p.page_size
+
+    def get_page(
+        self, page_index: int, params: RegistryParameters | None = None
+    ) -> bytes:
+        if page_index < 0:
+            raise ValueError("page_index must be non-negative")
+        total = self.total_pages(params)
+        if page_index >= total:
+            raise ValueError(
+                f"Page index {page_index} out of range (total pages: {total})"
+            )
+        p = params or get_default_registry_params()
+        start = page_index * p.page_size
+        end = min(start + p.page_size, self.size)
+        return self.raw_bytes[start:end]
 
     def chunked_payload(
         self,
         *,
-        head_max_size: int = const.FIRST_PAYLOAD_MAX_SIZE,
-        extra_max_size: int = const.EXTRA_PAYLOAD_MAX_SIZE,
+        params: RegistryParameters | None = None,
     ) -> list[bytes]:
         """
         Split the metadata bytes into head + extra payload chunks.
         """
+        p = params or get_default_registry_params()
         return _chunk_metadata_payload(
             self.raw_bytes,
-            head_max_size=head_max_size,
-            extra_max_size=extra_max_size,
+            head_max_size=p.first_payload_max_size,
+            extra_max_size=p.extra_payload_max_size,
         )
 
-    def validate_size(self, params: RegistryParameters) -> None:
+    def validate_size(self, params: RegistryParameters | None = None) -> None:
         """Raise ValueError if metadata exceeds max size."""
-        if self.size > params.max_metadata_size:
+        p = params or get_default_registry_params()
+        if self.size > p.max_metadata_size:
             raise ValueError(
-                f"Metadata size {self.size} exceeds max {params.max_metadata_size}"
+                f"Metadata size {self.size} exceeds max {p.max_metadata_size}"
             )
 
     @staticmethod
@@ -606,15 +580,7 @@ class PaginatedMetadata:
             raise TypeError("has_next_page must be bool")
         if not isinstance(v1, int):
             raise TypeError("last_modified_round must be int")
-
-        # Handle page_content - AVM may return as list of ints
-        if isinstance(v2, list):
-            page_content = bytes(v2)
-        elif isinstance(v2, bytes):
-            page_content = v2
-        else:
-            raise TypeError("page_content must be bytes or list of ints")
-
+        page_content = _coerce_bytes(v2, name="page_content")
         return PaginatedMetadata(
             has_next_page=v0,
             last_modified_round=v1,
@@ -649,14 +615,34 @@ class AssetMetadataBox:
         value: bytes,
         header_size: int = const.HEADER_SIZE,
         max_metadata_size: int = const.MAX_METADATA_SIZE,
+        params: RegistryParameters | None = None,
     ) -> AssetMetadataBox:
+        """
+        Parse a box value into (header, body).
+
+        If `params` is provided, `header_size` and `max_metadata_size` default to the chain values.
+        """
+        if params is not None:
+            if header_size == const.HEADER_SIZE:
+                header_size = params.header_size
+            if max_metadata_size == const.MAX_METADATA_SIZE:
+                max_metadata_size = params.max_metadata_size
+
         if len(value) < header_size:
             raise BoxParseError(f"Box value too small: {len(value)} < {header_size}")
 
+        # Parse the known ARC-89 header fields at fixed offsets.
+        # If header_size > const.HEADER_SIZE (future extensions), we skip unknown tail bytes.
+        min_known_header = const.IDX_DEPRECATED_BY + const.UINT64_SIZE
+        if len(value) < min_known_header:
+            raise BoxParseError(
+                f"Box value too small for known header: {len(value)} < {min_known_header}"
+            )
+
         try:
-            identifiers = value[const.IDX_METADATA_IDENTIFIERS]
-            rev_flags = value[const.IDX_REVERSIBLE_FLAGS]
-            irr_flags = value[const.IDX_IRREVERSIBLE_FLAGS]
+            identifiers = int(value[const.IDX_METADATA_IDENTIFIERS])
+            rev_flags = int(value[const.IDX_REVERSIBLE_FLAGS])
+            irr_flags = int(value[const.IDX_IRREVERSIBLE_FLAGS])
             metadata_hash = value[
                 const.IDX_METADATA_HASH : const.IDX_LAST_MODIFIED_ROUND
             ]
@@ -666,7 +652,12 @@ class AssetMetadataBox:
                 signed=False,
             )
             deprecated_by = int.from_bytes(
-                value[const.IDX_DEPRECATED_BY : header_size], "big", signed=False
+                value[
+                    const.IDX_DEPRECATED_BY : const.IDX_DEPRECATED_BY
+                    + const.UINT64_SIZE
+                ],
+                "big",
+                signed=False,
             )
         except Exception as e:
             raise BoxParseError("Failed to parse ARC-89 metadata header") from e
@@ -681,12 +672,78 @@ class AssetMetadataBox:
         header = MetadataHeader(
             identifiers=identifiers,
             flags=MetadataFlags.from_bytes(rev_flags, irr_flags),
-            metadata_hash=metadata_hash,
+            metadata_hash=bytes(metadata_hash),
             last_modified_round=last_modified_round,
             deprecated_by=deprecated_by,
         )
         body = MetadataBody(raw_bytes=body_bytes)
         return cls(asset_id=asset_id, header=header, body=body)
+
+    def expected_metadata_hash(
+        self,
+        *,
+        params: RegistryParameters | None = None,
+        asa_am: bytes | None = None,
+        enforce_immutable_on_override: bool = True,
+    ) -> bytes:
+        """
+        Compute the *effective* metadata hash for this record.
+
+        If `asa_am` is provided and non-zero, returns it (ASA `am` override case).
+        """
+        p = params or get_default_registry_params()
+
+        if asa_am is not None and _is_nonzero_32(asa_am):
+            if (
+                enforce_immutable_on_override
+                and not self.header.flags.irreversible.immutable
+            ):
+                raise ValueError("ASA `am` override requires immutable metadata")
+            return asa_am
+
+        identifiers = self.header.expected_identifiers(body=self.body, params=p)
+        return compute_metadata_hash(
+            asset_id=self.asset_id,
+            metadata_identifiers=identifiers,
+            reversible_flags=self.header.flags.reversible_byte,
+            irreversible_flags=self.header.flags.irreversible_byte,
+            metadata=self.body.raw_bytes,
+            page_size=p.page_size,
+        )
+
+    def hash_matches(
+        self,
+        *,
+        params: RegistryParameters | None = None,
+        asa_am: bytes | None = None,
+        skip_validation_on_override: bool = True,
+    ) -> bool:
+        """
+        Compare observed on-chain hash to the locally computed effective hash.
+
+        If `asa_am` is set and non-zero and skip_validation_on_override=True, this returns True
+        unconditionally (because spec says not to validate `am` overrides).
+        """
+        if (
+            asa_am is not None
+            and _is_nonzero_32(asa_am)
+            and skip_validation_on_override
+        ):
+            return True
+        expected = self.expected_metadata_hash(params=params, asa_am=asa_am)
+        return expected == self.header.metadata_hash
+
+    @property
+    def json(self) -> dict[str, object]:
+        return decode_metadata_json(self.body.raw_bytes)
+
+    def as_asset_metadata(self) -> AssetMetadata:
+        return AssetMetadata(
+            asset_id=self.asset_id,
+            body=self.body,
+            flags=self.header.flags,
+            deprecated_by=self.header.deprecated_by,
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -714,49 +771,33 @@ class AssetMetadataRecord:
             deprecated_by=self.header.deprecated_by,
         )
 
+    def expected_metadata_hash(
+        self,
+        *,
+        params: RegistryParameters | None = None,
+        asa_am: bytes | None = None,
+        enforce_immutable_on_override: bool = True,
+    ) -> bytes:
+        return AssetMetadataBox(
+            asset_id=self.asset_id, header=self.header, body=self.body
+        ).expected_metadata_hash(
+            params=params,
+            asa_am=asa_am,
+            enforce_immutable_on_override=enforce_immutable_on_override,
+        )
 
-def decode_metadata_json(metadata: bytes) -> dict[str, object]:
-    """
-    Decode ARC-89 metadata bytes into a Python dict.
-
-    ARC-89 requires a UTF-8 JSON *object*. Empty metadata bytes MUST be treated as `{}`.
-    """
-    if metadata == b"":
-        return {}
-
-    # Reject UTF-8 BOM
-    if metadata.startswith(b"\xef\xbb\xbf"):
-        raise MetadataEncodingError("Metadata MUST NOT include a UTF-8 BOM")
-
-    try:
-        txt = metadata.decode("utf-8")
-    except UnicodeDecodeError as e:
-        raise MetadataEncodingError("Metadata is not valid UTF-8") from e
-
-    try:
-        obj: object = json.loads(txt)
-    except json.JSONDecodeError as e:
-        raise MetadataEncodingError("Metadata is not valid JSON") from e
-
-    if not isinstance(obj, dict):
-        raise MetadataEncodingError("Metadata JSON MUST be an object")
-    return obj
-
-
-def encode_metadata_json(obj: Mapping[str, object]) -> bytes:
-    """
-    Encode a JSON object to UTF-8 bytes without BOM.
-
-    The encoding is not canonicalized beyond `json.dumps` defaults; ARC-89 hashing uses raw bytes.
-    """
-    try:
-        txt = json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
-    except (TypeError, ValueError) as e:
-        raise MetadataEncodingError("Object is not JSON-serializable") from e
-    data = txt.encode("utf-8")
-    if data.startswith(b"\xef\xbb\xbf"):
-        raise MetadataEncodingError("Produced UTF-8 BOM; this should not happen")
-    return data
+    def hash_matches(
+        self,
+        *,
+        params: RegistryParameters | None = None,
+        asa_am: bytes | None = None,
+    ) -> bool:
+        return AssetMetadataBox(
+            asset_id=self.asset_id, header=self.header, body=self.body
+        ).hash_matches(
+            params=params,
+            asa_am=asa_am,
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -765,7 +806,8 @@ class AssetMetadata:
     Metadata payload and flags, suitable for ARC-89 write operations.
 
     This class represents only the *metadata body* (JSON bytes), plus flags to be stored in the header.
-    The registry sets metadata identifiers (shortness) automatically.
+    Header identifiers and hash are derived and can be recomputed after changes.
+    Registry parameters are always set as default (cached singleton).
     """
 
     asset_id: int
@@ -773,31 +815,117 @@ class AssetMetadata:
     flags: MetadataFlags
     deprecated_by: int
 
-    def compute_metadata_hash(self, *, params: RegistryParameters) -> bytes:
-        """
-        Compute the expected on-chain metadata hash per ARC-89.
+    @property
+    def is_empty(self) -> bool:
+        return self.body.is_empty
 
-        Note: this does NOT incorporate the ASA `am` override behavior; it follows the ARC-89 hash
-        computation over header+pages (domain-separated SHA-512/256).
+    @property
+    def is_short(self) -> bool:
+        return self.body.is_short
+
+    @property
+    def is_immutable(self) -> bool:
+        return self.flags.irreversible.immutable
+
+    @property
+    def is_arc3_compliant(self) -> bool:
+        return self.flags.irreversible.arc3
+
+    @property
+    def is_arc89_native(self) -> bool:
+        return self.flags.irreversible.arc89_native
+
+    @property
+    def is_arc20_smart_asa(self) -> bool:
+        return self.flags.reversible.arc20
+
+    @property
+    def is_arc62_circulating_supply(self) -> bool:
+        return self.flags.reversible.arc62
+
+    @property
+    def is_deprecated(self) -> bool:
+        return self.deprecated_by != 0
+
+    @property
+    def identifiers_byte(self) -> int:
         """
+        Compute the metadata identifiers byte for hashing/writes.
+
+        The registry sets the shortness bit based on metadata size; we mirror that logic here.
+        Reserved bits default to 0 for write-intent objects.
+        """
+        value = 0
+        if self.is_short:
+            value |= bitmasks.MASK_ID_SHORT
+        return value
+
+    def compute_header_hash(self) -> bytes:
+        return compute_header_hash(
+            asset_id=self.asset_id,
+            metadata_identifiers=self.identifiers_byte,
+            reversible_flags=self.flags.reversible_byte,
+            irreversible_flags=self.flags.irreversible_byte,
+            metadata_size=self.body.size,
+        )
+
+    def compute_page_hash(self, *, page_index: int) -> bytes:
+        return compute_page_hash(
+            asset_id=self.asset_id,
+            page_index=page_index,
+            page_content=self.body.get_page(page_index),
+        )
+
+    def compute_arc89_metadata_hash(self) -> bytes:
+        """
+        Compute the ARC-89 hash from (identifiers, flags, pages).
+
+        This ignores the ASA `am` override mechanism.
+        """
+        p = get_default_registry_params()
         return compute_metadata_hash(
             asset_id=self.asset_id,
-            metadata_identifiers=self.body.is_short,
+            metadata_identifiers=self.identifiers_byte,
             reversible_flags=self.flags.reversible.byte_value,
             irreversible_flags=self.flags.irreversible.byte_value,
             metadata=self.body.raw_bytes,
-            page_size=params.page_size,
+            page_size=p.page_size,
         )
 
-    def get_mbr_delta(
-        self, *, params: RegistryParameters, old_size: int | None
-    ) -> MbrDelta:
-        return params.mbr_delta(
-            old_metadata_size=old_size, new_metadata_size=self.body.size
-        )
+    def compute_metadata_hash(
+        self,
+        *,
+        asa_am: bytes | None = None,
+        enforce_immutable_on_override: bool = True,
+    ) -> bytes:
+        """
+        Compute the effective on-chain metadata hash.
 
-    def get_delete_mbr_delta(self, *, params: RegistryParameters) -> MbrDelta:
-        return params.mbr_delta(
+        If `asa_am` is provided and non-zero, it takes precedence and is returned
+        (ASA Asset Metadata Hash (`am`) override behavior per ARC-89). In that case,
+        the registry does not validate the `am` content, but ARC-89 requires the
+        metadata to be immutable at creation.
+        """
+        if asa_am is not None:
+            if len(asa_am) != 32:
+                raise ValueError("ASA `am` override must be exactly 32 bytes")
+            if _is_nonzero_32(asa_am):
+                if (
+                    enforce_immutable_on_override
+                    and not self.flags.irreversible.immutable
+                ):
+                    raise ValueError("ASA `am` override requires immutable metadata")
+                return asa_am
+
+        return self.compute_arc89_metadata_hash()
+
+    def get_mbr_delta(self, *, old_size: int | None = None) -> MbrDelta:
+        p = get_default_registry_params()
+        return p.mbr_delta(old_metadata_size=old_size, new_metadata_size=self.body.size)
+
+    def get_delete_mbr_delta(self) -> MbrDelta:
+        p = get_default_registry_params()
+        return p.mbr_delta(
             old_metadata_size=self.body.size, new_metadata_size=0, delete=True
         )
 
@@ -807,8 +935,7 @@ class AssetMetadata:
         *,
         asset_id: int,
         json_obj: Mapping[str, object],
-        reversible_flags: int = 0,
-        irreversible_flags: int = 0,
+        flags: MetadataFlags | None = None,
         deprecated_by: int = 0,
         arc3_compliant: bool = False,
     ) -> AssetMetadata:
@@ -820,6 +947,39 @@ class AssetMetadata:
         return cls(
             asset_id=asset_id,
             body=MetadataBody(body_raw_bytes),
-            flags=MetadataFlags.from_bytes(reversible_flags, irreversible_flags),
+            flags=flags or MetadataFlags.empty(),
+            deprecated_by=deprecated_by,
+        )
+
+    @classmethod
+    def from_bytes(
+        cls,
+        *,
+        asset_id: int,
+        metadata_bytes: bytes,
+        flags: MetadataFlags | None = None,
+        deprecated_by: int = 0,
+        validate_json_object: bool = True,
+        arc3_compliant: bool = False,
+    ) -> AssetMetadata:
+        """
+        Create from raw metadata bytes.
+
+        If validate_json_object=True (default), bytes must decode to a JSON object per ARC-89
+        (empty bytes are allowed and treated as `{}`). ARC-3 compliance validation (arc3_compliant=True)
+        requires JSON object validation.
+        """
+        assert (
+            validate_json_object if arc3_compliant else True
+        ), "arc3_compliant=True requires validate_json_object=True"
+        if validate_json_object:
+            json_obj = decode_metadata_json(metadata_bytes)
+            if arc3_compliant:
+                validate_arc3_schema(json_obj)
+
+        return cls(
+            asset_id=asset_id,
+            body=MetadataBody(metadata_bytes),
+            flags=flags or MetadataFlags.empty(),
             deprecated_by=deprecated_by,
         )
