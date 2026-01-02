@@ -127,3 +127,22 @@ def validate_arc3_schema(obj: Mapping[str, object]) -> None:
                     f"ARC-3 field '{key}' must be a string, got {type(value).__name__}"
                 )
         # Other fields are allowed (for extensibility) but we don't validate them
+
+
+def is_arc3_metadata(obj: Mapping[str, object]) -> bool:
+    """
+    Check if a JSON object contains ARC-3 specific fields.
+
+    Returns True if the object contains ARC-3 indicator fields like decimals,
+    properties, or localization which are strong indicators of ARC-3 compliance.
+    Generic fields like 'name' or 'description' alone are not sufficient.
+    """
+    # Strong ARC-3 indicator fields that are specific to ARC-3
+    arc3_indicator_fields = {
+        "decimals",      # NFT-specific field
+        "properties",    # ARC-3 specific
+        "localization",  # ARC-3 specific
+    }
+    return any(key in arc3_indicator_fields for key in obj.keys())
+
+
