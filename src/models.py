@@ -366,19 +366,8 @@ class IrreversibleFlags:
 class MetadataFlags:
     """Combined reversible and irreversible flags."""
 
-    reversible: ReversibleFlags | int
-    irreversible: IrreversibleFlags | int
-
-    def __post_init__(self) -> None:
-        # Convert integers to flag objects if needed
-        if isinstance(self.reversible, int):
-            object.__setattr__(
-                self, "reversible", ReversibleFlags.from_byte(self.reversible)
-            )
-        if isinstance(self.irreversible, int):
-            object.__setattr__(
-                self, "irreversible", IrreversibleFlags.from_byte(self.irreversible)
-            )
+    reversible: ReversibleFlags
+    irreversible: IrreversibleFlags
 
     @property
     def reversible_byte(self) -> int:
