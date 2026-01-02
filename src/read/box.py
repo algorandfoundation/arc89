@@ -100,8 +100,8 @@ class AsaMetadataRegistryBoxRead:
         return compute_header_hash(
             asset_id=asset_id,
             metadata_identifiers=b.header.identifiers,
-            reversible_flags=b.header.flags.reversible.byte_value,
-            irreversible_flags=b.header.flags.irreversible.byte_value,
+            reversible_flags=b.header.flags.reversible_byte,
+            irreversible_flags=b.header.flags.irreversible_byte,
             metadata_size=b.body.size,
         )
 
