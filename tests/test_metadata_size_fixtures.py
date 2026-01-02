@@ -10,7 +10,7 @@ def test_empty_metadata_fixture(arc_89_asa: int, empty_metadata: AssetMetadata) 
     assert empty_metadata.size == 0
     assert empty_metadata.body.total_pages() == 0
     assert empty_metadata.is_short  # Empty is considered short
-    assert empty_metadata.body.validate_size()
+    empty_metadata.body.validate_size()  # Should not raise
 
     # Empty metadata should still have valid hash (just header)
     assert len(empty_metadata.compute_metadata_hash()) == 32
@@ -25,7 +25,7 @@ def test_short_metadata_fixture(arc_89_asa: int, short_metadata: AssetMetadata) 
     assert short_metadata.size > 0
     assert short_metadata.size <= const.SHORT_METADATA_SIZE
     assert short_metadata.is_short
-    assert short_metadata.body.validate_size()
+    short_metadata.body.validate_size()  # Should not raise
 
     # Short metadata can be operated on directly by AVM
     json_data = short_metadata.body.json
@@ -45,7 +45,7 @@ def test_maxed_metadata_fixture(arc_89_asa: int, maxed_metadata: AssetMetadata) 
     assert maxed_metadata.asset_id == arc_89_asa
     assert maxed_metadata.size == const.MAX_METADATA_SIZE
     assert not maxed_metadata.is_short  # Too large to be short
-    assert maxed_metadata.body.validate_size()
+    maxed_metadata.body.validate_size()  # Should not raise
 
     # Should have maximum number of pages
     expected_pages = (const.MAX_METADATA_SIZE + const.PAGE_SIZE - 1) // const.PAGE_SIZE
@@ -78,7 +78,12 @@ def test_oversized_metadata_fixture(
     assert oversized_metadata.asset_id == arc_89_asa
     assert oversized_metadata.size > const.MAX_METADATA_SIZE
     assert not oversized_metadata.is_short
-    assert not oversized_metadata.body.validate_size()  # Should fail validation
+
+    try:
+        oversized_metadata.body.validate_size()
+        raise AssertionError("Expected validate_size to raise ValueError")
+    except ValueError as e:
+        assert "exceeds max" in str(e).lower()
 
     # Should still be able to compute hash (even though invalid)
     hash_value = oversized_metadata.compute_metadata_hash()
@@ -112,7 +117,9 @@ def test_size_comparison() -> None:
     for size in sizes:
         content = "x" * size
         metadata = AssetMetadata.from_bytes(
-            asset_id=999, metadata_bytes=content.encode("utf-8") if content else b""
+            asset_id=999,
+            metadata_bytes=content.encode("utf-8") if content else b"",
+            validate_json_object=False,  # Skip JSON validation for this test
         )
 
         is_short = metadata.is_short
