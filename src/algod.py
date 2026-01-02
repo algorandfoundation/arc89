@@ -11,7 +11,12 @@ from .codec import (
     complete_partial_asset_url,
 )
 from .errors import AsaNotFoundError, BoxNotFoundError, InvalidArc90UriError
-from .models import AssetMetadataBox, AssetMetadataRecord, RegistryParameters
+from .models import (
+    AssetMetadataBox,
+    AssetMetadataRecord,
+    RegistryParameters,
+    get_default_registry_params,
+)
 
 if TYPE_CHECKING:  # pragma: no cover
     from algosdk.v2client.algod import AlgodClient
@@ -78,7 +83,7 @@ class AlgodBoxReader:
             )
         except BoxNotFoundError:
             return None
-        p = params or RegistryParameters.defaults()
+        p = params or get_default_registry_params()
         return AssetMetadataBox.parse(
             asset_id=asset_id,
             value=value,
