@@ -24,27 +24,18 @@ from src.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )
-from src.models import MetadataHeader
+from src.models import (
+    AssetMetadata,
+    AssetMetadataBox,
+    IrreversibleFlags,
+    MetadataBody,
+    MetadataFlags,
+    ReversibleFlags,
+)
 from src.read.avm import AsaMetadataRegistryAvmRead
 from src.read.reader import AsaMetadataRegistryRead
 
-from .helpers.factories import AssetMetadata
 from .helpers.utils import create_metadata, set_immutable
-
-
-def serialize_metadata_header(header: "MetadataHeader") -> bytes:
-    """Helper to serialize MetadataHeader to bytes for testing."""
-    if not isinstance(header, MetadataHeader):
-        raise TypeError("Expected MetadataHeader")
-
-    result = bytearray()
-    result.append(header.identifiers)
-    result.append(header.flags.reversible_byte)
-    result.append(header.flags.irreversible_byte)
-    result.extend(header.metadata_hash)
-    result.extend(header.last_modified_round.to_bytes(8, "big", signed=False))
-    result.extend(header.deprecated_by.to_bytes(8, "big", signed=False))
-    return bytes(result)
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -172,31 +163,67 @@ def arc_89_asa(
 
 # AssetMetadata factory fixtures
 @pytest.fixture(scope="function")
+def flags_arc3_compliant() -> MetadataFlags:
+    return MetadataFlags(
+        reversible=ReversibleFlags.empty(),
+        irreversible=IrreversibleFlags(arc3=True),
+    )
+
+
+@pytest.fixture(scope="function")
+def flags_immutable_arc3_compliant() -> MetadataFlags:
+    return MetadataFlags(
+        reversible=ReversibleFlags.empty(),
+        irreversible=IrreversibleFlags(arc3=True, immutable=True),
+    )
+
+
+@pytest.fixture(scope="function")
+def flags_arc89_native_and_arc3_compliant() -> MetadataFlags:
+    return MetadataFlags(
+        reversible=ReversibleFlags.empty(),
+        irreversible=IrreversibleFlags(arc3=True, arc89_native=True),
+    )
+
+
+@pytest.fixture(scope="function")
 def empty_metadata(arc_89_asa: int) -> AssetMetadata:
-    metadata = AssetMetadata.create(asset_id=arc_89_asa, metadata=b"")
-    assert metadata.size == 0
-    assert metadata.total_pages == 0
+    metadata = AssetMetadata(
+        asset_id=arc_89_asa,
+        body=MetadataBody.empty(),
+        flags=MetadataFlags.empty(),
+        deprecated_by=0,
+    )
+    assert metadata.body.size == 0
+    assert metadata.body.total_pages() == 0
     return metadata
 
 
 @pytest.fixture(scope="function")
 def short_metadata(json_obj: dict[str, object], arc_89_asa: int) -> AssetMetadata:
-    metadata = AssetMetadata.create(asset_id=arc_89_asa, metadata=json_obj)
-    assert metadata.validate_json()
-    assert metadata.size <= const.SHORT_METADATA_SIZE
-    assert metadata.is_short
+    metadata = AssetMetadata.from_json(
+        asset_id=arc_89_asa,
+        json_obj=json_obj,
+    )
+    assert metadata.body.size <= const.SHORT_METADATA_SIZE
+    assert metadata.body.is_short
     return metadata
 
 
 @pytest.fixture(scope="function")
 def maxed_metadata(arc_89_asa: int) -> AssetMetadata:
     max_size_content = "x" * const.MAX_METADATA_SIZE
-    metadata = AssetMetadata.create(
-        asset_id=arc_89_asa, metadata=max_size_content, arc89_native=True
+    metadata = AssetMetadata(
+        asset_id=arc_89_asa,
+        body=MetadataBody(raw_bytes=max_size_content.encode("utf-8")),
+        flags=MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(arc89_native=True),
+        ),
+        deprecated_by=0,
     )
-    assert metadata.size == const.MAX_METADATA_SIZE
-    assert metadata.validate_size()
-    assert not metadata.is_short
+    assert metadata.body.size == const.MAX_METADATA_SIZE
+    assert not metadata.body.is_short
     return metadata
 
 
@@ -204,10 +231,12 @@ def maxed_metadata(arc_89_asa: int) -> AssetMetadata:
 def oversized_metadata(arc_89_asa: int) -> AssetMetadata:
     oversized_content = "x" * (const.MAX_METADATA_SIZE + 1)
     metadata = AssetMetadata(
-        asset_id=arc_89_asa, metadata_bytes=oversized_content.encode("utf-8")
+        asset_id=arc_89_asa,
+        body=MetadataBody(raw_bytes=oversized_content.encode("utf-8")),
+        flags=MetadataFlags.empty(),
+        deprecated_by=0,
     )
-    assert metadata.size > const.MAX_METADATA_SIZE
-    assert not metadata.validate_size()
+    assert metadata.body.size > const.MAX_METADATA_SIZE
     return metadata
 
 
@@ -241,9 +270,13 @@ def _create_uploaded_metadata_fixture(
             asset_id
         )
         assert box_value is not None
-        return AssetMetadata.from_box_value(
-            asset_id,
-            box_value,
+        # Parse the box value into AssetMetadataBox, then convert to AssetMetadata
+        parsed_box = AssetMetadataBox.parse(asset_id=asset_id, value=box_value)
+        return AssetMetadata(
+            asset_id=asset_id,
+            body=parsed_box.body,
+            flags=parsed_box.header.flags,
+            deprecated_by=parsed_box.header.deprecated_by,
         )
 
     return uploaded_metadata
