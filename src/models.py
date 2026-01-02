@@ -80,6 +80,9 @@ def _chunk_metadata_payload(
 
     This is a pure splitting helper; size validation is handled elsewhere.
     """
+    if head_max_size <= 0 or extra_max_size <= 0:
+        raise ValueError("Chunk sizes must be > 0")
+
     if len(data) <= head_max_size:
         return [data]
 
@@ -675,8 +678,10 @@ class AssetMetadataBox:
 
         # Parse the known ARC-89 header fields at fixed offsets.
         # If header_size > const.HEADER_SIZE (future extensions), we skip unknown tail bytes.
+        # If header_size < const.HEADER_SIZE, we can only parse what's available.
         min_known_header = const.IDX_DEPRECATED_BY + const.UINT64_SIZE
-        if len(value) < min_known_header:
+        # Only validate against min_known_header if the custom header_size is at least that large
+        if header_size >= min_known_header and len(value) < min_known_header:
             raise BoxParseError(
                 f"Box value too small for known header: {len(value)} < {min_known_header}"
             )
@@ -864,6 +869,10 @@ class AssetMetadata:
     @property
     def is_short(self) -> bool:
         return self.body.is_short
+
+    @property
+    def size(self) -> int:
+        return self.body.size
 
     @property
     def is_immutable(self) -> bool:
