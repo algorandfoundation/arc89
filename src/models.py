@@ -1026,7 +1026,7 @@ class AssetMetadata:
         requires JSON object validation.
         """
         assert (
-            validate_json_object if arc3_compliant else True
+            not arc3_compliant or validate_json_object
         ), "arc3_compliant=True requires validate_json_object=True"
         if validate_json_object:
             json_obj = decode_metadata_json(metadata_bytes)
