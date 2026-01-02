@@ -139,10 +139,8 @@ def is_arc3_metadata(obj: Mapping[str, object]) -> bool:
     """
     # Strong ARC-3 indicator fields that are specific to ARC-3
     arc3_indicator_fields = {
-        "decimals",      # NFT-specific field
-        "properties",    # ARC-3 specific
+        "decimals",  # NFT-specific field
+        "properties",  # ARC-3 specific
         "localization",  # ARC-3 specific
     }
     return any(key in arc3_indicator_fields for key in obj.keys())
-
-
