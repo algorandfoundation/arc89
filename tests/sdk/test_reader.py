@@ -41,7 +41,6 @@ from src.models import (
 from src.read.avm import AsaMetadataRegistryAvmRead, SimulateOptions
 from src.read.box import AsaMetadataRegistryBoxRead
 from src.read.reader import AsaMetadataRegistryRead, MetadataSource
-from tests.conftest import serialize_metadata_header
 
 # ================================================================
 # Fixtures
@@ -59,7 +58,7 @@ def mock_asset_metadata_record(
     algod_reader: AlgodBoxReader, record: AssetMetadataRecord
 ) -> None:
     """Helper to mock algod response for asset metadata record."""
-    box_value = serialize_metadata_header(record.header) + record.body.raw_bytes
+    box_value = record.header.serialized + record.body.raw_bytes
     mock_box_response(algod_reader, box_value)
 
     # Also mock asset_info for URI resolution
@@ -606,7 +605,7 @@ class TestGetAssetMetadata:
         def box_response(app_id: int, box_name: bytes) -> dict[str, str]:
             record = deprecated_record if call_count[0] == 0 else current_record
             call_count[0] += 1
-            box_value = serialize_metadata_header(record.header) + record.body.raw_bytes
+            box_value = record.header.serialized + record.body.raw_bytes
             return {"value": b64_encode(box_value)}
 
         mock_algod_reader.algod.application_box_by_name = Mock(side_effect=box_response)
@@ -640,10 +639,7 @@ class TestGetAssetMetadata:
         )
 
         # Mock always returns the same looping record
-        box_value = (
-            serialize_metadata_header(looping_record.header)
-            + looping_record.body.raw_bytes
-        )
+        box_value = looping_record.header.serialized + looping_record.body.raw_bytes
         mock_algod_reader.algod.application_box_by_name = Mock(
             return_value={"value": b64_encode(box_value)}
         )
@@ -793,9 +789,7 @@ class TestDispatcherCheckMetadataExists:
         reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
 
         # Mock the algod methods to return valid data
-        box_value = (
-            serialize_metadata_header(sample_metadata_header) + b'{"test": "data"}'
-        )
+        box_value = sample_metadata_header.serialized + b'{"test": "data"}'
         mock_box_response(mock_algod_reader, box_value)
         mock_algod_reader.algod.asset_info = Mock(return_value={"id": 456})
 
@@ -839,7 +833,7 @@ class TestDispatcherIsMetadataImmutable:
             last_modified_round=1000,
             metadata_hash=b"\x00" * 32,
         )
-        box_value = serialize_metadata_header(header) + b'{"test": "data"}'
+        box_value = header.serialized + b'{"test": "data"}'
         mock_box_response(mock_algod_reader, box_value)
 
         result = reader.arc89_is_metadata_immutable(
@@ -874,7 +868,7 @@ class TestDispatcherIsMetadataShort:
             last_modified_round=1000,
             metadata_hash=b"\x00" * 32,
         )
-        box_value = serialize_metadata_header(header) + b'{"small": "data"}'
+        box_value = header.serialized + b'{"small": "data"}'
         mock_box_response(mock_algod_reader, box_value)
 
         is_short, round_num = reader.arc89_is_metadata_short(
@@ -903,9 +897,7 @@ class TestDispatcherGetMetadataHeader:
         """Test BOX source."""
         reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
 
-        box_value = (
-            serialize_metadata_header(sample_metadata_header) + b'{"test": "data"}'
-        )
+        box_value = sample_metadata_header.serialized + b'{"test": "data"}'
         mock_box_response(mock_algod_reader, box_value)
 
         result = reader.arc89_get_metadata_header(
@@ -938,7 +930,7 @@ class TestDispatcherGetMetadataPagination:
         reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
 
         metadata_content = b'{"test": "data"}' * 10  # 160 bytes
-        box_value = serialize_metadata_header(sample_metadata_header) + metadata_content
+        box_value = sample_metadata_header.serialized + metadata_content
         mock_box_response(mock_algod_reader, box_value)
 
         result = reader.arc89_get_metadata_pagination(
@@ -968,7 +960,7 @@ class TestDispatcherGetMetadata:
         reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
 
         page_content = b'{"page": 0}'
-        box_value = serialize_metadata_header(sample_metadata_header) + page_content
+        box_value = sample_metadata_header.serialized + page_content
         mock_box_response(mock_algod_reader, box_value)
 
         result = reader.arc89_get_metadata(
@@ -1000,7 +992,7 @@ class TestDispatcherGetMetadataSlice:
         reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
 
         metadata_content = b"0123456789" * 10
-        box_value = serialize_metadata_header(sample_metadata_header) + metadata_content
+        box_value = sample_metadata_header.serialized + metadata_content
         mock_box_response(mock_algod_reader, box_value)
 
         result = reader.arc89_get_metadata_slice(
@@ -1030,9 +1022,7 @@ class TestDispatcherGetMetadataHeaderHash:
         """Test BOX source."""
         reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
 
-        box_value = (
-            serialize_metadata_header(sample_metadata_header) + b'{"test": "data"}'
-        )
+        box_value = sample_metadata_header.serialized + b'{"test": "data"}'
         mock_box_response(mock_algod_reader, box_value)
 
         result = reader.arc89_get_metadata_header_hash(
@@ -1061,9 +1051,7 @@ class TestDispatcherGetMetadataPageHash:
         """Test BOX source."""
         reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
 
-        box_value = (
-            serialize_metadata_header(sample_metadata_header) + b'{"page": "data"}'
-        )
+        box_value = sample_metadata_header.serialized + b'{"page": "data"}'
         mock_box_response(mock_algod_reader, box_value)
 
         result = reader.arc89_get_metadata_page_hash(
@@ -1094,9 +1082,7 @@ class TestDispatcherGetMetadataHash:
         """Test BOX source."""
         reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
 
-        box_value = (
-            serialize_metadata_header(sample_metadata_header) + b'{"metadata": "test"}'
-        )
+        box_value = sample_metadata_header.serialized + b'{"metadata": "test"}'
         mock_box_response(mock_algod_reader, box_value)
 
         result = reader.arc89_get_metadata_hash(asset_id=456, source=MetadataSource.BOX)
@@ -1136,7 +1122,7 @@ class TestDispatcherGetMetadataStringByKey:
         reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
 
         json_data = b'{"name": "box_value"}'
-        box_value = serialize_metadata_header(sample_metadata_header) + json_data
+        box_value = sample_metadata_header.serialized + json_data
         mock_box_response(mock_algod_reader, box_value)
 
         result = reader.arc89_get_metadata_string_by_key(
@@ -1167,7 +1153,7 @@ class TestDispatcherGetMetadataUint64ByKey:
         reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
 
         json_data = b'{"count": 100}'
-        box_value = serialize_metadata_header(sample_metadata_header) + json_data
+        box_value = sample_metadata_header.serialized + json_data
         mock_box_response(mock_algod_reader, box_value)
 
         result = reader.arc89_get_metadata_uint64_by_key(
@@ -1198,7 +1184,7 @@ class TestDispatcherGetMetadataObjectByKey:
         reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
 
         json_data = b'{"config": {"box": "object"}}'
-        box_value = serialize_metadata_header(sample_metadata_header) + json_data
+        box_value = sample_metadata_header.serialized + json_data
         mock_box_response(mock_algod_reader, box_value)
 
         result = reader.arc89_get_metadata_object_by_key(
@@ -1234,7 +1220,7 @@ class TestDispatcherGetMetadataB64BytesByKey:
 
         # Base64 URL encoding of "hello"
         json_data = b'{"data": "aGVsbG8="}'
-        box_value = serialize_metadata_header(sample_metadata_header) + json_data
+        box_value = sample_metadata_header.serialized + json_data
         mock_box_response(mock_algod_reader, box_value)
 
         result = reader.arc89_get_metadata_b64_bytes_by_key(
