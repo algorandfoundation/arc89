@@ -9,10 +9,8 @@ import algokit_utils
 from smart_contracts.constants import ACCOUNT_MBR, ARC3_URL_SUFFIX, UINT64_SIZE
 from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
 from src.codec import Arc90Compliance, Arc90Uri, build_netauth_from_env
-from tests.helpers.factories import (
-    AssetMetadata,
-    compute_arc3_metadata_hash,
-)
+from src.models import AssetMetadata
+from tests.helpers.factories import compute_arc3_metadata_hash
 from tests.helpers.utils import create_metadata
 
 logger = logging.getLogger(__name__)
@@ -105,13 +103,20 @@ def deploy() -> None:
 
     logger.info(f"ARC3 Pure NFT ID: {arc3_pure_nft_id}")
 
-    arc3_pure_nft_metadata = AssetMetadata.create(
+    from src.models import IrreversibleFlags, MetadataFlags, ReversibleFlags
+
+    arc3_pure_nft_metadata = AssetMetadata.from_json(
         asset_id=arc3_pure_nft_id,
-        metadata=arc3_pure_nft_payload_dict,
-        immutable=True,
+        json_obj=arc3_pure_nft_payload_dict,
+        flags=MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(
+                arc3=True,
+                arc89_native=True,
+                immutable=True,
+            ),
+        ),
         arc3_compliant=True,
-        arc89_native=True,
-        asset_metadata_hash=arc3_pure_nft_metadata_hash,
     )
     create_metadata(
         asset_manager=deployer_,
@@ -154,12 +159,18 @@ def deploy() -> None:
 
     logger.info(f"ARC3 Zero Coupon Bond ID: {arc3_bond_id}")
 
-    arc3_bond_metadata = AssetMetadata.create(
+    arc3_bond_metadata = AssetMetadata.from_json(
         asset_id=arc3_bond_id,
-        metadata=arc3_bond_payload_dict,
-        immutable=False,
+        json_obj=arc3_bond_payload_dict,
+        flags=MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(
+                arc3=True,
+                arc89_native=True,
+                immutable=False,
+            ),
+        ),
         arc3_compliant=True,
-        arc89_native=True,
     )
     create_metadata(
         asset_manager=deployer_,
