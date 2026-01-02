@@ -396,6 +396,34 @@ class MetadataHeader:
     deprecated_by: int
 
     @property
+    def is_short(self) -> bool:
+        return self.identifiers & bitmasks.MASK_ID_SHORT
+
+    @property
+    def is_immutable(self) -> bool:
+        return self.flags.irreversible.immutable
+
+    @property
+    def is_arc3_compliant(self) -> bool:
+        return self.flags.irreversible.arc3
+
+    @property
+    def is_arc89_native(self) -> bool:
+        return self.flags.irreversible.arc89_native
+
+    @property
+    def is_arc20_smart_asa(self) -> bool:
+        return self.flags.reversible.arc20
+
+    @property
+    def is_arc62_circulating_supply(self) -> bool:
+        return self.flags.reversible.arc62
+
+    @property
+    def is_deprecated(self) -> bool:
+        return self.deprecated_by != 0
+
+    @property
     def serialized(self) -> bytes:
         result = bytearray()
         result.append(self.identifiers & 0xFF)
