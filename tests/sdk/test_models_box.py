@@ -11,7 +11,12 @@ import pytest
 from smart_contracts import constants as const
 from src import bitmasks
 from src.errors import BoxParseError
-from src.models import AssetMetadataBox
+from src.models import (
+    AssetMetadata,
+    AssetMetadataBox,
+    RegistryParameters,
+    get_default_registry_params,
+)
 
 
 class TestAssetMetadataBoxParse:
@@ -311,3 +316,255 @@ class TestAssetMetadataBoxParse:
         assert decoded["name"] == "My NFT"
         assert decoded["decimals"] == 0
         assert decoded["properties"]["trait1"] == "value1"
+
+
+class TestAssetMetadataBoxAdvanced:
+    """Advanced tests for AssetMetadataBox hash validation methods."""
+
+    def _create_box_value(
+        self,
+        *,
+        identifiers: int = 0,
+        rev_flags: int = 0,
+        irr_flags: int = 0,
+        metadata_hash: bytes = b"\x00" * 32,
+        last_modified_round: int = 0,
+        deprecated_by: int = 0,
+        metadata: bytes = b"",
+    ) -> bytes:
+        """Helper to create a valid box value."""
+        return (
+            bytes([identifiers])
+            + bytes([rev_flags])
+            + bytes([irr_flags])
+            + metadata_hash
+            + last_modified_round.to_bytes(8, "big", signed=False)
+            + deprecated_by.to_bytes(8, "big", signed=False)
+            + metadata
+        )
+
+    def test_expected_metadata_hash_without_asa_am(self) -> None:
+        """Test expected_metadata_hash without ASA am override."""
+        metadata = b'{"name":"Test"}'
+        box_value = self._create_box_value(metadata=metadata)
+        box = AssetMetadataBox.parse(asset_id=123, value=box_value)
+
+        # Should compute from metadata
+        expected_hash = box.expected_metadata_hash()
+        assert len(expected_hash) == 32
+        assert expected_hash != b"\x00" * 32
+
+    def test_expected_metadata_hash_with_asa_am_override(self) -> None:
+        """Test expected_metadata_hash with ASA am override."""
+        asa_am = b"\xaa" * 32
+        metadata = b'{"name":"Test"}'
+        box_value = self._create_box_value(
+            metadata=metadata,
+            irr_flags=bitmasks.MASK_IRR_IMMUTABLE,  # Required for override
+        )
+        box = AssetMetadataBox.parse(asset_id=123, value=box_value)
+
+        # Should return asa_am directly
+        expected_hash = box.expected_metadata_hash(asa_am=asa_am)
+        assert expected_hash == asa_am
+
+    def test_expected_metadata_hash_asa_am_requires_immutable(self) -> None:
+        """Test expected_metadata_hash with asa_am requires immutable flag."""
+        asa_am = b"\xaa" * 32
+        metadata = b'{"name":"Test"}'
+        box_value = self._create_box_value(
+            metadata=metadata,
+            irr_flags=0,  # NOT immutable
+        )
+        box = AssetMetadataBox.parse(asset_id=123, value=box_value)
+
+        with pytest.raises(ValueError, match="ASA `am` override requires immutable"):
+            box.expected_metadata_hash(asa_am=asa_am)
+
+    def test_expected_metadata_hash_asa_am_all_zeros_ignored(self) -> None:
+        """Test expected_metadata_hash with all-zero asa_am (should be ignored)."""
+        asa_am = b"\x00" * 32
+        metadata = b'{"name":"Test"}'
+        box_value = self._create_box_value(metadata=metadata)
+        box = AssetMetadataBox.parse(asset_id=123, value=box_value)
+
+        # All-zero asa_am should be ignored, compute from metadata
+        expected_hash = box.expected_metadata_hash(asa_am=asa_am)
+        assert expected_hash != asa_am
+
+    def test_hash_matches_true(self) -> None:
+        """Test hash_matches when hashes match."""
+        from src.hashing import compute_metadata_hash
+
+        metadata = b'{"name":"Test"}'
+        params = get_default_registry_params()
+
+        # Compute correct hash
+        correct_hash = compute_metadata_hash(
+            asset_id=123,
+            metadata_identifiers=bitmasks.MASK_ID_SHORT,
+            reversible_flags=0,
+            irreversible_flags=0,
+            metadata=metadata,
+            page_size=params.page_size,
+        )
+
+        box_value = self._create_box_value(
+            identifiers=bitmasks.MASK_ID_SHORT,
+            metadata=metadata,
+            metadata_hash=correct_hash,
+        )
+        box = AssetMetadataBox.parse(asset_id=123, value=box_value)
+
+        assert box.hash_matches() is True
+
+    def test_hash_matches_false(self) -> None:
+        """Test hash_matches when hashes don't match."""
+        metadata = b'{"name":"Test"}'
+        wrong_hash = b"\xff" * 32
+
+        box_value = self._create_box_value(
+            identifiers=bitmasks.MASK_ID_SHORT,
+            metadata=metadata,
+            metadata_hash=wrong_hash,
+        )
+        box = AssetMetadataBox.parse(asset_id=123, value=box_value)
+
+        assert box.hash_matches() is False
+
+    def test_hash_matches_with_asa_am_skip_validation(self) -> None:
+        """Test hash_matches with asa_am and skip_validation=True."""
+        asa_am = b"\xaa" * 32
+        metadata = b'{"name":"Test"}'
+        wrong_hash = b"\xff" * 32
+
+        box_value = self._create_box_value(
+            metadata=metadata,
+            metadata_hash=wrong_hash,
+        )
+        box = AssetMetadataBox.parse(asset_id=123, value=box_value)
+
+        # With skip_validation=True and non-zero asa_am, should return True
+        assert box.hash_matches(asa_am=asa_am, skip_validation_on_override=True) is True
+
+    def test_json_property(self) -> None:
+        """Test json property on AssetMetadataBox."""
+        metadata = b'{"name":"Test","value":42}'
+        box_value = self._create_box_value(metadata=metadata)
+        box = AssetMetadataBox.parse(asset_id=123, value=box_value)
+
+        assert box.json == {"name": "Test", "value": 42}
+
+    def test_as_asset_metadata(self) -> None:
+        """Test as_asset_metadata conversion."""
+        metadata = b'{"name":"Test"}'
+        box_value = self._create_box_value(
+            metadata=metadata,
+            rev_flags=bitmasks.MASK_REV_ARC20,
+            irr_flags=bitmasks.MASK_IRR_ARC3,
+            deprecated_by=5000,
+        )
+        box = AssetMetadataBox.parse(asset_id=456, value=box_value)
+
+        asset_metadata = box.as_asset_metadata()
+        assert isinstance(asset_metadata, AssetMetadata)
+        assert asset_metadata.asset_id == 456
+        assert asset_metadata.body.raw_bytes == metadata
+        assert asset_metadata.flags.reversible.arc20 is True
+        assert asset_metadata.flags.irreversible.arc3 is True
+        assert asset_metadata.deprecated_by == 5000
+
+    def test_parse_with_params_overrides_header_size(self) -> None:
+        """Test parse with params overrides header_size."""
+        # Create custom params with different header size
+        custom_params = RegistryParameters(
+            header_size=60,  # Different from default
+            max_metadata_size=const.MAX_METADATA_SIZE,
+            short_metadata_size=const.SHORT_METADATA_SIZE,
+            page_size=const.PAGE_SIZE,
+            first_payload_max_size=const.FIRST_PAYLOAD_MAX_SIZE,
+            extra_payload_max_size=const.EXTRA_PAYLOAD_MAX_SIZE,
+            replace_payload_max_size=const.REPLACE_PAYLOAD_MAX_SIZE,
+            flat_mbr=const.FLAT_MBR,
+            byte_mbr=const.BYTE_MBR,
+        )
+
+        # Create box with extended header (60 bytes instead of 51)
+        base_value = self._create_box_value(metadata=b'{"name":"Test"}')
+        # Add extra 9 bytes for the extended header
+        box_value = base_value[:51] + b"\x00" * 9 + base_value[51:]
+
+        # Parse with custom params (should use params.header_size)
+        box = AssetMetadataBox.parse(
+            asset_id=123, value=box_value, params=custom_params
+        )
+        assert box.asset_id == 123
+        # Body starts after 60 bytes instead of 51
+        assert box.body.raw_bytes == base_value[51:]
+
+    def test_parse_with_params_overrides_max_metadata_size(self) -> None:
+        """Test parse with params overrides max_metadata_size."""
+        # Create custom params with smaller max_metadata_size
+        custom_params = RegistryParameters(
+            header_size=const.HEADER_SIZE,
+            max_metadata_size=100,  # Very small limit
+            short_metadata_size=const.SHORT_METADATA_SIZE,
+            page_size=const.PAGE_SIZE,
+            first_payload_max_size=const.FIRST_PAYLOAD_MAX_SIZE,
+            extra_payload_max_size=const.EXTRA_PAYLOAD_MAX_SIZE,
+            replace_payload_max_size=const.REPLACE_PAYLOAD_MAX_SIZE,
+            flat_mbr=const.FLAT_MBR,
+            byte_mbr=const.BYTE_MBR,
+        )
+
+        # Create box with metadata exceeding custom limit
+        metadata = b"x" * 150
+        box_value = self._create_box_value(metadata=metadata)
+
+        # Should raise because metadata exceeds custom max_metadata_size
+        with pytest.raises(BoxParseError, match="exceeds max_metadata_size"):
+            AssetMetadataBox.parse(asset_id=123, value=box_value, params=custom_params)
+
+    def test_parse_known_header_validation_edge_case(self) -> None:
+        """Test parse with custom header_size smaller than known header."""
+        # Edge case: custom header_size < min_known_header should not trigger
+        # the secondary validation check (line 673-675)
+        custom_header_size = 40  # Less than min_known_header (51)
+
+        # Create a box with exactly 40 bytes of header + metadata
+        box_value = b"\x00" * 40 + b'{"name":"Test"}'
+
+        # This should parse without the min_known_header check since
+        # header_size < min_known_header
+        box = AssetMetadataBox.parse(
+            asset_id=123,
+            value=box_value,
+            header_size=custom_header_size,
+        )
+        assert box.body.raw_bytes == b'{"name":"Test"}'
+
+    def test_parse_malformed_header_raises(self) -> None:
+        """Test parse with malformed header data raises BoxParseError."""
+        # Create a box value that will cause an exception during parsing
+        # e.g., not enough bytes for uint64 fields
+        malformed_value = b"\x00" * 50  # 50 bytes, just short of full header
+
+        with pytest.raises(BoxParseError, match="Box value too small"):
+            AssetMetadataBox.parse(asset_id=123, value=malformed_value)
+
+    def test_parse_with_large_custom_header_size_edge_case(self) -> None:
+        """Test parse with custom header_size >= min_known_header but value too small."""
+        # This tests line 674: the secondary validation for known header size
+        # Create a custom header size that's >= min_known_header (51)
+        custom_header_size = 60
+
+        # Create a value that's less than min_known_header
+        # This should trigger the "Box value too small for known header" error
+        short_value = b"\x00" * 48  # Less than min_known_header
+
+        with pytest.raises(BoxParseError, match="Box value too small"):
+            AssetMetadataBox.parse(
+                asset_id=123,
+                value=short_value,
+                header_size=custom_header_size,
+            )

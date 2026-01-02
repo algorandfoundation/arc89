@@ -5,7 +5,7 @@ from src.generated.asa_metadata_registry_client import (
     Arc89CheckMetadataExistsArgs,
     AsaMetadataRegistryClient,
 )
-from tests.helpers.factories import AssetMetadata
+from src.models import AssetMetadata
 from tests.helpers.utils import delete_metadata
 
 
@@ -17,7 +17,7 @@ def test_delete_metadata_existing_asa(
     pre_delete_balance = asa_metadata_registry_client.algorand.account.get_information(
         asset_manager.address
     ).amount.micro_algo
-    deletion_mbr_delta = mutable_maxed_metadata.get_mbr_delta(delete=True)
+    deletion_mbr_delta = mutable_maxed_metadata.get_delete_mbr_delta()
     mbr_delta = delete_metadata(
         caller=asset_manager,
         asa_metadata_registry_client=asa_metadata_registry_client,
@@ -29,7 +29,7 @@ def test_delete_metadata_existing_asa(
     ).amount.micro_algo
     assert post_delete_balance > pre_delete_balance
     assert -mbr_delta.amount == deletion_mbr_delta.signed_amount
-    assert mbr_delta.amount == deletion_mbr_delta.amount.micro_algo
+    assert mbr_delta.amount == deletion_mbr_delta.amount
     assert mbr_delta.sign == MBR_DELTA_NEG
 
     metadata_existence = asa_metadata_registry_client.send.arc89_check_metadata_exists(
@@ -55,7 +55,7 @@ def test_delete_metadata_nonexistent_asa(
     pre_delete_balance = asa_metadata_registry_client.algorand.account.get_information(
         untrusted_account.address
     ).amount.micro_algo
-    deletion_mbr_delta = mutable_maxed_metadata.get_mbr_delta(delete=True)
+    deletion_mbr_delta = mutable_maxed_metadata.get_delete_mbr_delta()
     mbr_delta = delete_metadata(
         caller=untrusted_account,
         asa_metadata_registry_client=asa_metadata_registry_client,
@@ -67,7 +67,7 @@ def test_delete_metadata_nonexistent_asa(
     ).amount.micro_algo
     assert post_delete_balance > pre_delete_balance
     assert -mbr_delta.amount == deletion_mbr_delta.signed_amount
-    assert mbr_delta.amount == deletion_mbr_delta.amount.micro_algo
+    assert mbr_delta.amount == deletion_mbr_delta.amount
     assert mbr_delta.sign == MBR_DELTA_NEG
 
     metadata_existence = asa_metadata_registry_client.send.arc89_check_metadata_exists(

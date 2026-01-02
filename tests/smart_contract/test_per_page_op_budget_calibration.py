@@ -11,10 +11,11 @@ from src.generated.asa_metadata_registry_client import (
     Arc89ReplaceMetadataSliceArgs,
     AsaMetadataRegistryClient,
 )
-from tests.helpers.factories import AssetMetadata, create_metadata_with_page_count
+from src.models import AssetMetadata, AssetMetadataBox
 from tests.helpers.utils import (
     add_extra_resources,
     create_metadata,
+    create_metadata_with_page_count,
     set_immutable,
     set_reversible_flag,
     total_extra_resources,
@@ -46,12 +47,15 @@ def test_per_page_count(
         asset_id
     )
     assert box_value is not None
-    initial_state = AssetMetadata.from_box_value(
-        asset_id,
-        box_value,
+    parsed_box = AssetMetadataBox.parse(asset_id=asset_id, value=box_value)
+    initial_state = AssetMetadata(
+        asset_id=asset_id,
+        body=parsed_box.body,
+        flags=parsed_box.header.flags,
+        deprecated_by=parsed_box.header.deprecated_by,
     )
-    assert initial_state.total_pages == page_count
-    assert not initial_state.is_immutable
+    assert initial_state.body.total_pages() == page_count
+    assert not initial_state.flags.irreversible.immutable
 
     # Set reversible flag
     set_reversible_flag(

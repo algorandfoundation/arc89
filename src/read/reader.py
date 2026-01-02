@@ -21,6 +21,7 @@ from ..models import (
     PaginatedMetadata,
     Pagination,
     RegistryParameters,
+    get_default_registry_params,
 )
 from .avm import AsaMetadataRegistryAvmRead, SimulateOptions
 from .box import AsaMetadataRegistryBoxRead
@@ -81,7 +82,7 @@ class AsaMetadataRegistryRead:
                 pass
 
         # Fall back to spec defaults.
-        p = RegistryParameters.defaults()
+        p = get_default_registry_params()
         object.__setattr__(self, "_params_cache", p)
         return p
 

@@ -56,6 +56,12 @@ from .models import (
     Pagination,
     RegistryParameters,
     ReversibleFlags,
+    get_default_registry_params,
+)
+from .validation import (
+    decode_metadata_json,
+    encode_metadata_json,
+    validate_arc3_schema,
 )
 
 __all__ = [
@@ -92,6 +98,7 @@ __all__ = [
     "Pagination",
     "RegistryParameters",
     "ReversibleFlags",
+    "get_default_registry_params",
     # Bitmasks
     "bitmasks",
     # Constants
@@ -106,4 +113,8 @@ __all__ = [
     "compute_metadata_hash",
     "sha256",
     "sha512_256",
+    # Validation
+    "encode_metadata_json",
+    "decode_metadata_json",
+    "validate_arc3_schema",
 ]

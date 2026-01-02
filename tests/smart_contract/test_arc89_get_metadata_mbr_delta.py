@@ -2,7 +2,7 @@ from src.generated.asa_metadata_registry_client import (
     Arc89GetMetadataMbrDeltaArgs,
     AsaMetadataRegistryClient,
 )
-from tests.helpers.factories import AssetMetadata
+from src.models import AssetMetadata
 
 
 def test_get_metadata_mbr_delta_for_existing_metadata(
@@ -11,22 +11,26 @@ def test_get_metadata_mbr_delta_for_existing_metadata(
     empty_metadata: AssetMetadata,
     maxed_metadata: AssetMetadata,
 ) -> None:
-    to_smaller_mbr_delta = empty_metadata.get_mbr_delta(mutable_short_metadata.size)
+    to_smaller_mbr_delta = empty_metadata.get_mbr_delta(
+        old_size=mutable_short_metadata.body.size
+    )
     mbr_delta = asa_metadata_registry_client.send.arc89_get_metadata_mbr_delta(
         args=Arc89GetMetadataMbrDeltaArgs(
             asset_id=mutable_short_metadata.asset_id,
-            new_metadata_size=empty_metadata.size,
+            new_metadata_size=empty_metadata.body.size,
         ),
     ).abi_return
     assert mbr_delta is not None
     assert mbr_delta.sign == to_smaller_mbr_delta.sign
     assert mbr_delta.amount == to_smaller_mbr_delta.amount
 
-    to_larger_mbr_delta = maxed_metadata.get_mbr_delta(mutable_short_metadata.size)
+    to_larger_mbr_delta = maxed_metadata.get_mbr_delta(
+        old_size=mutable_short_metadata.body.size
+    )
     mbr_delta = asa_metadata_registry_client.send.arc89_get_metadata_mbr_delta(
         args=Arc89GetMetadataMbrDeltaArgs(
             asset_id=mutable_short_metadata.asset_id,
-            new_metadata_size=maxed_metadata.size,
+            new_metadata_size=maxed_metadata.body.size,
         ),
     ).abi_return
     assert mbr_delta is not None
@@ -43,7 +47,7 @@ def test_get_metadata_mbr_delta_for_nonexistent_metadata(
     mbr_delta = asa_metadata_registry_client.send.arc89_get_metadata_mbr_delta(
         args=Arc89GetMetadataMbrDeltaArgs(
             asset_id=empty_metadata.asset_id,
-            new_metadata_size=empty_metadata.size,
+            new_metadata_size=empty_metadata.body.size,
         ),
     ).abi_return
     assert mbr_delta is not None
@@ -53,7 +57,7 @@ def test_get_metadata_mbr_delta_for_nonexistent_metadata(
     mbr_delta = asa_metadata_registry_client.send.arc89_get_metadata_mbr_delta(
         args=Arc89GetMetadataMbrDeltaArgs(
             asset_id=short_metadata.asset_id,
-            new_metadata_size=short_metadata.size,
+            new_metadata_size=short_metadata.body.size,
         ),
     ).abi_return
     assert mbr_delta is not None
@@ -63,7 +67,7 @@ def test_get_metadata_mbr_delta_for_nonexistent_metadata(
     mbr_delta = asa_metadata_registry_client.send.arc89_get_metadata_mbr_delta(
         args=Arc89GetMetadataMbrDeltaArgs(
             asset_id=maxed_metadata.asset_id,
-            new_metadata_size=maxed_metadata.size,
+            new_metadata_size=maxed_metadata.body.size,
         ),
     ).abi_return
     assert mbr_delta is not None

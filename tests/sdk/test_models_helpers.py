@@ -20,6 +20,9 @@ from src.models import (
     PaginatedMetadata,
     Pagination,
     RegistryParameters,
+    _coerce_bytes,
+    _is_nonzero_32,
+    _set_bit,
 )
 
 
@@ -253,6 +256,42 @@ class TestRegistryParameters:
         assert delta.signed_amount == -expected_refund
 
 
+class TestRegistryParametersAdvanced:
+    """Advanced tests for RegistryParameters edge cases."""
+
+    def test_mbr_for_box_negative_size_raises(self) -> None:
+        """Test mbr_for_box with negative metadata_size."""
+        params = RegistryParameters.defaults()
+
+        with pytest.raises(ValueError, match="metadata_size must be non-negative"):
+            params.mbr_for_box(-1)
+
+    def test_mbr_delta_negative_new_size_raises(self) -> None:
+        """Test mbr_delta with negative new_metadata_size."""
+        params = RegistryParameters.defaults()
+
+        with pytest.raises(ValueError, match="new_metadata_size must be non-negative"):
+            params.mbr_delta(old_metadata_size=100, new_metadata_size=-1)
+
+    def test_mbr_delta_delete_without_old_size_raises(self) -> None:
+        """Test mbr_delta with delete=True but old_metadata_size=None."""
+        params = RegistryParameters.defaults()
+
+        with pytest.raises(
+            ValueError, match="old_metadata_size must be provided when delete=True"
+        ):
+            params.mbr_delta(old_metadata_size=None, new_metadata_size=0, delete=True)
+
+    def test_mbr_delta_delete_with_nonzero_new_size_raises(self) -> None:
+        """Test mbr_delta with delete=True but new_metadata_size != 0."""
+        params = RegistryParameters.defaults()
+
+        with pytest.raises(
+            ValueError, match="new_metadata_size must be 0 when delete=True"
+        ):
+            params.mbr_delta(old_metadata_size=100, new_metadata_size=50, delete=True)
+
+
 class TestMetadataExistence:
     """Tests for MetadataExistence dataclass."""
 
@@ -378,3 +417,98 @@ class TestPaginatedMetadata:
             match="Expected \\(has_next_page, last_modified_round, page_content\\)",
         ):
             PaginatedMetadata.from_tuple([True, 1000])
+
+
+class TestPaginatedMetadataAdvanced:
+    """Advanced tests for PaginatedMetadata."""
+
+    def test_from_tuple_invalid_has_next_page_type(self) -> None:
+        """Test from_tuple with non-bool has_next_page."""
+        with pytest.raises(TypeError, match="has_next_page must be bool"):
+            PaginatedMetadata.from_tuple(["not bool", 1000, b"data"])
+
+    def test_from_tuple_invalid_last_modified_round_type(self) -> None:
+        """Test from_tuple with non-int last_modified_round."""
+        with pytest.raises(TypeError, match="last_modified_round must be int"):
+            PaginatedMetadata.from_tuple([True, "not int", b"data"])
+
+    def test_from_tuple_page_content_as_list(self) -> None:
+        """Test from_tuple with page_content as list of ints."""
+        result = PaginatedMetadata.from_tuple([False, 2000, [1, 2, 3, 4, 5]])
+        assert result.page_content == b"\x01\x02\x03\x04\x05"
+
+
+class TestHelperFunctions:
+    """Tests for module-level helper functions."""
+
+    def test_set_bit_true(self) -> None:
+        """Test _set_bit setting a bit to True."""
+        result = _set_bit(bits=0b00000000, mask=0b00000001, value=True)
+        assert result == 0b00000001
+
+    def test_set_bit_false(self) -> None:
+        """Test _set_bit clearing a bit to False."""
+        result = _set_bit(bits=0b11111111, mask=0b00000001, value=False)
+        assert result == 0b11111110
+
+    def test_set_bit_preserves_other_bits(self) -> None:
+        """Test _set_bit preserves other bits when setting."""
+        result = _set_bit(bits=0b10101010, mask=0b00000100, value=True)
+        assert result == 0b10101110
+
+    def test_set_bit_preserves_other_bits_when_clearing(self) -> None:
+        """Test _set_bit preserves other bits when clearing."""
+        result = _set_bit(bits=0b10101110, mask=0b00000100, value=False)
+        assert result == 0b10101010
+
+    def test_coerce_bytes_from_bytes(self) -> None:
+        """Test _coerce_bytes with bytes input."""
+        result = _coerce_bytes(b"hello", name="test")
+        assert result == b"hello"
+
+    def test_coerce_bytes_from_bytearray(self) -> None:
+        """Test _coerce_bytes with bytearray input."""
+        result = _coerce_bytes(bytearray([1, 2, 3]), name="test")
+        assert result == b"\x01\x02\x03"
+
+    def test_coerce_bytes_from_list(self) -> None:
+        """Test _coerce_bytes with list of ints."""
+        result = _coerce_bytes([0, 255, 128], name="test")
+        assert result == b"\x00\xff\x80"
+
+    def test_coerce_bytes_from_tuple(self) -> None:
+        """Test _coerce_bytes with tuple of ints."""
+        result = _coerce_bytes((10, 20, 30), name="test")
+        assert result == b"\x0a\x14\x1e"
+
+    def test_coerce_bytes_invalid_string_raises(self) -> None:
+        """Test _coerce_bytes with string raises TypeError."""
+        with pytest.raises(TypeError, match="must be bytes or a sequence of ints"):
+            _coerce_bytes("not bytes", name="test")
+
+    def test_coerce_bytes_invalid_int_raises(self) -> None:
+        """Test _coerce_bytes with int raises TypeError."""
+        with pytest.raises(TypeError, match="must be bytes or a sequence of ints"):
+            _coerce_bytes(42, name="test")
+
+    def test_coerce_bytes_invalid_list_content_raises(self) -> None:
+        """Test _coerce_bytes with list of non-ints raises TypeError."""
+        with pytest.raises(TypeError, match="must be bytes or a sequence of ints"):
+            _coerce_bytes(["not", "ints"], name="test")
+
+    def test_is_nonzero_32_all_zeros(self) -> None:
+        """Test _is_nonzero_32 with all zeros."""
+        assert _is_nonzero_32(b"\x00" * 32) is False
+
+    def test_is_nonzero_32_one_nonzero(self) -> None:
+        """Test _is_nonzero_32 with one non-zero byte."""
+        assert _is_nonzero_32(b"\x00" * 31 + b"\x01") is True
+
+    def test_is_nonzero_32_all_nonzero(self) -> None:
+        """Test _is_nonzero_32 with all non-zero bytes."""
+        assert _is_nonzero_32(b"\xff" * 32) is True
+
+    def test_is_nonzero_32_wrong_length(self) -> None:
+        """Test _is_nonzero_32 with wrong length."""
+        assert _is_nonzero_32(b"\x01" * 31) is False
+        assert _is_nonzero_32(b"\x01" * 33) is False

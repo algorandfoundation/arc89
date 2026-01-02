@@ -2,7 +2,7 @@ from src.generated.asa_metadata_registry_client import (
     Arc89GetMetadataStringByKeyArgs,
     AsaMetadataRegistryClient,
 )
-from tests.helpers.factories import AssetMetadata
+from src.models import AssetMetadata
 
 
 def test_get_string_value(

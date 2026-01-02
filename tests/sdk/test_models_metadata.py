@@ -20,8 +20,8 @@ from src.models import (
     MetadataBody,
     MetadataFlags,
     MetadataHeader,
-    RegistryParameters,
     ReversibleFlags,
+    get_default_registry_params,
 )
 
 
@@ -79,26 +79,25 @@ class TestMetadataBody:
     def test_total_pages_zero_size(self) -> None:
         """Test total_pages for zero-size metadata."""
         body = MetadataBody.empty()
-        params = RegistryParameters.defaults()
-        assert body.total_pages(params) == 0
+        assert body.total_pages() == 0
 
     def test_total_pages_one_page(self) -> None:
         """Test total_pages when metadata fits in one page."""
-        params = RegistryParameters.defaults()
+        params = get_default_registry_params()
         data = b"x" * (params.page_size - 10)
         body = MetadataBody(raw_bytes=data)
         assert body.total_pages(params) == 1
 
     def test_total_pages_exact_page(self) -> None:
         """Test total_pages when metadata exactly fills pages."""
-        params = RegistryParameters.defaults()
+        params = get_default_registry_params()
         data = b"x" * (params.page_size * 3)
         body = MetadataBody(raw_bytes=data)
         assert body.total_pages(params) == 3
 
     def test_total_pages_partial_last_page(self) -> None:
         """Test total_pages when last page is partial."""
-        params = RegistryParameters.defaults()
+        params = get_default_registry_params()
         data = b"x" * (params.page_size * 2 + 100)
         body = MetadataBody(raw_bytes=data)
         assert body.total_pages(params) == 3
@@ -132,35 +131,23 @@ class TestMetadataBody:
         assert len(chunks[1]) == extra_size
         assert len(chunks[2]) == 100
 
-    def test_chunked_payload_custom_sizes(self) -> None:
-        """Test chunked_payload with custom sizes."""
-        data = b"x" * 25
-        body = MetadataBody(raw_bytes=data)
-        chunks = body.chunked_payload(head_max_size=10, extra_max_size=5)
-
-        assert len(chunks) == 4
-        assert chunks[0] == b"x" * 10
-        assert chunks[1] == b"x" * 5
-        assert chunks[2] == b"x" * 5
-        assert chunks[3] == b"x" * 5
-
     def test_validate_size_within_limit(self) -> None:
         """Test validate_size when metadata is within limit."""
-        params = RegistryParameters.defaults()
+        params = get_default_registry_params()
         data = b"x" * (params.max_metadata_size - 100)
         body = MetadataBody(raw_bytes=data)
         body.validate_size(params)  # Should not raise
 
     def test_validate_size_at_limit(self) -> None:
         """Test validate_size when metadata is at limit."""
-        params = RegistryParameters.defaults()
+        params = get_default_registry_params()
         data = b"x" * params.max_metadata_size
         body = MetadataBody(raw_bytes=data)
         body.validate_size(params)  # Should not raise
 
     def test_validate_size_exceeds_limit(self) -> None:
         """Test validate_size when metadata exceeds limit."""
-        params = RegistryParameters.defaults()
+        params = get_default_registry_params()
         data = b"x" * (params.max_metadata_size + 1)
         body = MetadataBody(raw_bytes=data)
         with pytest.raises(ValueError, match="exceeds max"):
@@ -369,6 +356,8 @@ class TestAssetMetadata:
 
     def test_compute_metadata_hash(self) -> None:
         """Test compute_metadata_hash method."""
+        from src.hashing import compute_metadata_hash as hash_fn
+
         body = MetadataBody(raw_bytes=b'{"name":"Test"}')
         flags = MetadataFlags.empty()
         metadata = AssetMetadata(
@@ -377,11 +366,93 @@ class TestAssetMetadata:
             flags=flags,
             deprecated_by=0,
         )
-        params = RegistryParameters.defaults()
-        hash_result = metadata.compute_metadata_hash(params=params)
+        params = get_default_registry_params()
+        hash_result = metadata.compute_metadata_hash()
 
         assert isinstance(hash_result, bytes)
         assert len(hash_result) == 32
+
+        # Verify hash is correct by comparing to the standalone hash function
+        expected_hash = hash_fn(
+            asset_id=metadata.asset_id,
+            metadata_identifiers=metadata.identifiers_byte,
+            reversible_flags=metadata.flags.reversible_byte,
+            irreversible_flags=metadata.flags.irreversible_byte,
+            metadata=metadata.body.raw_bytes,
+            page_size=params.page_size,
+        )
+        assert hash_result == expected_hash
+
+    def test_compute_metadata_hash_short_metadata(self) -> None:
+        """Test compute_metadata_hash with short metadata (identifiers should be set)."""
+        from src.hashing import compute_metadata_hash as hash_fn
+
+        # Create short metadata (< SHORT_METADATA_SIZE)
+        body = MetadataBody(raw_bytes=b'{"name":"Short"}')
+        flags = MetadataFlags(
+            reversible=ReversibleFlags(arc20=True),
+            irreversible=IrreversibleFlags(arc3=True),
+        )
+        metadata = AssetMetadata(
+            asset_id=456,
+            body=body,
+            flags=flags,
+            deprecated_by=0,
+        )
+        params = get_default_registry_params()
+
+        # Verify it's marked as short
+        assert body.is_short is True
+        assert metadata.identifiers_byte == bitmasks.MASK_ID_SHORT
+
+        hash_result = metadata.compute_metadata_hash()
+
+        # Verify hash matches expected value
+        expected_hash = hash_fn(
+            asset_id=456,
+            metadata_identifiers=bitmasks.MASK_ID_SHORT,
+            reversible_flags=flags.reversible_byte,
+            irreversible_flags=flags.irreversible_byte,
+            metadata=body.raw_bytes,
+            page_size=params.page_size,
+        )
+        assert hash_result == expected_hash
+
+    def test_compute_metadata_hash_long_metadata(self) -> None:
+        """Test compute_metadata_hash with long metadata (identifiers should be 0)."""
+        from src.hashing import compute_metadata_hash as hash_fn
+
+        # Create long metadata (> SHORT_METADATA_SIZE)
+        large_data = b"x" * (const.SHORT_METADATA_SIZE + 100)
+        body = MetadataBody(raw_bytes=large_data)
+        flags = MetadataFlags(
+            reversible=ReversibleFlags(arc62=True),
+            irreversible=IrreversibleFlags(immutable=True),
+        )
+        metadata = AssetMetadata(
+            asset_id=789,
+            body=body,
+            flags=flags,
+            deprecated_by=0,
+        )
+        params = get_default_registry_params()
+
+        # Verify it's NOT marked as short
+        assert body.is_short is False
+        assert metadata.identifiers_byte == 0
+
+        hash_result = metadata.compute_metadata_hash()
+
+        # Verify hash matches expected value
+        expected_hash = hash_fn(
+            asset_id=789,
+            metadata_identifiers=0,
+            reversible_flags=flags.reversible_byte,
+            irreversible_flags=flags.irreversible_byte,
+            metadata=large_data,
+            page_size=params.page_size,
+        )
+        assert hash_result == expected_hash
 
     def test_get_mbr_delta_creation(self) -> None:
         """Test get_mbr_delta for creation."""
@@ -393,8 +464,7 @@ class TestAssetMetadata:
             flags=flags,
             deprecated_by=0,
         )
-        params = RegistryParameters.defaults()
-        delta = metadata.get_mbr_delta(params=params, old_size=None)
+        delta = metadata.get_mbr_delta()
 
         assert delta.is_positive is True
         assert delta.amount > 0
@@ -409,9 +479,8 @@ class TestAssetMetadata:
             flags=flags,
             deprecated_by=0,
         )
-        params = RegistryParameters.defaults()
         old_size = 50
-        delta = metadata.get_mbr_delta(params=params, old_size=old_size)
+        delta = metadata.get_mbr_delta(old_size=old_size)
 
         # Delta depends on size difference
         assert delta is not None
@@ -426,8 +495,7 @@ class TestAssetMetadata:
             flags=flags,
             deprecated_by=0,
         )
-        params = RegistryParameters.defaults()
-        delta = metadata.get_delete_mbr_delta(params=params)
+        delta = metadata.get_delete_mbr_delta()
 
         assert delta.is_negative is True
         assert delta.amount > 0
@@ -453,8 +521,10 @@ class TestAssetMetadata:
         metadata = AssetMetadata.from_json(
             asset_id=789,
             json_obj=obj,
-            reversible_flags=bitmasks.MASK_REV_ARC20,
-            irreversible_flags=bitmasks.MASK_IRR_ARC3,
+            flags=MetadataFlags(
+                reversible=ReversibleFlags(arc20=True),
+                irreversible=IrreversibleFlags(arc3=True),
+            ),
         )
         assert metadata.asset_id == 789
         assert metadata.flags.reversible.arc20 is True
@@ -480,11 +550,11 @@ class TestAssetMetadata:
         metadata = AssetMetadata.from_json(
             asset_id=111,
             json_obj=obj,
-            arc3_compliant=True,
         )
         from src.models import decode_metadata_json
 
         assert decode_metadata_json(metadata.body.raw_bytes) == obj
+        assert metadata.flags.irreversible.arc3 is True
 
     def test_from_json_arc3_compliant_invalid_raises(self) -> None:
         """Test from_json with invalid ARC-3 metadata raises."""
@@ -493,7 +563,6 @@ class TestAssetMetadata:
             AssetMetadata.from_json(
                 asset_id=222,
                 json_obj=obj,
-                arc3_compliant=True,
             )
 
 

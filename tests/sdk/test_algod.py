@@ -24,7 +24,11 @@ from src.errors import AsaNotFoundError, BoxNotFoundError, InvalidArc90UriError
 from src.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
-from src.models import AssetMetadataBox, AssetMetadataRecord, RegistryParameters
+from src.models import (
+    AssetMetadataBox,
+    AssetMetadataRecord,
+    get_default_registry_params,
+)
 from tests.helpers.factories import AssetMetadata as MockAssetMetadata
 
 
@@ -214,7 +218,7 @@ class TestAlgodBoxReaderTryGetMetadataBox:
             "value": b64_encode(box_value),
         }
 
-        params = RegistryParameters.defaults()
+        params = get_default_registry_params()
         result = reader.try_get_metadata_box(
             app_id=123, asset_id=asset_id, params=params
         )
@@ -298,7 +302,7 @@ class TestAlgodBoxReaderGetAssetMetadataRecord:
             "value": b64_encode(box_value),
         }
 
-        params = RegistryParameters.defaults()
+        params = get_default_registry_params()
         result = reader.get_asset_metadata_record(
             app_id=app_id, asset_id=asset_id, params=params
         )
@@ -709,7 +713,7 @@ class TestAlgodBoxReaderIntegration:
         app_id = asa_metadata_registry_client.app_id
         asset_id = mutable_short_metadata.asset_id
 
-        params = RegistryParameters.defaults()
+        params = get_default_registry_params()
 
         box = algod_reader.get_metadata_box(
             app_id=app_id, asset_id=asset_id, params=params

@@ -7,9 +7,9 @@ end-to-end with both BOX and AVM sources.
 
 import pytest
 
+from src import AssetMetadata
 from src.generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 from src.read.reader import AsaMetadataRegistryRead, MetadataSource
-from tests.helpers.factories import AssetMetadata
 
 # ================================================================
 # Test Reader with Uploaded Metadata
@@ -31,7 +31,7 @@ class TestReaderWithAlgod:
         )
 
         assert result.asset_id == mutable_short_metadata.asset_id
-        assert result.body.raw_bytes == mutable_short_metadata.metadata_bytes
+        assert result.body.raw_bytes == mutable_short_metadata.body.raw_bytes
         assert result.header.is_short is True
 
     def test_get_asset_metadata_maxed_box_source(
@@ -190,7 +190,7 @@ class TestReaderWithAlgod:
         )
 
         assert len(slice_data) <= 10
-        assert slice_data == mutable_short_metadata.metadata_bytes[:10]
+        assert slice_data == mutable_short_metadata.body.raw_bytes[:10]
 
     def test_get_metadata_header_hash(
         self,
@@ -248,7 +248,7 @@ class TestReaderWithAvm:
         )
 
         assert result.asset_id == mutable_short_metadata.asset_id
-        assert result.body.raw_bytes == mutable_short_metadata.metadata_bytes
+        assert result.body.raw_bytes == mutable_short_metadata.body.raw_bytes
         assert result.header.is_short is True
 
     def test_get_asset_metadata_maxed_avm_source(
@@ -349,7 +349,7 @@ class TestReaderFull:
         )
 
         assert result.asset_id == mutable_short_metadata.asset_id
-        assert result.body.raw_bytes == mutable_short_metadata.metadata_bytes
+        assert result.body.raw_bytes == mutable_short_metadata.body.raw_bytes
 
     def test_box_and_avm_consistency(
         self,

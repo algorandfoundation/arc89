@@ -11,6 +11,7 @@ from algokit_utils import (
 )
 from algosdk.transaction import Transaction
 
+from src import constants as const
 from src.generated.asa_metadata_registry_client import (
     Arc89CreateMetadataArgs,
     Arc89DeleteMetadataArgs,
@@ -25,7 +26,11 @@ from src.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryComposer,
     MbrDelta,
 )
-from tests.helpers.factories import AssetMetadata
+from src.models import (
+    AssetMetadata,
+    AssetMetadataBox,
+    get_default_registry_params,
+)
 
 
 def _append_extra_payload(
@@ -33,7 +38,7 @@ def _append_extra_payload(
     asset_manager: SigningAccount,
     metadata: AssetMetadata,
 ) -> None:
-    chunks = metadata.chunked_payload()
+    chunks = metadata.body.chunked_payload()
     for i, chunk in enumerate(chunks[1:], start=1):
         composer.arc89_extra_payload(
             args=Arc89ExtraPayloadArgs(
@@ -88,7 +93,8 @@ def pages_min_fee(algorand_client: AlgorandClient, metadata: AssetMetadata) -> i
         int: The estimated total minimum fee, in microAlgos.
     """
     min_fee: int = algorand_client.get_suggested_params().min_fee
-    return min_fee * (1 + (metadata.total_pages + 1) // 4)
+    total_pages = metadata.body.total_pages()
+    return min_fee * (1 + (total_pages + 1) // 4)
 
 
 def total_extra_resources(
@@ -96,10 +102,11 @@ def total_extra_resources(
 ) -> tuple[int, int]:
     # FIXME: Add extra resources based on page count to avoid opcode budget issues
     #  in populate resources simulation
+    total_pages = metadata.body.total_pages()
     extra_count = 0
-    if metadata.total_pages > 15:
+    if total_pages > 15:
         # Scale: 1 extra resource per 2 pages, starting from page 16
-        extra_count = ((metadata.total_pages - 15) // 2) + 1
+        extra_count = ((total_pages - 15) // 2) + 1
 
     min_fee = algorand_client.get_suggested_params().min_fee
     base_fee = pages_min_fee(algorand_client, metadata)
@@ -136,7 +143,13 @@ def set_flag_and_verify(
         asset_id
     )
     assert box_value is not None, f"Metadata box not found for asset {asset_id}"
-    post_set = AssetMetadata.from_box_value(asset_id, box_value)
+    parsed_box = AssetMetadataBox.parse(asset_id=asset_id, value=box_value)
+    post_set = AssetMetadata(
+        asset_id=asset_id,
+        body=parsed_box.body,
+        flags=parsed_box.header.flags,
+        deprecated_by=parsed_box.header.deprecated_by,
+    )
     assert check_fn(post_set) == expected_value
 
 
@@ -176,19 +189,21 @@ def create_metadata(
     """
     creation_mbr_delta = metadata.get_mbr_delta(old_size=None)
     mbr_payment = get_mbr_delta_payment(
-        asa_metadata_registry_client, asset_manager, creation_mbr_delta.amount
+        asa_metadata_registry_client,
+        asset_manager,
+        AlgoAmount(micro_algo=creation_mbr_delta.amount),
     )
 
-    chunks = metadata.chunked_payload()
+    chunks = metadata.body.chunked_payload()
     min_fee = asa_metadata_registry_client.algorand.get_suggested_params().min_fee
 
     create_metadata_composer = asa_metadata_registry_client.new_group()
     create_metadata_composer.arc89_create_metadata(
         args=Arc89CreateMetadataArgs(
             asset_id=asset_id,
-            reversible_flags=metadata.reversible_flags,
-            irreversible_flags=metadata.irreversible_flags,
-            metadata_size=metadata.size,
+            reversible_flags=metadata.flags.reversible_byte,
+            irreversible_flags=metadata.flags.irreversible_byte,
+            metadata_size=metadata.body.size,
             payload=chunks[0],
             mbr_delta_payment=mbr_payment,
         ),
@@ -236,7 +251,7 @@ def replace_metadata(
     Returns:
         MBR Delta
     """
-    chunks = new_metadata.chunked_payload()
+    chunks = new_metadata.body.chunked_payload()
     min_fee = asa_metadata_registry_client.algorand.get_suggested_params().min_fee
     replace_metadata_composer = asa_metadata_registry_client.new_group()
 
@@ -247,11 +262,11 @@ def replace_metadata(
         pagination_result is not None
     ), f"Failed to get metadata pagination for asset {asset_id}"
     current_metadata_size = pagination_result.metadata_size
-    if new_metadata.size <= current_metadata_size:
+    if new_metadata.body.size <= current_metadata_size:
         replace_metadata_composer.arc89_replace_metadata(
             args=Arc89ReplaceMetadataArgs(
                 asset_id=asset_id,
-                metadata_size=new_metadata.size,
+                metadata_size=new_metadata.body.size,
                 payload=chunks[0],
             ),
             params=CommonAppCallParams(
@@ -262,15 +277,16 @@ def replace_metadata(
             ),
         )
     else:
+        mbr_delta = new_metadata.get_mbr_delta(old_size=current_metadata_size)
         mbr_payment = get_mbr_delta_payment(
             asa_metadata_registry_client,
             asset_manager,
-            new_metadata.get_mbr_delta(current_metadata_size).amount,
+            AlgoAmount(micro_algo=mbr_delta.amount),
         )
         replace_metadata_composer.arc89_replace_metadata_larger(
             args=Arc89ReplaceMetadataLargerArgs(
                 asset_id=asset_id,
-                metadata_size=new_metadata.size,
+                metadata_size=new_metadata.body.size,
                 payload=chunks[0],
                 mbr_delta_payment=mbr_payment,
             ),
@@ -412,3 +428,49 @@ def set_immutable(
     if extra_count > 0:
         add_extra_resources(composer, extra_count)
     composer.send()
+
+
+def create_metadata_with_page_count(
+    asset_id: int, page_count: int, filler: bytes
+) -> AssetMetadata:
+    """
+    Create metadata with a specific number of pages.
+
+    Args:
+        asset_id: The asset ID
+        page_count: The desired number of pages (0 to MAX_PAGES)
+        filler: A byte pattern to fill the metadata with
+
+    Returns:
+        AssetMetadata instance with the specified page count
+    """
+    from src.models import MetadataBody, MetadataFlags
+
+    if page_count < 0 or page_count > const.MAX_PAGES:
+        raise ValueError(f"page_count must be between 0 and {const.MAX_PAGES}")
+
+    if page_count == 0:
+        # Empty metadata
+        size = 0
+    elif page_count == 1:
+        size = 1 * const.PAGE_SIZE
+    else:
+        # Minimum size to trigger N pages: (N-1) * PAGE_SIZE + 1
+        size = (page_count - 1) * const.PAGE_SIZE + 1
+
+    # Create metadata with the filler bytes repeated to the desired size
+    assert len(filler) >= 1, "Filler must be at least 1 byte"
+    metadata_bytes = filler * size
+
+    params = get_default_registry_params()
+    metadata = AssetMetadata(
+        asset_id=asset_id,
+        body=MetadataBody(raw_bytes=metadata_bytes),
+        flags=MetadataFlags.empty(),
+        deprecated_by=0,
+    )
+    assert (
+        metadata.body.total_pages(params) == page_count
+    ), f"Expected {page_count} pages, got {metadata.body.total_pages(params)}"
+
+    return metadata

@@ -4,7 +4,7 @@ from src.generated.asa_metadata_registry_client import (
     Arc89GetMetadataArgs,
     AsaMetadataRegistryClient,
 )
-from tests.helpers.factories import AssetMetadata
+from src.models import AssetMetadata
 
 
 @pytest.mark.parametrize(
@@ -22,15 +22,15 @@ def test_non_empty_metadata(
     request: pytest.FixtureRequest,
 ) -> None:
     metadata: AssetMetadata = request.getfixturevalue(metadata_fixture)
-    for p in range(metadata.total_pages):
+    for p in range(metadata.body.total_pages()):
         page = asa_metadata_registry_client.send.arc89_get_metadata(
             args=Arc89GetMetadataArgs(asset_id=metadata.asset_id, page=p),
         ).abi_return
         assert page is not None
-        assert bytes(page.page_content).decode() == metadata.get_page(p).decode()
+        assert bytes(page.page_content).decode() == metadata.body.get_page(p).decode()
         assert (
             page.has_next_page
-            if p < metadata.total_pages - 1
+            if p < metadata.body.total_pages() - 1
             else not page.has_next_page
         )
 

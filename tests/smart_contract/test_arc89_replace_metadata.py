@@ -4,7 +4,7 @@ from smart_contracts.asa_metadata_registry.enums import MBR_DELTA_NEG, MBR_DELTA
 from src.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
-from tests.helpers.factories import AssetMetadata
+from src.models import AssetMetadata
 from tests.helpers.utils import replace_metadata
 
 
@@ -15,7 +15,7 @@ def test_replace_with_empty_metadata(
     empty_metadata: AssetMetadata,
 ) -> None:
     replace_mbr_delta = empty_metadata.get_mbr_delta(
-        old_size=mutable_short_metadata.size
+        old_size=mutable_short_metadata.body.size
     )
     mbr_delta = replace_metadata(
         asset_manager=asset_manager,
@@ -24,7 +24,7 @@ def test_replace_with_empty_metadata(
         new_metadata=empty_metadata,
     )
     assert -mbr_delta.amount == replace_mbr_delta.signed_amount
-    assert mbr_delta.amount == replace_mbr_delta.amount.micro_algo
+    assert mbr_delta.amount == replace_mbr_delta.amount
     assert mbr_delta.sign == MBR_DELTA_NEG
     # TODO: Verify Asset Metadata Box contents matches fixture data
 
@@ -36,7 +36,7 @@ def test_replace_with_smaller_metadata_size(
     short_metadata: AssetMetadata,
 ) -> None:
     replace_mbr_delta = short_metadata.get_mbr_delta(
-        old_size=mutable_maxed_metadata.size
+        old_size=mutable_maxed_metadata.body.size
     )
     mbr_delta = replace_metadata(
         asset_manager=asset_manager,
@@ -46,7 +46,7 @@ def test_replace_with_smaller_metadata_size(
         extra_resources=1,
     )
     assert -mbr_delta.amount == replace_mbr_delta.signed_amount
-    assert mbr_delta.amount == replace_mbr_delta.amount.micro_algo
+    assert mbr_delta.amount == replace_mbr_delta.amount
     assert mbr_delta.sign == MBR_DELTA_NEG
     # TODO: Verify Asset Metadata Box contents matches fixture data
 
@@ -58,7 +58,7 @@ def test_replace_with_equal_metadata_size(
     maxed_metadata: AssetMetadata,
 ) -> None:
     replace_mbr_delta = maxed_metadata.get_mbr_delta(
-        old_size=mutable_maxed_metadata.size
+        old_size=mutable_maxed_metadata.body.size
     )
     mbr_delta = replace_metadata(
         asset_manager=asset_manager,
@@ -67,7 +67,7 @@ def test_replace_with_equal_metadata_size(
         new_metadata=maxed_metadata,
     )
     assert mbr_delta.amount == replace_mbr_delta.signed_amount
-    assert mbr_delta.amount == replace_mbr_delta.amount.micro_algo
+    assert mbr_delta.amount == replace_mbr_delta.amount
     assert mbr_delta.sign == MBR_DELTA_NULL
     # TODO: Verify Asset Metadata Box contents matches fixture data
 

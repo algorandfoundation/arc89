@@ -4,7 +4,7 @@ from smart_contracts.asa_metadata_registry.enums import MBR_DELTA_POS
 from src.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
-from tests.helpers.factories import AssetMetadata
+from src.models import AssetMetadata
 from tests.helpers.utils import replace_metadata
 
 
@@ -14,7 +14,7 @@ def _assert_metadata_replaced_with_larger(
     old_metadata: AssetMetadata,
     new_metadata: AssetMetadata,
 ) -> None:
-    replace_mbr_delta = new_metadata.get_mbr_delta(old_size=old_metadata.size)
+    replace_mbr_delta = new_metadata.get_mbr_delta(old_size=old_metadata.body.size)
     mbr_delta = replace_metadata(
         asset_manager=asset_manager,
         asa_metadata_registry_client=asa_metadata_registry_client,
@@ -22,7 +22,7 @@ def _assert_metadata_replaced_with_larger(
         new_metadata=new_metadata,
     )
     assert mbr_delta.amount == replace_mbr_delta.signed_amount
-    assert mbr_delta.amount == replace_mbr_delta.amount.micro_algo
+    assert mbr_delta.amount == replace_mbr_delta.amount
     assert mbr_delta.sign == MBR_DELTA_POS
     # TODO: Verify Asset Metadata Box contents matches fixture data
 
