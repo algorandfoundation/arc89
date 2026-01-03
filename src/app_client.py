@@ -12,7 +12,7 @@ def import_generated_client() -> Any:
     This keeps the rest of the SDK usable even if users only want box-reading features.
     """
     try:
-        from ._generated import asa_metadata_registry_client as mod  # type: ignore
+        from .generated import asa_metadata_registry_client as mod  # type: ignore
     except Exception as e:  # pragma: no cover
         raise MissingAppClientError(
             "Generated AppClient could not be imported. "
