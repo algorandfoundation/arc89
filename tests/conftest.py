@@ -18,12 +18,12 @@ from dotenv import load_dotenv
 
 from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
 from src import constants as const
-from src.algod import AlgodBoxReader
-from src.codec import Arc90Uri
 from src._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )
+from src.algod import AlgodBoxReader
+from src.codec import Arc90Uri
 from src.models import (
     AssetMetadata,
     AssetMetadataBox,

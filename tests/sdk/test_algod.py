@@ -18,12 +18,12 @@ from algokit_utils import AlgorandClient
 from algosdk.v2client.algod import AlgodClient
 
 from src import constants as const
-from src.algod import AlgodBoxReader
-from src.codec import Arc90Uri, asset_id_to_box_name, b64_encode
-from src.errors import AsaNotFoundError, BoxNotFoundError, InvalidArc90UriError
 from src._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
+from src.algod import AlgodBoxReader
+from src.codec import Arc90Uri, asset_id_to_box_name, b64_encode
+from src.errors import AsaNotFoundError, BoxNotFoundError, InvalidArc90UriError
 from src.models import (
     AssetMetadataBox,
     AssetMetadataRecord,

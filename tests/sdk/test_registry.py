@@ -17,10 +17,10 @@ from unittest.mock import Mock, patch
 import pytest
 from algosdk.v2client.algod import AlgodClient
 
+from src._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 from src.algod import AlgodBoxReader
 from src.codec import Arc90Uri
 from src.errors import MissingAppClientError, RegistryResolutionError
-from src._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 from src.read.avm import AsaMetadataRegistryAvmRead
 from src.read.reader import AsaMetadataRegistryRead
 from src.registry import AsaMetadataRegistry, RegistryConfig
