@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import Any
 
 from ..errors import MissingAppClientError
+from ..generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 from ..models import (
     MbrDelta,
     MetadataExistence,
@@ -13,11 +14,6 @@ from ..models import (
     Pagination,
     RegistryParameters,
 )
-
-if TYPE_CHECKING:  # pragma: no cover
-    from ..generated.asa_metadata_registry_client import (
-        AsaMetadataRegistryClient as GeneratedClient,
-    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,12 +40,12 @@ class SimulateOptions:
     allow_empty_signatures: bool | None = True
     allow_unnamed_resources: bool | None = None
     extra_opcode_budget: int | None = None
-    exec_trace_config: object | None = None
+    exec_trace_config: Any | None = None
     simulation_round: int | None = None
     skip_signatures: bool | None = True
 
 
-def _return_values(results: object) -> list[object]:
+def _return_values(results: Any) -> list[Any]:
     """
     Extract `.returns[*].value` from AlgoKit ATC results, tolerating minor shape differences.
     """
@@ -58,7 +54,7 @@ def _return_values(results: object) -> list[object]:
     returns = getattr(results, "returns", None)
     if not returns:
         return []
-    out: list[object] = []
+    out: list[Any] = []
     for r in returns:
         out.append(getattr(r, "value", r))
     return out
@@ -73,7 +69,7 @@ class AsaMetadataRegistryAvmRead:
     rather than sending transactions.
     """
 
-    client: GeneratedClient
+    client: AsaMetadataRegistryClient
 
     def __post_init__(self) -> None:
         if self.client is None:
@@ -87,10 +83,10 @@ class AsaMetadataRegistryAvmRead:
 
     def simulate_many(
         self,
-        build_group: Callable[[object], None],
+        build_group: Callable[[Any], None],
         *,
         simulate: SimulateOptions | None = None,
-    ) -> list[object]:
+    ) -> list[Any]:
         composer = self.client.new_group()
         build_group(composer)
 
@@ -108,10 +104,10 @@ class AsaMetadataRegistryAvmRead:
 
     def simulate_one(
         self,
-        build_group: Callable[[object], None],
+        build_group: Callable[[Any], None],
         *,
         simulate: SimulateOptions | None = None,
-    ) -> object:
+    ) -> Any:
         values = self.simulate_many(build_group, simulate=simulate)
         return values[0] if values else None
 
@@ -123,7 +119,7 @@ class AsaMetadataRegistryAvmRead:
         self,
         *,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> RegistryParameters:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_registry_parameters(params=params),
@@ -132,7 +128,7 @@ class AsaMetadataRegistryAvmRead:
         return RegistryParameters.from_tuple(value)
 
     def arc89_get_metadata_partial_uri(
-        self, *, simulate: SimulateOptions | None = None, params: object | None = None
+        self, *, simulate: SimulateOptions | None = None, params: Any | None = None
     ) -> str:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_partial_uri(params=params), simulate=simulate
@@ -145,7 +141,7 @@ class AsaMetadataRegistryAvmRead:
         asset_id: int,
         new_size: int,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> MbrDelta:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_mbr_delta(
@@ -160,7 +156,7 @@ class AsaMetadataRegistryAvmRead:
         *,
         asset_id: int,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> MetadataExistence:
         value = self.simulate_one(
             lambda c: c.arc89_check_metadata_exists(args=(asset_id,), params=params),
@@ -173,7 +169,7 @@ class AsaMetadataRegistryAvmRead:
         *,
         asset_id: int,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> bool:
         value = self.simulate_one(
             lambda c: c.arc89_is_metadata_immutable(args=(asset_id,), params=params),
@@ -186,7 +182,7 @@ class AsaMetadataRegistryAvmRead:
         *,
         asset_id: int,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> tuple[bool, int]:
         value = self.simulate_one(
             lambda c: c.arc89_is_metadata_short(args=(asset_id,), params=params),
@@ -199,7 +195,7 @@ class AsaMetadataRegistryAvmRead:
         *,
         asset_id: int,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> MetadataHeader:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_header(args=(asset_id,), params=params),
@@ -212,7 +208,7 @@ class AsaMetadataRegistryAvmRead:
         *,
         asset_id: int,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> Pagination:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_pagination(args=(asset_id,), params=params),
@@ -226,7 +222,7 @@ class AsaMetadataRegistryAvmRead:
         asset_id: int,
         page: int,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> PaginatedMetadata:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata(args=(asset_id, page), params=params),
@@ -241,7 +237,7 @@ class AsaMetadataRegistryAvmRead:
         offset: int,
         size: int,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> bytes:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_slice(
@@ -256,7 +252,7 @@ class AsaMetadataRegistryAvmRead:
         *,
         asset_id: int,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> bytes:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_header_hash(args=(asset_id,), params=params),
@@ -270,7 +266,7 @@ class AsaMetadataRegistryAvmRead:
         asset_id: int,
         page: int,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> bytes:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_page_hash(
@@ -285,7 +281,7 @@ class AsaMetadataRegistryAvmRead:
         *,
         asset_id: int,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> bytes:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_hash(args=(asset_id,), params=params),
@@ -299,7 +295,7 @@ class AsaMetadataRegistryAvmRead:
         asset_id: int,
         key: str,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> str:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_string_by_key(
@@ -315,7 +311,7 @@ class AsaMetadataRegistryAvmRead:
         asset_id: int,
         key: str,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> int:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_uint64_by_key(
@@ -331,7 +327,7 @@ class AsaMetadataRegistryAvmRead:
         asset_id: int,
         key: str,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> str:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_object_by_key(
@@ -348,7 +344,7 @@ class AsaMetadataRegistryAvmRead:
         key: str,
         b64_encoding: int,
         simulate: SimulateOptions | None = None,
-        params: object | None = None,
+        params: Any | None = None,
     ) -> bytes:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_b64_bytes_by_key(

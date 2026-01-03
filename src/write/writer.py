@@ -433,8 +433,8 @@ class AsaMetadataRegistryWrite:
     def _send_group(
         *,
         simulate_before_send: bool,
-        simulate_options: SimulateOptions,
-        send_params: SendParams,
+        simulate_options: SimulateOptions | None,
+        send_params: SendParams | None,
         options: WriteOptions | None = None,
         composer: AsaMetadataRegistryComposer,
     ) -> SendAtomicTransactionComposerResults:
@@ -481,7 +481,9 @@ class AsaMetadataRegistryWrite:
             options=options,
             composer=composer,
         )
-        return MbrDelta.from_tuple(result.returns[0].value)
+        ret_val = result.returns[0].value
+        assert isinstance(ret_val, (tuple, list))
+        return MbrDelta.from_tuple(ret_val)  # type: ignore[arg-type]
 
     def replace_metadata(
         self,
@@ -507,7 +509,9 @@ class AsaMetadataRegistryWrite:
             options=options,
             composer=composer,
         )
-        return MbrDelta.from_tuple(result.returns[0].value)
+        ret_val = result.returns[0].value
+        assert isinstance(ret_val, (tuple, list))
+        return MbrDelta.from_tuple(ret_val)  # type: ignore[arg-type]
 
     def replace_metadata_slice(
         self,
@@ -556,7 +560,9 @@ class AsaMetadataRegistryWrite:
             options=options,
             composer=composer,
         )
-        return MbrDelta.from_tuple(result.returns[0].value)
+        ret_val = result.returns[0].value
+        assert isinstance(ret_val, (tuple, list))
+        return MbrDelta.from_tuple(ret_val)  # type: ignore[arg-type]
 
     # ------------------------------------------------------------------
     # Flag & migration
