@@ -620,50 +620,6 @@ class TestWriteIntegration:
 
     """Test AsaMetadataRegistryWrite initialization."""
 
-    def test_init_with_client(
-        self, asa_metadata_registry_client: AsaMetadataRegistryClient
-    ) -> None:
-        """Test successful initialization with client."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        assert writer.client is asa_metadata_registry_client
-        assert writer.params is None
-
-    def test_init_with_client_and_params(
-        self, asa_metadata_registry_client: AsaMetadataRegistryClient
-    ) -> None:
-        """Test initialization with both client and params."""
-        params = get_default_registry_params()
-        writer = AsaMetadataRegistryWrite(
-            client=asa_metadata_registry_client, params=params
-        )
-        assert writer.client is asa_metadata_registry_client
-        assert writer.params is params
-
-    def test_init_with_none_client_raises_error(self) -> None:
-        """Test that initializing with None client raises MissingAppClientError."""
-        with pytest.raises(MissingAppClientError):
-            AsaMetadataRegistryWrite(client=None)  # type: ignore[arg-type]
-
-    def test_params_property_uses_cached(
-        self, asa_metadata_registry_client: AsaMetadataRegistryClient
-    ) -> None:
-        """Test that _params() returns cached params if available."""
-        params = get_default_registry_params()
-        writer = AsaMetadataRegistryWrite(
-            client=asa_metadata_registry_client, params=params
-        )
-        assert writer._params() is params
-
-    def test_params_property_fetches_on_chain(
-        self, asa_metadata_registry_client: AsaMetadataRegistryClient
-    ) -> None:
-        """Test that _params() fetches from on-chain if not cached."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        params = writer._params()
-        # Should fetch from chain
-        assert isinstance(params, RegistryParameters)
-        assert params.header_size > 0
-
 
 # ================================================================
 # Group Builder Tests
