@@ -61,6 +61,7 @@ from .models import (
 )
 from .read.avm import SimulateOptions
 from .read.reader import AsaMetadataRegistryRead, MetadataSource
+from .registry import AsaMetadataRegistry, RegistryConfig
 from .validation import (
     decode_metadata_json,
     encode_metadata_json,
@@ -71,6 +72,9 @@ from .write.writer import AsaMetadataRegistryWrite, WriteOptions
 __all__ = [
     # Deployments
     "DEFAULT_DEPLOYMENTS",
+    # Facade
+    "AsaMetadataRegistry",
+    "RegistryConfig",
     # Read/Write helpers
     "AsaMetadataRegistryRead",
     "AsaMetadataRegistryWrite",
