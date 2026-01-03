@@ -69,7 +69,6 @@ ARC90_URI_APP_PATH_NAME: Final[bytes] = b"app"
 ARC90_URI_BOX_QUERY_NAME: Final[bytes] = b"box"
 
 ARC90_URI_PATH_SEP: Final[bytes] = b"/"
-ARC90_URI_NETAUTH_PREFIX: Final[bytes] = b"net:"
 
 ARC90_URI_SCHEME: Final[bytes] = ARC90_URI_SCHEME_NAME + b"://"
 ARC90_URI_APP_PATH: Final[bytes] = ARC90_URI_APP_PATH_NAME + ARC90_URI_PATH_SEP

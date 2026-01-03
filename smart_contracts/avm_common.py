@@ -3,7 +3,6 @@ from algopy import Application, Bytes, Global, TemplateVar, UInt64, op, subrouti
 from .constants import (
     ARC90_URI_APP_PATH,
     ARC90_URI_BOX_QUERY,
-    ARC90_URI_NETAUTH_PREFIX,
     ARC90_URI_PATH_SEP,
     ARC90_URI_SCHEME,
     MAINNET_GH_B64,
@@ -62,11 +61,7 @@ def arc90_box_query(app: Application, box_name: Bytes) -> Bytes:
     if Global.genesis_hash == Bytes.from_base64(MAINNET_GH_B64):
         arc90_netauth = Bytes()
     else:
-        arc90_netauth = (
-            ARC90_URI_NETAUTH_PREFIX
-            + TemplateVar[Bytes](ARC90_NETAUTH)
-            + ARC90_URI_PATH_SEP
-        )
+        arc90_netauth = TemplateVar[Bytes](ARC90_NETAUTH) + ARC90_URI_PATH_SEP
     return (
         ARC90_URI_SCHEME
         + arc90_netauth
