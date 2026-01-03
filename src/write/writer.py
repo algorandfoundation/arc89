@@ -7,6 +7,7 @@ from algokit_utils import (
     AlgoAmount,
     CommonAppCallParams,
     PaymentParams,
+    SendAtomicTransactionComposerResults,
     SendParams,
     SigningAccount,
 )
@@ -88,7 +89,8 @@ class WriteOptions:
     Notes:
     - Algorand supports *fee pooling* in groups; this SDK sets fee=0 on most txns
       and pools fees on the first app call via `static_fee`.
-    - `fee_padding_txns` adds extra min-fee units to the fee pool as a safety margin.
+    - `fee_padding_txns` adds extra min-fee units to the fee pool as a safety margin
+      to cover op-code budget inner transaction (related to metadata total pages).
     """
 
     extra_resources: int = 0
@@ -240,7 +242,9 @@ class AsaMetadataRegistryWrite:
         chunks = _chunks_for_replace(metadata)
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
-        txn_count = 1 + (len(chunks) - 1) + 1 + options.extra_resources
+        txn_count = (
+            1 + (len(chunks) - 1) + 1 + options.extra_resources
+        )  # app call + extra payload + inner payment + extras
         fee_pool = (txn_count + options.fee_padding_txns) * min_fee
 
         composer = self.client.new_group()
@@ -287,7 +291,9 @@ class AsaMetadataRegistryWrite:
         )
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
-        txn_count = 1 + (len(chunks) - 1) + 1 + options.extra_resources
+        txn_count = (
+            1 + (len(chunks) - 1) + 1 + options.extra_resources
+        )  # app call + extra payload + payment + extras
         fee_pool = (txn_count + options.fee_padding_txns) * min_fee
 
         composer = self.client.new_group()
@@ -330,7 +336,7 @@ class AsaMetadataRegistryWrite:
         chunks = _chunks_for_slice(payload, params.replace_payload_max_size)
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
-        txn_count = len(chunks) + opt.extra_resources
+        txn_count = len(chunks) + opt.extra_resources  # app call + extras
         fee_pool = (txn_count + opt.fee_padding_txns) * min_fee
 
         composer = self.client.new_group()
@@ -367,7 +373,7 @@ class AsaMetadataRegistryWrite:
         opt = options or WriteOptions()
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
-        txn_count = 1 + 1 + opt.extra_resources
+        txn_count = 1 + 1 + opt.extra_resources  # app call + inner payment + extras
         fee_pool = (txn_count + opt.fee_padding_txns) * min_fee
 
         composer = self.client.new_group()
@@ -386,19 +392,15 @@ class AsaMetadataRegistryWrite:
     # High-level send helpers
     # ------------------------------------------------------------------
 
-    def create_metadata(
-        self,
+    @staticmethod
+    def _send_group(
         *,
-        asset_manager: SigningAccount,
-        metadata: AssetMetadata,
+        simulate_before_send: bool,
+        simulate_options: SimulateOptions,
+        send_params: SendParams,
         options: WriteOptions | None = None,
-        send_params: SendParams | None = None,
-        simulate_before_send: bool = False,
-        simulate_options: SimulateOptions | None = None,
-    ) -> MbrDelta:
-        composer = self.build_create_metadata_group(
-            asset_manager=asset_manager, metadata=metadata, options=options
-        )
+        composer: AsaMetadataRegistryComposer,
+    ) -> SendAtomicTransactionComposerResults:
         if simulate_before_send:
             # Use user's simulate options if provided.
             sim = simulate_options or SimulateOptions(
@@ -420,7 +422,28 @@ class AsaMetadataRegistryWrite:
                 cover_app_call_inner_transaction_fees=opt.cover_app_call_inner_transaction_fees
             )
 
-        result = composer.send(send_params=send_params)
+        return composer.send(send_params=send_params)
+
+    def create_metadata(
+        self,
+        *,
+        asset_manager: SigningAccount,
+        metadata: AssetMetadata,
+        options: WriteOptions | None = None,
+        send_params: SendParams | None = None,
+        simulate_before_send: bool = False,
+        simulate_options: SimulateOptions | None = None,
+    ) -> MbrDelta:
+        composer = self.build_create_metadata_group(
+            asset_manager=asset_manager, metadata=metadata, options=options
+        )
+        result = self._send_group(
+            simulate_before_send=simulate_before_send,
+            simulate_options=simulate_options,
+            send_params=send_params,
+            options=options,
+            composer=composer,
+        )
         return MbrDelta.from_tuple(result.returns[0].value)
 
     def replace_metadata(
@@ -440,27 +463,13 @@ class AsaMetadataRegistryWrite:
             options=options,
             assume_current_size=assume_current_size,
         )
-        if simulate_before_send:
-            sim = simulate_options or SimulateOptions(
-                allow_empty_signatures=True, skip_signatures=True
-            )
-            composer.simulate(
-                allow_more_logs=sim.allow_more_logs,
-                allow_empty_signatures=sim.allow_empty_signatures,
-                allow_unnamed_resources=sim.allow_unnamed_resources,
-                extra_opcode_budget=sim.extra_opcode_budget,
-                exec_trace_config=sim.exec_trace_config,
-                simulation_round=sim.simulation_round,
-                skip_signatures=sim.skip_signatures,
-            )
-
-        if send_params is None:
-            opt = options or WriteOptions()
-            send_params = SendParams(
-                cover_app_call_inner_transaction_fees=opt.cover_app_call_inner_transaction_fees
-            )
-
-        result = composer.send(send_params=send_params)
+        result = self._send_group(
+            simulate_before_send=simulate_before_send,
+            simulate_options=simulate_options,
+            send_params=send_params,
+            options=options,
+            composer=composer,
+        )
         return MbrDelta.from_tuple(result.returns[0].value)
 
     def replace_metadata_slice(
@@ -482,27 +491,13 @@ class AsaMetadataRegistryWrite:
             payload=payload,
             options=options,
         )
-        if simulate_before_send:
-            sim = simulate_options or SimulateOptions(
-                allow_empty_signatures=True, skip_signatures=True
-            )
-            composer.simulate(
-                allow_more_logs=sim.allow_more_logs,
-                allow_empty_signatures=sim.allow_empty_signatures,
-                allow_unnamed_resources=sim.allow_unnamed_resources,
-                extra_opcode_budget=sim.extra_opcode_budget,
-                exec_trace_config=sim.exec_trace_config,
-                simulation_round=sim.simulation_round,
-                skip_signatures=sim.skip_signatures,
-            )
-
-        if send_params is None:
-            opt = options or WriteOptions()
-            send_params = SendParams(
-                cover_app_call_inner_transaction_fees=opt.cover_app_call_inner_transaction_fees
-            )
-
-        composer.send(send_params=send_params)
+        self._send_group(
+            simulate_before_send=simulate_before_send,
+            simulate_options=simulate_options,
+            send_params=send_params,
+            options=options,
+            composer=composer,
+        )
 
     def delete_metadata(
         self,
@@ -517,27 +512,13 @@ class AsaMetadataRegistryWrite:
         composer = self.build_delete_metadata_group(
             asset_manager=asset_manager, asset_id=asset_id, options=options
         )
-        if simulate_before_send:
-            sim = simulate_options or SimulateOptions(
-                allow_empty_signatures=True, skip_signatures=True
-            )
-            composer.simulate(
-                allow_more_logs=sim.allow_more_logs,
-                allow_empty_signatures=sim.allow_empty_signatures,
-                allow_unnamed_resources=sim.allow_unnamed_resources,
-                extra_opcode_budget=sim.extra_opcode_budget,
-                exec_trace_config=sim.exec_trace_config,
-                simulation_round=sim.simulation_round,
-                skip_signatures=sim.skip_signatures,
-            )
-
-        if send_params is None:
-            opt = options or WriteOptions()
-            send_params = SendParams(
-                cover_app_call_inner_transaction_fees=opt.cover_app_call_inner_transaction_fees
-            )
-
-        result = composer.send(send_params=send_params)
+        result = self._send_group(
+            simulate_before_send=simulate_before_send,
+            simulate_options=simulate_options,
+            send_params=send_params,
+            options=options,
+            composer=composer,
+        )
         return MbrDelta.from_tuple(result.returns[0].value)
 
     # ------------------------------------------------------------------
@@ -549,14 +530,14 @@ class AsaMetadataRegistryWrite:
         *,
         asset_manager: SigningAccount,
         asset_id: int,
-        flag: int,
+        flag_index: int,
         value: bool,
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
     ) -> None:
-        if not flags.REV_FLG_ARC20 <= flag <= flags.REV_FLG_RESERVED_7:
-            raise InvalidFlagIndex(
-                f"Invalid reversible flag index: {flag}, must be in [0, 7]"
+        if not flags.REV_FLG_ARC20 <= flag_index <= flags.REV_FLG_RESERVED_7:
+            raise InvalidFlagIndexError(
+                f"Invalid reversible flag index: {flag_index}, must be in [0, 7]"
             )
 
         opt = options or WriteOptions()
@@ -566,7 +547,7 @@ class AsaMetadataRegistryWrite:
 
         composer = self.client.new_group()
         composer.arc89_set_reversible_flag(
-            args=(asset_id, flag, value),
+            args=(asset_id, flag_index, value),
             params=CommonAppCallParams(
                 sender=asset_manager.address, static_fee=AlgoAmount(micro_algo=fee_pool)
             ),
@@ -586,13 +567,13 @@ class AsaMetadataRegistryWrite:
         *,
         asset_manager: SigningAccount,
         asset_id: int,
-        flag: int,
+        flag_index: int,
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
     ) -> None:
-        if not flags.IRR_FLG_RESERVED_2 <= flag <= flags.IRR_FLG_IMMUTABLE:
-            raise InvalidFlagIndex(
-                f"Invalid irreversible flag index: {flag}, must be in [2, 7]. Flags 0, 1 are creation only."
+        if not flags.IRR_FLG_RESERVED_2 <= flag_index <= flags.IRR_FLG_IMMUTABLE:
+            raise InvalidFlagIndexError(
+                f"Invalid irreversible flag index: {flag_index}, must be in [2, 7]. Flags 0, 1 are creation only."
             )
 
         opt = options or WriteOptions()
@@ -602,7 +583,7 @@ class AsaMetadataRegistryWrite:
 
         composer = self.client.new_group()
         composer.arc89_set_irreversible_flag(
-            args=(asset_id, flag),
+            args=(asset_id, flag_index),
             params=CommonAppCallParams(
                 sender=asset_manager.address, static_fee=AlgoAmount(micro_algo=fee_pool)
             ),
