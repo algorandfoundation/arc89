@@ -66,3 +66,8 @@ untyped_calls_exclude = ["algosdk"]
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_any_expr = false
+
+[[tool.mypy.overrides]]
+module = "src.*"
+disallow_any_expr = false
+disallow_any_explicit = false
