@@ -168,11 +168,20 @@ class AsaMetadataRegistryWrite:
         )
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
-        txn_count = (
-            1 + (len(chunks) - 1) + 1 + opt.extra_resources
-        )  # app call + extra payload + payment + extras
-        txn_count += 1 if not metadata.is_empty else 0
-        fee_pool = (txn_count + opt.fee_padding_txns) * min_fee
+        # Calculate transaction count for fee pooling
+        base_txn_count = (
+            1  # main app call (arc89_create_metadata)
+            + (len(chunks) - 1)  # extra payload calls
+            + 1  # MBR payment transaction
+            + opt.extra_resources  # optional extra resources
+        )
+
+        # Add extra transaction for non-empty metadata opcode budget
+        if not metadata.is_empty:
+            base_txn_count += 1
+
+        # Calculate total fee pool including padding
+        fee_pool = (base_txn_count + opt.fee_padding_txns) * min_fee
 
         composer = self.client.new_group()
         composer.arc89_create_metadata(
@@ -226,7 +235,10 @@ class AsaMetadataRegistryWrite:
 
         if metadata.body.size <= current_size:
             return self._build_replace_smaller_or_equal(
-                asset_manager=asset_manager, metadata=metadata, options=opt
+                asset_manager=asset_manager,
+                metadata=metadata,
+                options=opt,
+                equal_size=metadata.body.size == current_size,
             )
         return self._build_replace_larger(
             asset_manager=asset_manager, metadata=metadata, options=opt
@@ -238,14 +250,23 @@ class AsaMetadataRegistryWrite:
         asset_manager: SigningAccount,
         metadata: AssetMetadata,
         options: WriteOptions,
+        equal_size: bool,
     ) -> AsaMetadataRegistryComposer:
         chunks = _chunks_for_replace(metadata)
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
-        txn_count = (
-            1 + (len(chunks) - 1) + 1 + options.extra_resources
-        )  # app call + extra payload + inner payment + extras
-        fee_pool = (txn_count + options.fee_padding_txns) * min_fee
+        base_txn_count = (
+            1  # main app call (arc89_replace_metadata)
+            + (len(chunks) - 1)  # extra payload calls
+            + options.extra_resources  # optional extra resources
+        )
+
+        # MBR refund inner payment transaction (only when size is smaller, not equal)
+        if not equal_size:
+            base_txn_count += 1
+
+        # Calculate total fee pool including padding
+        fee_pool = (base_txn_count + options.fee_padding_txns) * min_fee
 
         composer = self.client.new_group()
         composer.arc89_replace_metadata(
@@ -292,8 +313,13 @@ class AsaMetadataRegistryWrite:
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
         txn_count = (
-            1 + (len(chunks) - 1) + 1 + options.extra_resources
-        )  # app call + extra payload + payment + extras
+            1  # main app call (arc89_replace_metadata_larger)
+            + (len(chunks) - 1)  # extra payload calls
+            + 1  # MBR payment transaction
+            + options.extra_resources  # optional extra resources
+        )
+
+        # Calculate total fee pool including padding
         fee_pool = (txn_count + options.fee_padding_txns) * min_fee
 
         composer = self.client.new_group()
@@ -336,7 +362,12 @@ class AsaMetadataRegistryWrite:
         chunks = _chunks_for_slice(payload, params.replace_payload_max_size)
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
-        txn_count = len(chunks) + opt.extra_resources  # app call + extras
+        txn_count = (
+            len(chunks)  # main app calls (arc89_replace_metadata_slice)
+            + opt.extra_resources  # optional extra resources
+        )
+
+        # Calculate total fee pool including padding
         fee_pool = (txn_count + opt.fee_padding_txns) * min_fee
 
         composer = self.client.new_group()
@@ -373,7 +404,13 @@ class AsaMetadataRegistryWrite:
         opt = options or WriteOptions()
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
-        txn_count = 1 + 1 + opt.extra_resources  # app call + inner payment + extras
+        txn_count = (
+            1  # main app call (arc89_delete_metadata)
+            + 1  # MBR refund inner payment transaction
+            + opt.extra_resources  # optional extra resources
+        )
+
+        # Calculate total fee pool including padding
         fee_pool = (txn_count + opt.fee_padding_txns) * min_fee
 
         composer = self.client.new_group()
