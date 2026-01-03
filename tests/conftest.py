@@ -18,12 +18,12 @@ from dotenv import load_dotenv
 
 from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
 from src import constants as const
-from src.algod import AlgodBoxReader
-from src.codec import Arc90Uri, build_netauth_from_env
-from src.generated.asa_metadata_registry_client import (
+from src._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )
+from src.algod import AlgodBoxReader
+from src.codec import Arc90Uri
 from src.models import (
     AssetMetadata,
     AssetMetadataBox,
@@ -135,7 +135,7 @@ def asa_metadata_registry_client(
 @pytest.fixture(scope="function")
 def arc89_partial_uri(asa_metadata_registry_client: AsaMetadataRegistryClient) -> str:
     return Arc90Uri(
-        netauth=build_netauth_from_env(os.environ[ARC90_NETAUTH]),
+        netauth=os.environ[ARC90_NETAUTH],
         app_id=asa_metadata_registry_client.app_id,
         box_name=None,  # Partial URI has no box name
     ).to_uri()

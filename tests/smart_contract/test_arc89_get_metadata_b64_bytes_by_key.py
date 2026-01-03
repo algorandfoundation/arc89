@@ -4,7 +4,7 @@ from smart_contracts.asa_metadata_registry.enums import (
     B64_STD_ENCODING,
     B64_URL_ENCODING,
 )
-from src.generated.asa_metadata_registry_client import (
+from src._generated.asa_metadata_registry_client import (
     Arc89GetMetadataB64BytesByKeyArgs,
     AsaMetadataRegistryClient,
 )

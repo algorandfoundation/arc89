@@ -1,6 +1,6 @@
 import json
 
-from src.generated.asa_metadata_registry_client import (
+from src._generated.asa_metadata_registry_client import (
     Arc89GetMetadataObjectByKeyArgs,
     AsaMetadataRegistryClient,
 )

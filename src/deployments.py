@@ -35,6 +35,7 @@ class RegistryDeployment:
     genesis_hash_b64: str
     app_id: int | None
     creator_address: str | None = None
+    arc90_uri_netauth: str | None = None
 
 
 DEFAULT_DEPLOYMENTS: Final[Mapping[str, RegistryDeployment]] = {
@@ -43,11 +44,13 @@ DEFAULT_DEPLOYMENTS: Final[Mapping[str, RegistryDeployment]] = {
         genesis_hash_b64=TESTNET_GH_B64,
         app_id=TESTNET_ASA_METADATA_REGISTRY_APP_ID,
         creator_address=TESTNET_TRUSTED_DEPLOYER_ADDR,
+        arc90_uri_netauth="net:testnet",
     ),
     "mainnet": RegistryDeployment(
         network="mainnet",
         genesis_hash_b64=MAINNET_GH_B64,
         app_id=None,  # MainNet app id was TBD in the draft spec snapshot used to build this SDK.
         creator_address=MAINNET_TRUSTED_DEPLOYER_ADDR,
+        arc90_uri_netauth=None,
     ),
 }

@@ -8,7 +8,7 @@ end-to-end with both BOX and AVM sources.
 import pytest
 
 from src import AssetMetadata
-from src.generated.asa_metadata_registry_client import AsaMetadataRegistryClient
+from src._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 from src.read.reader import AsaMetadataRegistryRead, MetadataSource
 
 # ================================================================

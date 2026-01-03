@@ -17,7 +17,7 @@ from smart_contracts import constants
 from smart_contracts.asa_metadata_registry import enums, flags
 
 from . import bitmasks
-from .codec import Arc90Compliance, Arc90Uri, build_netauth_from_env
+from .codec import Arc90Compliance, Arc90Uri
 from .deployments import (
     DEFAULT_DEPLOYMENTS,
 )
@@ -61,6 +61,7 @@ from .models import (
 )
 from .read.avm import SimulateOptions
 from .read.reader import AsaMetadataRegistryRead, MetadataSource
+from .registry import AsaMetadataRegistry, RegistryConfig
 from .validation import (
     decode_metadata_json,
     encode_metadata_json,
@@ -71,6 +72,9 @@ from .write.writer import AsaMetadataRegistryWrite, WriteOptions
 __all__ = [
     # Deployments
     "DEFAULT_DEPLOYMENTS",
+    # Facade
+    "AsaMetadataRegistry",
+    "RegistryConfig",
     # Read/Write helpers
     "AsaMetadataRegistryRead",
     "AsaMetadataRegistryWrite",
@@ -80,7 +84,6 @@ __all__ = [
     # Codec
     "Arc90Uri",
     "Arc90Compliance",
-    "build_netauth_from_env",
     # Errors
     "AsaMetadataRegistryError",
     "AsaNotFoundError",

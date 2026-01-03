@@ -4,7 +4,7 @@ import pytest
 from algokit_utils import AssetCreateParams, SigningAccount
 
 from src import constants as const
-from src.generated.asa_metadata_registry_client import (
+from src._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
 from src.models import AssetMetadata, AssetMetadataBox, MetadataFlags
