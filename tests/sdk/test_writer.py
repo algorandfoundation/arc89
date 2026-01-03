@@ -21,7 +21,7 @@ from algosdk.error import AlgodHTTPError
 
 from src import AssetMetadataBox, flags
 from src.errors import MissingAppClientError
-from src.generated.asa_metadata_registry_client import AsaMetadataRegistryClient
+from src._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 from src.models import (
     AssetMetadata,
     MbrDelta,

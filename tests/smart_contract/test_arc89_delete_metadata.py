@@ -1,7 +1,7 @@
 from algokit_utils import AssetDestroyParams, SigningAccount
 
 from smart_contracts.asa_metadata_registry.enums import MBR_DELTA_NEG
-from src.generated.asa_metadata_registry_client import (
+from src._generated.asa_metadata_registry_client import (
     Arc89CheckMetadataExistsArgs,
     AsaMetadataRegistryClient,
 )

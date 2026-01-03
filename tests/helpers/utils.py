@@ -12,7 +12,7 @@ from algokit_utils import (
 from algosdk.transaction import Transaction
 
 from src import constants as const
-from src.generated.asa_metadata_registry_client import (
+from src._generated.asa_metadata_registry_client import (
     Arc89CreateMetadataArgs,
     Arc89DeleteMetadataArgs,
     Arc89ExtraPayloadArgs,

@@ -20,7 +20,7 @@ from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
 from src import constants as const
 from src.algod import AlgodBoxReader
 from src.codec import Arc90Uri
-from src.generated.asa_metadata_registry_client import (
+from src._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )

@@ -7,7 +7,7 @@ from algokit_utils import (
 )
 
 from src import constants as const
-from src.generated.asa_metadata_registry_client import (
+from src._generated.asa_metadata_registry_client import (
     Arc89ReplaceMetadataSliceArgs,
     AsaMetadataRegistryClient,
 )

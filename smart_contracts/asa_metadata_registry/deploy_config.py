@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def deploy() -> None:
-    from src.generated.asa_metadata_registry_client import (
+    from src._generated.asa_metadata_registry_client import (
         AsaMetadataRegistryFactory,
     )
 

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ..errors import MissingAppClientError
-from ..generated.asa_metadata_registry_client import AsaMetadataRegistryClient
+from .._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 from ..models import (
     MbrDelta,
     MetadataExistence,

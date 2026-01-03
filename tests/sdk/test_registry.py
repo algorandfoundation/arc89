@@ -20,7 +20,7 @@ from algosdk.v2client.algod import AlgodClient
 from src.algod import AlgodBoxReader
 from src.codec import Arc90Uri
 from src.errors import MissingAppClientError, RegistryResolutionError
-from src.generated.asa_metadata_registry_client import AsaMetadataRegistryClient
+from src._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 from src.read.avm import AsaMetadataRegistryAvmRead
 from src.read.reader import AsaMetadataRegistryRead
 from src.registry import AsaMetadataRegistry, RegistryConfig
@@ -505,8 +505,8 @@ class TestMakeGeneratedClientFactory:
             )
 
             # Call factory with different app_ids
-            client1 = factory(12345)  # noqa: F841
-            client2 = factory(67890)  # noqa: F841
+            _ = factory(12345)
+            _ = factory(67890)
 
             assert mock_client_class.call_count == 2
             mock_client_class.assert_any_call(algorand=mock_algorand, app_id=12345)

@@ -1,7 +1,7 @@
 from algokit_utils import SigningAccount
 
 from smart_contracts.asa_metadata_registry.enums import MBR_DELTA_NEG, MBR_DELTA_NULL
-from src.generated.asa_metadata_registry_client import (
+from src._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
 from src.models import AssetMetadata
