@@ -37,6 +37,7 @@ from .errors import (
     RegistryResolutionError,
 )
 from .hashing import (
+    compute_arc3_metadata_hash,
     compute_header_hash,
     compute_metadata_hash,
     compute_page_hash,
@@ -58,15 +59,24 @@ from .models import (
     ReversibleFlags,
     get_default_registry_params,
 )
+from .read.avm import SimulateOptions
+from .read.reader import AsaMetadataRegistryRead, MetadataSource
 from .validation import (
     decode_metadata_json,
     encode_metadata_json,
     validate_arc3_schema,
 )
+from .write.writer import AsaMetadataRegistryWrite, WriteOptions
 
 __all__ = [
     # Deployments
     "DEFAULT_DEPLOYMENTS",
+    # Read/Write helpers
+    "AsaMetadataRegistryRead",
+    "AsaMetadataRegistryWrite",
+    "MetadataSource",
+    "SimulateOptions",
+    "WriteOptions",
     # Codec
     "Arc90Uri",
     "Arc90Compliance",
@@ -110,6 +120,7 @@ __all__ = [
     # Flags
     "flags",
     # Hashing
+    "compute_arc3_metadata_hash",
     "compute_header_hash",
     "compute_page_hash",
     "compute_metadata_hash",
