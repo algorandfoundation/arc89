@@ -90,7 +90,7 @@ class WriteOptions:
     - Algorand supports *fee pooling* in groups; this SDK sets fee=0 on most txns
       and pools fees on the first app call via `static_fee`.
     - `fee_padding_txns` adds extra min-fee units to the fee pool as a safety margin
-      to cover op-code budget inner transaction (related to metadata total pages).
+      to cover opcode budget inner transaction (related to metadata total pages).
     """
 
     extra_resources: int = 0

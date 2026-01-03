@@ -5,7 +5,7 @@ Tests cover:
 - WriteOptions configuration
 - AsaMetadataRegistryWrite initialization and validation
 - Group building methods
-- High-level send methods with simulate_before_send option
+- High-level send methods (e.g., create_metadata, replace_metadata) using simulate_before_send option
 - Flag management methods
 - Utility methods
 - Fee pooling and padding
