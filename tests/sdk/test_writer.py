@@ -19,7 +19,7 @@ import pytest
 from algokit_utils import SendParams, SigningAccount
 from algosdk.error import AlgodHTTPError
 
-from src import AssetMetadataBox, bitmasks
+from src import AssetMetadataBox, flags
 from src.errors import MissingAppClientError
 from src.generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 from src.models import (
@@ -404,7 +404,7 @@ class TestSetReversibleFlag:
         writer.set_reversible_flag(
             asset_manager=asset_manager,
             asset_id=mutable_short_metadata.asset_id,
-            flag=bitmasks.MASK_REV_ARC20,
+            flag_index=flags.REV_FLG_ARC20,
             value=True,
         )
         # Verify flag was set
@@ -429,14 +429,14 @@ class TestSetReversibleFlag:
         writer.set_reversible_flag(
             asset_manager=asset_manager,
             asset_id=mutable_short_metadata.asset_id,
-            flag=bitmasks.MASK_REV_ARC62,
+            flag_index=flags.REV_FLG_ARC62,
             value=True,
         )
         # Then set to False
         writer.set_reversible_flag(
             asset_manager=asset_manager,
             asset_id=mutable_short_metadata.asset_id,
-            flag=bitmasks.MASK_REV_ARC62,
+            flag_index=flags.REV_FLG_ARC62,
             value=False,
         )
         box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
@@ -463,7 +463,7 @@ class TestSetIrreversibleFlag:
         writer.set_irreversible_flag(
             asset_manager=asset_manager,
             asset_id=mutable_short_metadata.asset_id,
-            flag=bitmasks.MASK_IRR_RESERVED_2,
+            flag_index=flags.IRR_FLG_RESERVED_2,
         )
         # Verify flag was set
         box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
@@ -586,7 +586,6 @@ class TestWriteIntegration:
         arc_89_asa: int,
     ) -> None:
         """Test create -> set flags workflow."""
-        from src import bitmasks
 
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
 
@@ -601,13 +600,13 @@ class TestWriteIntegration:
         writer.set_reversible_flag(
             asset_manager=asset_manager,
             asset_id=arc_89_asa,
-            flag=bitmasks.MASK_REV_ARC20,
+            flag_index=flags.REV_FLG_ARC20,
             value=True,
         )
         writer.set_irreversible_flag(
             asset_manager=asset_manager,
             asset_id=arc_89_asa,
-            flag=bitmasks.MASK_IRR_RESERVED_2,
+            flag_index=flags.IRR_FLG_RESERVED_2,
         )
 
         # Verify both flags are set
