@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from src import bitmasks, enums
 from src import constants as const
 
-from .errors import BoxParseError
+from .errors import BoxParseError, InvalidPageIndexError
 from .hashing import (
     MAX_UINT8,
     compute_header_hash,
@@ -532,10 +532,10 @@ class MetadataBody:
         self, page_index: int, params: RegistryParameters | None = None
     ) -> bytes:
         if page_index < 0:
-            raise ValueError("page_index must be non-negative")
+            raise InvalidPageIndexError("page_index must be non-negative")
         total = self.total_pages(params)
         if page_index >= total:
-            raise ValueError(
+            raise InvalidPageIndexError(
                 f"Page index {page_index} out of range (total pages: {total})"
             )
         p = params or get_default_registry_params()
@@ -647,8 +647,8 @@ class AssetMetadataBox:
         *,
         asset_id: int,
         value: bytes,
-        header_size: int = const.HEADER_SIZE,
-        max_metadata_size: int = const.MAX_METADATA_SIZE,
+        header_size: int | None = None,
+        max_metadata_size: int | None = None,
         params: RegistryParameters | None = None,
     ) -> AssetMetadataBox:
         """
@@ -656,25 +656,14 @@ class AssetMetadataBox:
 
         If `params` is provided, `header_size` and `max_metadata_size` default to the chain values.
         """
-        if params is not None:
-            if header_size == const.HEADER_SIZE:
-                header_size = params.header_size
-            if max_metadata_size == const.MAX_METADATA_SIZE:
-                max_metadata_size = params.max_metadata_size
+        p = params or get_default_registry_params()
+        header_size = header_size or p.header_size
+        max_metadata_size = max_metadata_size or p.max_metadata_size
 
         if len(value) < header_size:
             raise BoxParseError(f"Box value too small: {len(value)} < {header_size}")
 
         # Parse the known ARC-89 header fields at fixed offsets.
-        # If header_size > const.HEADER_SIZE (future extensions), we skip unknown tail bytes.
-        # If header_size < const.HEADER_SIZE, we can only parse what's available.
-        min_known_header = const.IDX_DEPRECATED_BY + const.UINT64_SIZE
-        # Only validate against min_known_header if the custom header_size is at least that large
-        if header_size >= min_known_header and len(value) < min_known_header:
-            raise BoxParseError(
-                f"Box value too small for known header: {len(value)} < {min_known_header}"
-            )
-
         try:
             identifiers = int(value[const.IDX_METADATA_IDENTIFIERS])
             rev_flags = int(value[const.IDX_REVERSIBLE_FLAGS])

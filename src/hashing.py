@@ -8,6 +8,7 @@ import json
 from src import constants as const
 
 from .codec import asset_id_to_box_name
+from .errors import InvalidPageIndexError
 
 MAX_UINT8 = 2**8 - 1
 MAX_UINT16 = 2**16 - 1
@@ -106,7 +107,7 @@ def compute_page_hash(
         32-byte page hash
     """
     if not (0 <= page_index <= MAX_UINT8):
-        raise ValueError("page_index must fit in uint8")
+        raise InvalidPageIndexError("page_index must fit in uint8")
     if not (0 <= len(page_content) <= MAX_UINT16):
         raise ValueError("page_content length must fit in uint16")
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import enum
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 from ..algod import AlgodBoxReader
 from ..codec import Arc90Uri
@@ -249,11 +250,12 @@ class AsaMetadataRegistryRead:
             for start in range(0, total_pages, batch_size):
                 end = min(total_pages, start + batch_size)
 
-                values = avm.simulate_many(
-                    lambda c, s=start, e=end: [
+                def build_batch(c: Any, s: int = start, e: int = end) -> None:
+                    for i in range(s, e):
                         c.arc89_get_metadata(args=(asset_id, i), params=None)
-                        for i in range(s, e)
-                    ],
+
+                values = avm.simulate_many(
+                    build_batch,
                     simulate=simulate,
                 )
                 for v in values:

@@ -57,9 +57,9 @@ class AlgodBoxReader:
         value_b64: str | None = None
         if isinstance(resp, Mapping):
             if "value" in resp:
-                value_b64 = resp.get("value")  # type: ignore[assignment]
+                value_b64 = resp.get("value")
             elif "box" in resp and isinstance(resp.get("box"), Mapping):
-                value_b64 = resp["box"].get("value")  # type: ignore[index]
+                value_b64 = resp["box"].get("value")
         if value_b64 is None:
             raise RuntimeError(
                 "Unexpected algod response shape for application_box_by_name"
@@ -175,7 +175,8 @@ class AlgodBoxReader:
             object is missing or does not contain a non-null "url" field.
         """
         info = self.get_asset_info(asset_id)
-        params = info.get("params") if isinstance(info.get("params"), Mapping) else None
+        params_val = info.get("params")
+        params = params_val if isinstance(params_val, Mapping) else None
         url = params.get("url") if params else None
         return str(url) if url is not None else None
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from src import enums
 
@@ -127,7 +126,7 @@ class AsaMetadataRegistryBoxRead:
             app_id=self.app_id, asset_id=asset_id, params=self.params
         )
 
-    def get_metadata_json(self, *, asset_id: int) -> dict[str, Any]:
+    def get_metadata_json(self, *, asset_id: int) -> dict[str, object]:
         return self.get_asset_metadata_record(asset_id=asset_id).json
 
     def get_string_by_key(self, *, asset_id: int, key: str) -> str:
