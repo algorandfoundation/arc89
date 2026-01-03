@@ -29,6 +29,14 @@ class BoxParseError(AsaMetadataRegistryError, ValueError):
     """Raised when a metadata box value cannot be parsed according to ARC-89."""
 
 
+class InvalidFlagIndexError(AsaMetadataRegistryError, ValueError):
+    """Raised when a flag index (reversible/irreversible) is out of bounds."""
+
+
+class InvalidPageIndexError(AsaMetadataRegistryError, ValueError):
+    """Raised when a page index is out of bounds."""
+
+
 class MetadataEncodingError(AsaMetadataRegistryError, ValueError):
     """Raised when metadata bytes are not valid UTF-8 JSON object encoding (RFC 8259)."""
 
