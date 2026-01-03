@@ -618,8 +618,6 @@ class TestWriteIntegration:
         assert result.header.is_arc20_smart_asa is True
         assert result.header.flags.irreversible.reserved_2 is True
 
-    """Test AsaMetadataRegistryWrite initialization."""
-
 
 # ================================================================
 # Group Builder Tests
