@@ -27,6 +27,8 @@ from .errors import (
     BoxNotFoundError,
     BoxParseError,
     InvalidArc90UriError,
+    InvalidFlagIndexError,
+    InvalidPageIndexError,
     MetadataArc3Error,
     MetadataDriftError,
     MetadataEncodingError,
@@ -38,8 +40,6 @@ from .hashing import (
     compute_header_hash,
     compute_metadata_hash,
     compute_page_hash,
-    sha256,
-    sha512_256,
 )
 from .models import (
     AssetMetadata,
@@ -77,6 +77,8 @@ __all__ = [
     "BoxNotFoundError",
     "BoxParseError",
     "InvalidArc90UriError",
+    "InvalidFlagIndexError",
+    "InvalidPageIndexError",
     "MetadataArc3Error",
     "MetadataDriftError",
     "MetadataEncodingError",
@@ -111,8 +113,6 @@ __all__ = [
     "compute_header_hash",
     "compute_page_hash",
     "compute_metadata_hash",
-    "sha256",
-    "sha512_256",
     # Validation
     "encode_metadata_json",
     "decode_metadata_json",
