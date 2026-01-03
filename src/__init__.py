@@ -17,7 +17,7 @@ from smart_contracts import constants
 from smart_contracts.asa_metadata_registry import enums, flags
 
 from . import bitmasks
-from .codec import Arc90Compliance, Arc90Uri, build_netauth_from_env
+from .codec import Arc90Compliance, Arc90Uri
 from .deployments import (
     DEFAULT_DEPLOYMENTS,
 )
@@ -80,7 +80,6 @@ __all__ = [
     # Codec
     "Arc90Uri",
     "Arc90Compliance",
-    "build_netauth_from_env",
     # Errors
     "AsaMetadataRegistryError",
     "AsaNotFoundError",

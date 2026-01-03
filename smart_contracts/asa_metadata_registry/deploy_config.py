@@ -8,7 +8,7 @@ import algokit_utils
 
 from smart_contracts.constants import ACCOUNT_MBR, ARC3_URL_SUFFIX, UINT64_SIZE
 from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
-from src.codec import Arc90Compliance, Arc90Uri, build_netauth_from_env
+from src.codec import Arc90Compliance, Arc90Uri
 from src.models import AssetMetadata
 from tests.helpers.factories import compute_arc3_metadata_hash
 from tests.helpers.utils import create_metadata
@@ -46,7 +46,7 @@ def deploy() -> None:
     )
     logger.info(f"ASA Metadata Registry ID: {app_client.app_id}")
 
-    netauth = build_netauth_from_env(os.environ[ARC90_NETAUTH])
+    netauth = os.environ[ARC90_NETAUTH]
 
     arc89_partial_uri_obj = Arc90Uri(
         netauth=netauth,

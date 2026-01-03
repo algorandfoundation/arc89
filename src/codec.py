@@ -52,26 +52,6 @@ def b64url_decode(data_b64url: str) -> bytes:
     return base64.urlsafe_b64decode(data_b64url.encode("ascii"))
 
 
-def build_netauth_from_env(netauth_value: str) -> str:
-    """
-    Build the full netauth string from an environment variable value.
-
-    The environment variable typically contains just the network name (e.g., "localnet", "testnet"),
-    and this function prepends the "net:" prefix required by ARC-90 URIs.
-
-    Args:
-        netauth_value: Network name from environment (e.g., "localnet", "testnet")
-
-    Returns:
-        Full netauth string (e.g., "net:localnet", "net:testnet")
-    """
-    if const.ARC90_URI_NETAUTH_PREFIX.decode() in netauth_value:
-        raise ValueError(
-            f"netauth_value must not contain 'net:' prefix, got: {netauth_value}"
-        )
-    return f"{const.ARC90_URI_NETAUTH_PREFIX.decode()}{netauth_value}"
-
-
 @dataclass(frozen=True, slots=True)
 class Arc90Compliance:
     """
@@ -251,7 +231,7 @@ class Arc90Uri:
         netauth: str | None = None
         app_id: int | None = None
 
-        if netloc.startswith(const.ARC90_URI_NETAUTH_PREFIX.decode()):
+        if netloc.startswith("net:"):
             netauth = netloc
             if (
                 len(path_segs) < 2
