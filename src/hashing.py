@@ -108,8 +108,6 @@ def compute_page_hash(
     """
     if not (0 <= page_index <= MAX_UINT8):
         raise InvalidPageIndexError("page_index must fit in uint8")
-    if page_index < 0:
-        raise InvalidPageIndexError("page_index must be non-negative")
     if not (0 <= len(page_content) <= MAX_UINT16):
         raise ValueError("page_content length must fit in uint16")
 
