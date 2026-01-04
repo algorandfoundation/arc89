@@ -159,7 +159,20 @@ class AsaMetadataRegistry:
                 "Base generated client does not expose an AlgoKit Algorand client"
             )
 
+        # Extract default_sender and default_signer from the base client's app_client
+        app_client = getattr(base_client, "app_client", None)
+        default_sender = None
+        default_signer = None
+        if app_client is not None:
+            default_sender = getattr(app_client, "_default_sender", None)
+            default_signer = getattr(app_client, "_default_signer", None)
+
         def factory(app_id: int) -> Any:
-            return client_cls(algorand=algorand, app_id=int(app_id))
+            return client_cls(
+                algorand=algorand,
+                app_id=int(app_id),
+                default_sender=default_sender,
+                default_signer=default_signer,
+            )
 
         return factory
