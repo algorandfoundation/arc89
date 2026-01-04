@@ -4,10 +4,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Final, Literal
 
-from smart_contracts.constants import (
-    MAINNET_GH_B64,
-    TESTNET_GH_B64,
-)
+from .constants import MAINNET_GH_B64, TESTNET_GH_B64
 
 # ---------------------------------------------------------------------------
 # Deployment constants
