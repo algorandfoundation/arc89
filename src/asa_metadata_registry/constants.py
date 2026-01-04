@@ -1,6 +1,5 @@
 """Copy of ASA Metadata Registry smart contract constants."""
 
-
 from typing import Final
 
 # ---------------------------------------------------------------------------
