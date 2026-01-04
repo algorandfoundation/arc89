@@ -9,12 +9,14 @@ Tests cover:
 import pytest
 
 from smart_contracts import constants as const
-from src import bitmasks
-from src.errors import BoxParseError
-from src.models import (
+from src.asa_metadata_registry import (
     AssetMetadata,
     AssetMetadataBox,
+    BoxParseError,
     RegistryParameters,
+    bitmasks,
+    compute_metadata_hash,
+    decode_metadata_json,
     get_default_registry_params,
 )
 
@@ -67,8 +69,6 @@ class TestAssetMetadataBoxParse:
 
         assert box.asset_id == 456
         assert box.body.raw_bytes == metadata
-        from src.models import decode_metadata_json
-
         assert decode_metadata_json(box.body.raw_bytes) == {"name": "Test"}
 
     def test_parse_box_with_flags(self) -> None:
@@ -241,8 +241,6 @@ class TestAssetMetadataBoxParse:
         box = AssetMetadataBox.parse(asset_id=4444, value=box_value)
 
         assert box.body.raw_bytes == metadata
-        from src.models import decode_metadata_json
-
         assert decode_metadata_json(box.body.raw_bytes) == {
             "emoji": "🎉",
             "text": "你好",
@@ -310,8 +308,6 @@ class TestAssetMetadataBoxParse:
         box = AssetMetadataBox.parse(asset_id=8888, value=box_value)
 
         assert box.header.is_arc3_compliant is True
-        from src.models import decode_metadata_json
-
         decoded = decode_metadata_json(box.body.raw_bytes)
         assert decoded["name"] == "My NFT"
         assert decoded["decimals"] == 0
@@ -394,7 +390,6 @@ class TestAssetMetadataBoxAdvanced:
 
     def test_hash_matches_true(self) -> None:
         """Test hash_matches when hashes match."""
-        from src.hashing import compute_metadata_hash
 
         metadata = b'{"name":"Test"}'
         params = get_default_registry_params()

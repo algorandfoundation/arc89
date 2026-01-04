@@ -8,8 +8,17 @@ import algokit_utils
 
 from smart_contracts.constants import ACCOUNT_MBR, ARC3_URL_SUFFIX, UINT64_SIZE
 from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
-from src.codec import Arc90Compliance, Arc90Uri
-from src.models import AssetMetadata
+from src.asa_metadata_registry import (
+    Arc90Compliance,
+    Arc90Uri,
+    AssetMetadata,
+    IrreversibleFlags,
+    MetadataFlags,
+    ReversibleFlags,
+)
+from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
+    AsaMetadataRegistryFactory,
+)
 from tests.helpers.factories import compute_arc3_metadata_hash
 from tests.helpers.utils import create_metadata
 
@@ -17,10 +26,6 @@ logger = logging.getLogger(__name__)
 
 
 def deploy() -> None:
-    from src._generated.asa_metadata_registry_client import (
-        AsaMetadataRegistryFactory,
-    )
-
     algorand = algokit_utils.AlgorandClient.from_environment()
     algorand.set_default_validity_window(100)
     deployer_ = algorand.account.from_environment("DEPLOYER")
@@ -102,8 +107,6 @@ def deploy() -> None:
     ).asset_id
 
     logger.info(f"ARC3 Pure NFT ID: {arc3_pure_nft_id}")
-
-    from src.models import IrreversibleFlags, MetadataFlags, ReversibleFlags
 
     arc3_pure_nft_metadata = AssetMetadata.from_json(
         asset_id=arc3_pure_nft_id,

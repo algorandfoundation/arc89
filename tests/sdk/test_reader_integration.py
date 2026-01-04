@@ -7,9 +7,15 @@ end-to-end with both BOX and AVM sources.
 
 import pytest
 
-from src import AssetMetadata
-from src._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
-from src.read.reader import AsaMetadataRegistryRead, MetadataSource
+from src.asa_metadata_registry import (
+    AsaMetadataRegistryRead,
+    AssetMetadata,
+    MetadataSource,
+)
+from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
+    AsaMetadataRegistryClient,
+)
+from src.asa_metadata_registry.codec import asset_id_to_box_name, b64url_encode
 
 # ================================================================
 # Test Reader with Uploaded Metadata
@@ -525,7 +531,6 @@ class TestReaderArc90Uri:
         arc_89_asa: int,
     ) -> None:
         """Test resolving from explicit metadata URI."""
-        from src.codec import asset_id_to_box_name, b64url_encode
 
         # Encode the asset ID as base64url for the box parameter
         box_encoded = b64url_encode(asset_id_to_box_name(arc_89_asa))

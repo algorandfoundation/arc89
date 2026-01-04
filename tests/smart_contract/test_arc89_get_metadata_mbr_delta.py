@@ -1,8 +1,8 @@
-from src._generated.asa_metadata_registry_client import (
+from src.asa_metadata_registry import AssetMetadata
+from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
     Arc89GetMetadataMbrDeltaArgs,
     AsaMetadataRegistryClient,
 )
-from src.models import AssetMetadata
 
 
 def test_get_metadata_mbr_delta_for_existing_metadata(

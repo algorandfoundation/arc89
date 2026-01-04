@@ -11,18 +11,20 @@ Tests cover:
 import pytest
 
 from smart_contracts import constants as const
-from src import bitmasks
-from src.errors import MetadataArc3Error
-from src.models import (
+from src.asa_metadata_registry import (
     AssetMetadata,
     AssetMetadataRecord,
     IrreversibleFlags,
+    MetadataArc3Error,
     MetadataBody,
     MetadataFlags,
     MetadataHeader,
     ReversibleFlags,
+    bitmasks,
+    decode_metadata_json,
     get_default_registry_params,
 )
+from src.asa_metadata_registry import compute_metadata_hash as hash_fn
 
 
 class TestMetadataBody:
@@ -36,8 +38,6 @@ class TestMetadataBody:
         assert body.is_empty is True
         assert body.is_short is True
         # Empty bytes decode to empty dict
-        from src.models import decode_metadata_json
-
         assert decode_metadata_json(body.raw_bytes) == {}
 
     def test_small_body(self) -> None:
@@ -49,8 +49,6 @@ class TestMetadataBody:
         assert body.is_empty is False
         assert body.is_short is True
         # Check JSON decoding
-        from src.models import decode_metadata_json
-
         assert decode_metadata_json(body.raw_bytes) == {"name": "Test"}
 
     def test_short_metadata_boundary(self) -> None:
@@ -157,7 +155,6 @@ class TestMetadataBody:
         """Test from_json with simple object."""
         obj = {"name": "Test", "value": 123}
         body = MetadataBody.from_json(obj)
-        from src.models import decode_metadata_json
 
         assert decode_metadata_json(body.raw_bytes) == obj
         assert body.size > 0
@@ -170,7 +167,6 @@ class TestMetadataBody:
             "description": "A test NFT",
         }
         body = MetadataBody.from_json(obj, arc3_compliant=True)
-        from src.models import decode_metadata_json
 
         assert decode_metadata_json(body.raw_bytes) == obj
 
@@ -356,7 +352,6 @@ class TestAssetMetadata:
 
     def test_compute_metadata_hash(self) -> None:
         """Test compute_metadata_hash method."""
-        from src.hashing import compute_metadata_hash as hash_fn
 
         body = MetadataBody(raw_bytes=b'{"name":"Test"}')
         flags = MetadataFlags.empty()
@@ -385,7 +380,6 @@ class TestAssetMetadata:
 
     def test_compute_metadata_hash_short_metadata(self) -> None:
         """Test compute_metadata_hash with short metadata (identifiers should be set)."""
-        from src.hashing import compute_metadata_hash as hash_fn
 
         # Create short metadata (< SHORT_METADATA_SIZE)
         body = MetadataBody(raw_bytes=b'{"name":"Short"}')
@@ -420,7 +414,6 @@ class TestAssetMetadata:
 
     def test_compute_metadata_hash_long_metadata(self) -> None:
         """Test compute_metadata_hash with long metadata (identifiers should be 0)."""
-        from src.hashing import compute_metadata_hash as hash_fn
 
         # Create long metadata (> SHORT_METADATA_SIZE)
         large_data = b"x" * (const.SHORT_METADATA_SIZE + 100)
@@ -508,7 +501,6 @@ class TestAssetMetadata:
             json_obj=obj,
         )
         assert metadata.asset_id == 456
-        from src.models import decode_metadata_json
 
         assert decode_metadata_json(metadata.body.raw_bytes) == obj
         assert metadata.flags.reversible_byte == 0
@@ -551,7 +543,6 @@ class TestAssetMetadata:
             asset_id=111,
             json_obj=obj,
         )
-        from src.models import decode_metadata_json
 
         assert decode_metadata_json(metadata.body.raw_bytes) == obj
         assert metadata.flags.irreversible.arc3 is True
@@ -606,7 +597,6 @@ class TestAssetMetadataRecord:
             header=header,
             body=body,
         )
-        from src.models import decode_metadata_json
 
         # Note: cached_property doesn't work with slots, so we just test decoding directly
         assert decode_metadata_json(record.body.raw_bytes) == {

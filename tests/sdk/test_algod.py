@@ -17,19 +17,22 @@ import pytest
 from algokit_utils import AlgorandClient
 from algosdk.v2client.algod import AlgodClient
 
-from src import constants as const
-from src._generated.asa_metadata_registry_client import (
-    AsaMetadataRegistryClient,
-)
-from src.algod import AlgodBoxReader
-from src.codec import Arc90Uri, asset_id_to_box_name, b64_encode
-from src.errors import AsaNotFoundError, BoxNotFoundError, InvalidArc90UriError
-from src.models import (
+from src.asa_metadata_registry import (
+    Arc90Uri,
+    AsaNotFoundError,
+    AssetMetadata,
     AssetMetadataBox,
     AssetMetadataRecord,
+    BoxNotFoundError,
+    InvalidArc90UriError,
     get_default_registry_params,
 )
-from tests.helpers.factories import AssetMetadata as MockAssetMetadata
+from src.asa_metadata_registry import constants as const
+from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
+    AsaMetadataRegistryClient,
+)
+from src.asa_metadata_registry.algod import AlgodBoxReader
+from src.asa_metadata_registry.codec import asset_id_to_box_name, b64_encode
 
 
 class TestAlgodBoxReaderGetBoxValue:
@@ -574,7 +577,7 @@ class TestAlgodBoxReaderIntegration:
         self,
         algod_reader: AlgodBoxReader,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
-        mutable_short_metadata: MockAssetMetadata,
+        mutable_short_metadata: AssetMetadata,
     ) -> None:
         """Test full read flow with actual uploaded metadata."""
         app_id = asa_metadata_registry_client.app_id
@@ -629,7 +632,7 @@ class TestAlgodBoxReaderIntegration:
         self,
         algod_reader: AlgodBoxReader,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
-        mutable_empty_metadata: MockAssetMetadata,
+        mutable_empty_metadata: AssetMetadata,
     ) -> None:
         """Test reading metadata box with empty metadata."""
         app_id = asa_metadata_registry_client.app_id
@@ -643,7 +646,7 @@ class TestAlgodBoxReaderIntegration:
         self,
         algod_reader: AlgodBoxReader,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
-        mutable_maxed_metadata: MockAssetMetadata,
+        mutable_maxed_metadata: AssetMetadata,
     ) -> None:
         """Test reading metadata box with maximum size metadata."""
 
@@ -658,7 +661,7 @@ class TestAlgodBoxReaderIntegration:
         self,
         algod_reader: AlgodBoxReader,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
-        mutable_short_metadata: MockAssetMetadata,
+        mutable_short_metadata: AssetMetadata,
     ) -> None:
         """Test that metadata record can parse JSON correctly."""
         app_id = asa_metadata_registry_client.app_id
@@ -678,7 +681,7 @@ class TestAlgodBoxReaderIntegration:
         self,
         algod_reader: AlgodBoxReader,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
-        immutable_short_metadata: MockAssetMetadata,
+        immutable_short_metadata: AssetMetadata,
     ) -> None:
         """Test that immutable flag is correctly read from metadata box."""
         app_id = asa_metadata_registry_client.app_id
@@ -691,7 +694,7 @@ class TestAlgodBoxReaderIntegration:
         self,
         algod_reader: AlgodBoxReader,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
-        mutable_short_metadata: MockAssetMetadata,
+        mutable_short_metadata: AssetMetadata,
     ) -> None:
         """Test get_box_value with an actual box."""
         app_id = asa_metadata_registry_client.app_id
@@ -707,7 +710,7 @@ class TestAlgodBoxReaderIntegration:
         self,
         algod_reader: AlgodBoxReader,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
-        mutable_short_metadata: MockAssetMetadata,
+        mutable_short_metadata: AssetMetadata,
     ) -> None:
         """Test reading metadata with custom RegistryParameters."""
         app_id = asa_metadata_registry_client.app_id

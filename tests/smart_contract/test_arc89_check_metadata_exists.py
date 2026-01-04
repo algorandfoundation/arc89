@@ -1,10 +1,10 @@
 from algokit_utils import AssetDestroyParams, CommonAppCallParams, SigningAccount
 
-from src._generated.asa_metadata_registry_client import (
+from src.asa_metadata_registry import AssetMetadata
+from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
     Arc89CheckMetadataExistsArgs,
     AsaMetadataRegistryClient,
 )
-from src.models import AssetMetadata
 
 
 def _check_metadata_existence(

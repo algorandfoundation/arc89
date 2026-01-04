@@ -1,4 +1,4 @@
-from src._generated.asa_metadata_registry_client import (
+from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
 

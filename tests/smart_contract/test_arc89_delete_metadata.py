@@ -1,11 +1,11 @@
 from algokit_utils import AssetDestroyParams, SigningAccount
 
 from smart_contracts.asa_metadata_registry.enums import MBR_DELTA_NEG
-from src._generated.asa_metadata_registry_client import (
+from src.asa_metadata_registry import AssetMetadata
+from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
     Arc89CheckMetadataExistsArgs,
     AsaMetadataRegistryClient,
 )
-from src.models import AssetMetadata
 from tests.helpers.utils import delete_metadata
 
 

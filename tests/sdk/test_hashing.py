@@ -17,8 +17,8 @@ import json
 import pytest
 
 from smart_contracts import constants as const
-from src import hashing
-from src.codec import asset_id_to_box_name
+from src.asa_metadata_registry import hashing
+from src.asa_metadata_registry.codec import asset_id_to_box_name
 
 
 class TestSha512_256:  # noqa: N801

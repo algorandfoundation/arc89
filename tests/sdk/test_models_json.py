@@ -10,13 +10,14 @@ Tests cover:
 
 import pytest
 
-from src.errors import MetadataArc3Error, MetadataEncodingError
-from src.models import (
-    _chunk_metadata_payload,
+from src.asa_metadata_registry import (
+    MetadataArc3Error,
+    MetadataEncodingError,
     decode_metadata_json,
     encode_metadata_json,
     validate_arc3_schema,
 )
+from src.asa_metadata_registry.models import _chunk_metadata_payload
 
 
 class TestChunkMetadataPayload:

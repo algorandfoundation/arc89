@@ -1,11 +1,13 @@
 import pytest
 
-from src import constants as const
-from src._generated.asa_metadata_registry_client import (
+from src.asa_metadata_registry import (
+    AssetMetadata,
+)
+from src.asa_metadata_registry import constants as const
+from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
     Arc89GetMetadataPaginationArgs,
     AsaMetadataRegistryClient,
 )
-from src.models import AssetMetadata
 
 
 def _verify_metadata_pagination(
