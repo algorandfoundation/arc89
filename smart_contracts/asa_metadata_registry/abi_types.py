@@ -1,4 +1,3 @@
-# ruff: noqa: UP040
 from typing import Literal, TypeAlias
 
 from algopy import Bytes, FixedBytes, UInt64, arc4
