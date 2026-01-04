@@ -4,9 +4,9 @@ import enum
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
-from src import bitmasks, enums
-from src import constants as const
+from src.asa_metadata_registry import constants as const
 
+from . import bitmasks, enums
 from .errors import BoxParseError, InvalidPageIndexError
 from .hashing import (
     MAX_UINT8,

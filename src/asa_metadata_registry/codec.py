@@ -5,7 +5,7 @@ import binascii
 from dataclasses import dataclass
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
-from src import constants as const
+from src.asa_metadata_registry import constants as const
 
 from .errors import InvalidArc90UriError
 

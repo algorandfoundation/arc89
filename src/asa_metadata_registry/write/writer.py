@@ -12,8 +12,7 @@ from algokit_utils import (
     SigningAccount,
 )
 
-from src import flags
-
+from .. import flags
 from .._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryComposer,

@@ -5,7 +5,7 @@ import binascii
 import hashlib
 import json
 
-from src import constants as const
+from src.asa_metadata_registry import constants as const
 
 from .codec import asset_id_to_box_name
 from .errors import InvalidPageIndexError

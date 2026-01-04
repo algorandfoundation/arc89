@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src import enums
-
+from .. import enums
 from ..algod import AlgodBoxReader
 from ..hashing import compute_header_hash, compute_page_hash, paginate
 from ..models import (
