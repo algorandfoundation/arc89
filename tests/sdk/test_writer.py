@@ -19,7 +19,7 @@ import pytest
 from algokit_utils import SendParams, SigningAccount
 from algosdk.error import AlgodHTTPError
 
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     AsaMetadataRegistryWrite,
     AssetMetadata,
     AssetMetadataBox,
@@ -31,10 +31,10 @@ from src.asa_metadata_registry import (
     flags,
     get_default_registry_params,
 )
-from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
-from src.asa_metadata_registry.write.writer import (
+from asa_metadata_registry.write.writer import (
     _append_extra_resources,
     _chunks_for_slice,
 )

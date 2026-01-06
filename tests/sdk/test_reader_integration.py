@@ -7,15 +7,15 @@ end-to-end with both BOX and AVM sources.
 
 import pytest
 
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     AsaMetadataRegistryRead,
     AssetMetadata,
     MetadataSource,
 )
-from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
-from src.asa_metadata_registry.codec import asset_id_to_box_name, b64url_encode
+from asa_metadata_registry.codec import asset_id_to_box_name, b64url_encode
 
 # ================================================================
 # Test Reader with Uploaded Metadata

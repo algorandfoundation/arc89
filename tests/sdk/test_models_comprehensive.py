@@ -17,8 +17,7 @@ This test file focuses on edge cases and paths that weren't covered by existing 
 
 import pytest
 
-from smart_contracts import constants as const
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     AssetMetadata,
     AssetMetadataRecord,
     IrreversibleFlags,
@@ -31,6 +30,7 @@ from src.asa_metadata_registry import (
     compute_metadata_hash,
     get_default_registry_params,
 )
+from smart_contracts import constants as const
 
 
 class TestMetadataHeaderAdvanced:

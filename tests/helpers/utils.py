@@ -11,15 +11,15 @@ from algokit_utils import (
 )
 from algosdk.transaction import Transaction
 
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     AssetMetadata,
     AssetMetadataBox,
     MetadataBody,
     MetadataFlags,
     get_default_registry_params,
 )
-from src.asa_metadata_registry import constants as const
-from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
+from asa_metadata_registry import constants as const
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     Arc89CreateMetadataArgs,
     Arc89DeleteMetadataArgs,
     Arc89ExtraPayloadArgs,

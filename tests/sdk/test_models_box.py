@@ -8,8 +8,7 @@ Tests cover:
 
 import pytest
 
-from smart_contracts import constants as const
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     AssetMetadata,
     AssetMetadataBox,
     BoxParseError,
@@ -19,6 +18,7 @@ from src.asa_metadata_registry import (
     decode_metadata_json,
     get_default_registry_params,
 )
+from smart_contracts import constants as const
 
 
 class TestAssetMetadataBoxParse:

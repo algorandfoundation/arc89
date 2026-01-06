@@ -17,7 +17,7 @@ import pytest
 from algokit_utils import AlgorandClient
 from algosdk.v2client.algod import AlgodClient
 
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     Arc90Uri,
     AsaNotFoundError,
     AssetMetadata,
@@ -27,12 +27,12 @@ from src.asa_metadata_registry import (
     InvalidArc90UriError,
     get_default_registry_params,
 )
-from src.asa_metadata_registry import constants as const
-from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
+from asa_metadata_registry import constants as const
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
-from src.asa_metadata_registry.algod import AlgodBoxReader
-from src.asa_metadata_registry.codec import asset_id_to_box_name, b64_encode
+from asa_metadata_registry.algod import AlgodBoxReader
+from asa_metadata_registry.codec import asset_id_to_box_name, b64_encode
 
 
 class TestAlgodBoxReaderGetBoxValue:

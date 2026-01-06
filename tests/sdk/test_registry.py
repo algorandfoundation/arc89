@@ -17,7 +17,7 @@ from unittest.mock import Mock, patch
 import pytest
 from algosdk.v2client.algod import AlgodClient
 
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     Arc90Uri,
     AsaMetadataRegistry,
     AsaMetadataRegistryRead,
@@ -26,10 +26,10 @@ from src.asa_metadata_registry import (
     RegistryConfig,
     RegistryResolutionError,
 )
-from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
-from src.asa_metadata_registry.read.reader import (
+from asa_metadata_registry.read.reader import (
     AlgodBoxReader,
     AsaMetadataRegistryAvmRead,
 )
@@ -144,7 +144,7 @@ class TestAsaMetadataRegistryInit:
 
         config = RegistryConfig(app_id=12345)
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
@@ -166,7 +166,7 @@ class TestAsaMetadataRegistryInit:
 
         config = RegistryConfig(app_id=12345, netauth="net:testnet")
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
@@ -188,7 +188,7 @@ class TestAsaMetadataRegistryInit:
 
         config = RegistryConfig(app_id=12345)
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_client_class = Mock(return_value=Mock())
@@ -232,7 +232,7 @@ class TestAsaMetadataRegistryWriteProperty:
 
         config = RegistryConfig(app_id=12345)
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
@@ -295,7 +295,7 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_app_client.app_id = 12345
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
@@ -316,7 +316,7 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_app_client.app_id = 12345
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
@@ -336,7 +336,7 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_app_client.app_id = 12345
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
@@ -356,7 +356,7 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_app_client.app_id = 12345
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
@@ -377,7 +377,7 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_app_client.app_id = 99999
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
@@ -395,7 +395,7 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_app_client.app_id = 0
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
@@ -413,7 +413,7 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_client_no_app_id.algorand = mock_algorand
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
@@ -430,7 +430,7 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_app_client.algorand = mock_algorand
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
@@ -530,7 +530,7 @@ class TestMakeGeneratedClientFactory:
         mock_app_client.algorand = mock_algorand
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_client_class = Mock(return_value=Mock())
@@ -572,7 +572,7 @@ class TestMakeGeneratedClientFactory:
         mock_base.app_client = mock_inner_app_client
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_client_class = Mock(return_value=Mock())
@@ -599,7 +599,7 @@ class TestMakeGeneratedClientFactory:
         mock_app_client.algorand = mock_algorand
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock(spec=[])  # No AsaMetadataRegistryClient attribute
             mock_import.return_value = mock_module
@@ -617,7 +617,7 @@ class TestMakeGeneratedClientFactory:
         mock_base = Mock(spec=[])  # No algorand or app_client attributes
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
@@ -638,7 +638,7 @@ class TestMakeGeneratedClientFactory:
         mock_app_client.algorand = mock_algorand
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_client_class = Mock(return_value=Mock())
@@ -692,7 +692,7 @@ class TestAsaMetadataRegistryIntegration:
         mock_app_client.app_id = 12345
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
@@ -716,7 +716,7 @@ class TestAsaMetadataRegistryIntegration:
         mock_app_client.app_id = 12345
 
         with patch(
-            "src.asa_metadata_registry.registry.import_generated_client"
+            "asa_metadata_registry.registry.import_generated_client"
         ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock

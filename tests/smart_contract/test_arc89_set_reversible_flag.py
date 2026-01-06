@@ -3,11 +3,11 @@ from collections.abc import Callable
 import pytest
 from algokit_utils import SigningAccount
 
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     AssetMetadata,
     flags,
 )
-from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
 from tests.helpers.utils import set_flag_and_verify

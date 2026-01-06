@@ -16,8 +16,7 @@ from algokit_utils import (
 from algokit_utils.config import config
 from dotenv import load_dotenv
 
-from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     Arc90Uri,
     AsaMetadataRegistryRead,
     AssetMetadata,
@@ -27,15 +26,16 @@ from src.asa_metadata_registry import (
     MetadataFlags,
     ReversibleFlags,
 )
-from src.asa_metadata_registry import constants as const
-from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
+from asa_metadata_registry import constants as const
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )
-from src.asa_metadata_registry.read.reader import (
+from asa_metadata_registry.read.reader import (
     AlgodBoxReader,
     AsaMetadataRegistryAvmRead,
 )
+from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
 
 from .helpers.utils import create_metadata, set_immutable
 

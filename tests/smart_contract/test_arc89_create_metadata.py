@@ -3,13 +3,13 @@ import json
 import pytest
 from algokit_utils import AssetCreateParams, SigningAccount
 
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     AssetMetadata,
     AssetMetadataBox,
     MetadataFlags,
 )
-from src.asa_metadata_registry import constants as const
-from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
+from asa_metadata_registry import constants as const
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
 from tests.helpers.factories import (

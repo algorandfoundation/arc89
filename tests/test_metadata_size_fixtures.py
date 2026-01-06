@@ -1,7 +1,7 @@
 """Tests demonstrating the use of metadata size fixtures."""
 
-from src.asa_metadata_registry import constants as const
-from tests.helpers.factories import AssetMetadata
+from asa_metadata_registry import AssetMetadata
+from asa_metadata_registry import constants as const
 
 
 def test_empty_metadata_fixture(arc_89_asa: int, empty_metadata: AssetMetadata) -> None:

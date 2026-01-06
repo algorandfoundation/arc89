@@ -9,7 +9,7 @@ Tests cover:
 
 import pytest
 
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     IrreversibleFlags,
     MetadataFlags,
     MetadataHeader,

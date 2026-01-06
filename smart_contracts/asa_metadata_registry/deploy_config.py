@@ -6,9 +6,7 @@ from typing import cast
 
 import algokit_utils
 
-from smart_contracts.constants import ACCOUNT_MBR, ARC3_URL_SUFFIX, UINT64_SIZE
-from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     Arc90Compliance,
     Arc90Uri,
     AssetMetadata,
@@ -16,9 +14,11 @@ from src.asa_metadata_registry import (
     MetadataFlags,
     ReversibleFlags,
 )
-from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryFactory,
 )
+from smart_contracts.constants import ACCOUNT_MBR, ARC3_URL_SUFFIX, UINT64_SIZE
+from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
 from tests.helpers.factories import compute_arc3_metadata_hash
 from tests.helpers.utils import create_metadata
 

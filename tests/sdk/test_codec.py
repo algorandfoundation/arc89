@@ -12,13 +12,12 @@ Tests cover:
 
 import pytest
 
-from smart_contracts import constants as const
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     Arc90Compliance,
     Arc90Uri,
     InvalidArc90UriError,
 )
-from src.asa_metadata_registry.codec import (
+from asa_metadata_registry.codec import (
     asset_id_to_box_name,
     b64_decode,
     b64_encode,
@@ -27,6 +26,7 @@ from src.asa_metadata_registry.codec import (
     box_name_to_asset_id,
     complete_partial_asset_url,
 )
+from smart_contracts import constants as const
 
 
 class TestAssetIdBoxNameConversion:

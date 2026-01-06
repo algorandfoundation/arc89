@@ -18,7 +18,7 @@ from unittest.mock import Mock
 import pytest
 from algosdk.v2client.algod import AlgodClient
 
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     Arc90Uri,
     AsaMetadataRegistryRead,
     AssetMetadataRecord,
@@ -41,9 +41,9 @@ from src.asa_metadata_registry import (
     SimulateOptions,
     bitmasks,
 )
-from src.asa_metadata_registry.algod import AlgodBoxReader
-from src.asa_metadata_registry.codec import b64_encode
-from src.asa_metadata_registry.read.reader import (
+from asa_metadata_registry.algod import AlgodBoxReader
+from asa_metadata_registry.codec import b64_encode
+from asa_metadata_registry.read.reader import (
     AsaMetadataRegistryAvmRead,
     AsaMetadataRegistryBoxRead,
 )

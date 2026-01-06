@@ -6,12 +6,12 @@ from algokit_utils import (
     SigningAccount,
 )
 
-from src.asa_metadata_registry import (
+from asa_metadata_registry import (
     AssetMetadata,
     AssetMetadataBox,
 )
-from src.asa_metadata_registry import constants as const
-from src.asa_metadata_registry._generated.asa_metadata_registry_client import (
+from asa_metadata_registry import constants as const
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     Arc89ReplaceMetadataSliceArgs,
     AsaMetadataRegistryClient,
 )
