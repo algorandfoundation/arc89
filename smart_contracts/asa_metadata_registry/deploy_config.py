@@ -6,24 +6,26 @@ from typing import cast
 
 import algokit_utils
 
-from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
-from tests.helpers.factories import (
+from asa_metadata_registry import (
+    Arc90Compliance,
+    Arc90Uri,
     AssetMetadata,
-    compute_arc3_metadata_hash,
-    compute_arc89_partial_uri,
+    IrreversibleFlags,
+    MetadataFlags,
+    ReversibleFlags,
 )
-from tests.helpers.utils import arc90_box_query, create_metadata
-
-from .constants import ACCOUNT_MBR, ARC3_URL_SUFFIX, UINT64_SIZE
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
+    AsaMetadataRegistryFactory,
+)
+from smart_contracts.constants import ACCOUNT_MBR, ARC3_URL_SUFFIX, UINT64_SIZE
+from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
+from tests.helpers.factories import compute_arc3_metadata_hash
+from tests.helpers.utils import create_metadata
 
 logger = logging.getLogger(__name__)
 
 
 def deploy() -> None:
-    from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
-        AsaMetadataRegistryFactory,
-    )
-
     algorand = algokit_utils.AlgorandClient.from_environment()
     algorand.set_default_validity_window(100)
     deployer_ = algorand.account.from_environment("DEPLOYER")
@@ -49,7 +51,14 @@ def deploy() -> None:
     )
     logger.info(f"ASA Metadata Registry ID: {app_client.app_id}")
 
-    arc89_partial_uri = compute_arc89_partial_uri(app_client.app_id)
+    netauth = os.environ[ARC90_NETAUTH]
+
+    arc89_partial_uri_obj = Arc90Uri(
+        netauth=netauth,
+        app_id=app_client.app_id,
+        box_name=None,  # Partial URI has no box name yet
+    )
+    arc89_partial_uri = arc89_partial_uri_obj.to_uri()
     logger.info(f"ARC89 Partial URI: {arc89_partial_uri}")
 
     if result.operation_performed in [
@@ -99,13 +108,18 @@ def deploy() -> None:
 
     logger.info(f"ARC3 Pure NFT ID: {arc3_pure_nft_id}")
 
-    arc3_pure_nft_metadata = AssetMetadata.create(
+    arc3_pure_nft_metadata = AssetMetadata.from_json(
         asset_id=arc3_pure_nft_id,
-        metadata=arc3_pure_nft_payload_dict,
-        immutable=True,
+        json_obj=arc3_pure_nft_payload_dict,
+        flags=MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(
+                arc3=True,
+                arc89_native=True,
+                immutable=True,
+            ),
+        ),
         arc3_compliant=True,
-        arc89_native=True,
-        asset_metadata_hash=arc3_pure_nft_metadata_hash,
     )
     create_metadata(
         asset_manager=deployer_,
@@ -113,14 +127,13 @@ def deploy() -> None:
         asset_id=arc3_pure_nft_id,
         metadata=arc3_pure_nft_metadata,
     )
-    arc3_pure_nft_metadata_uri = (
-        arc90_box_query(
-            algorand,
-            app_client.app_id,
-            int.to_bytes(arc3_pure_nft_id, UINT64_SIZE, "big"),
-        )
-        + ARC3_URL_SUFFIX.decode()
+    arc3_pure_nft_metadata_uri_obj = Arc90Uri(
+        netauth=netauth,
+        app_id=app_client.app_id,
+        box_name=int.to_bytes(arc3_pure_nft_id, UINT64_SIZE, "big"),
+        compliance=Arc90Compliance((3,)),  # ARC-3 compliance
     )
+    arc3_pure_nft_metadata_uri = arc3_pure_nft_metadata_uri_obj.to_uri()
     logger.info(f"Pure NFT Asset Metadata URI: {arc3_pure_nft_metadata_uri}")
 
     # Zero Coupon Bond: ARC89 Native, ARC3 Compliant, Mutable
@@ -149,12 +162,18 @@ def deploy() -> None:
 
     logger.info(f"ARC3 Zero Coupon Bond ID: {arc3_bond_id}")
 
-    arc3_bond_metadata = AssetMetadata.create(
+    arc3_bond_metadata = AssetMetadata.from_json(
         asset_id=arc3_bond_id,
-        metadata=arc3_bond_payload_dict,
-        immutable=False,
+        json_obj=arc3_bond_payload_dict,
+        flags=MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(
+                arc3=True,
+                arc89_native=True,
+                immutable=False,
+            ),
+        ),
         arc3_compliant=True,
-        arc89_native=True,
     )
     create_metadata(
         asset_manager=deployer_,
@@ -162,12 +181,11 @@ def deploy() -> None:
         asset_id=arc3_bond_id,
         metadata=arc3_bond_metadata,
     )
-    arc3_bond_metadata_uri = (
-        arc90_box_query(
-            algorand,
-            app_client.app_id,
-            int.to_bytes(arc3_bond_id, UINT64_SIZE, "big"),
-        )
-        + ARC3_URL_SUFFIX.decode()
+    arc3_bond_metadata_uri_obj = Arc90Uri(
+        netauth=netauth,
+        app_id=app_client.app_id,
+        box_name=int.to_bytes(arc3_bond_id, UINT64_SIZE, "big"),
+        compliance=Arc90Compliance((3,)),  # ARC-3 compliance
     )
+    arc3_bond_metadata_uri = arc3_bond_metadata_uri_obj.to_uri()
     logger.info(f"Zero Coupon Bond Asset Metadata URI: {arc3_bond_metadata_uri}")

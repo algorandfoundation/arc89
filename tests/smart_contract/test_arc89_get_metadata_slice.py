@@ -1,0 +1,37 @@
+import pytest
+
+from asa_metadata_registry import AssetMetadata
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
+    Arc89GetMetadataSliceArgs,
+    AsaMetadataRegistryClient,
+)
+
+
+@pytest.mark.parametrize(
+    "metadata_fixture",
+    [
+        "mutable_short_metadata",
+        "mutable_maxed_metadata",
+    ],
+)
+def test_get_slice(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    metadata_fixture: str,
+    request: pytest.FixtureRequest,
+) -> None:
+    metadata: AssetMetadata = request.getfixturevalue(metadata_fixture)
+    offset = 0
+    size = 4
+
+    metadata_slice = asa_metadata_registry_client.send.arc89_get_metadata_slice(
+        args=Arc89GetMetadataSliceArgs(
+            asset_id=metadata.asset_id,
+            offset=offset,
+            size=size,
+        ),
+    ).abi_return
+    assert metadata_slice is not None
+    assert bytes(metadata_slice) == metadata.body.raw_bytes[offset : offset + size]
+
+
+# TODO: Test failing conditions

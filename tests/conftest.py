@@ -16,14 +16,27 @@ from algokit_utils import (
 from algokit_utils.config import config
 from dotenv import load_dotenv
 
-from smart_contracts.artifacts.asa_metadata_registry.asa_metadata_registry_client import (
+from asa_metadata_registry import (
+    Arc90Uri,
+    AsaMetadataRegistryRead,
+    AssetMetadata,
+    AssetMetadataBox,
+    IrreversibleFlags,
+    MetadataBody,
+    MetadataFlags,
+    ReversibleFlags,
+)
+from asa_metadata_registry import constants as const
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )
-from smart_contracts.asa_metadata_registry import constants as const
+from asa_metadata_registry.read.reader import (
+    AlgodBoxReader,
+    AsaMetadataRegistryAvmRead,
+)
 from smart_contracts.template_vars import ARC90_NETAUTH, TRUSTED_DEPLOYER
 
-from .helpers.factories import AssetMetadata, compute_arc89_partial_uri
 from .helpers.utils import create_metadata, set_immutable
 
 
@@ -123,7 +136,11 @@ def asa_metadata_registry_client(
 
 @pytest.fixture(scope="function")
 def arc89_partial_uri(asa_metadata_registry_client: AsaMetadataRegistryClient) -> str:
-    return compute_arc89_partial_uri(asa_metadata_registry_client.app_id)
+    return Arc90Uri(
+        netauth=os.environ[ARC90_NETAUTH],
+        app_id=asa_metadata_registry_client.app_id,
+        box_name=None,  # Partial URI has no box name
+    ).to_uri()
 
 
 @pytest.fixture(scope="function")
@@ -148,31 +165,67 @@ def arc_89_asa(
 
 # AssetMetadata factory fixtures
 @pytest.fixture(scope="function")
+def flags_arc3_compliant() -> MetadataFlags:
+    return MetadataFlags(
+        reversible=ReversibleFlags.empty(),
+        irreversible=IrreversibleFlags(arc3=True),
+    )
+
+
+@pytest.fixture(scope="function")
+def flags_immutable_arc3_compliant() -> MetadataFlags:
+    return MetadataFlags(
+        reversible=ReversibleFlags.empty(),
+        irreversible=IrreversibleFlags(arc3=True, immutable=True),
+    )
+
+
+@pytest.fixture(scope="function")
+def flags_arc89_native_and_arc3_compliant() -> MetadataFlags:
+    return MetadataFlags(
+        reversible=ReversibleFlags.empty(),
+        irreversible=IrreversibleFlags(arc3=True, arc89_native=True),
+    )
+
+
+@pytest.fixture(scope="function")
 def empty_metadata(arc_89_asa: int) -> AssetMetadata:
-    metadata = AssetMetadata.create(asset_id=arc_89_asa, metadata=b"")
-    assert metadata.size == 0
-    assert metadata.total_pages == 0
+    metadata = AssetMetadata(
+        asset_id=arc_89_asa,
+        body=MetadataBody.empty(),
+        flags=MetadataFlags.empty(),
+        deprecated_by=0,
+    )
+    assert metadata.body.size == 0
+    assert metadata.body.total_pages() == 0
     return metadata
 
 
 @pytest.fixture(scope="function")
 def short_metadata(json_obj: dict[str, object], arc_89_asa: int) -> AssetMetadata:
-    metadata = AssetMetadata.create(asset_id=arc_89_asa, metadata=json_obj)
-    assert metadata.validate_json()
-    assert metadata.size <= const.SHORT_METADATA_SIZE
-    assert metadata.is_short
+    metadata = AssetMetadata.from_json(
+        asset_id=arc_89_asa,
+        json_obj=json_obj,
+    )
+    assert metadata.body.size <= const.SHORT_METADATA_SIZE
+    assert metadata.body.is_short
     return metadata
 
 
 @pytest.fixture(scope="function")
 def maxed_metadata(arc_89_asa: int) -> AssetMetadata:
     max_size_content = "x" * const.MAX_METADATA_SIZE
-    metadata = AssetMetadata.create(
-        asset_id=arc_89_asa, metadata=max_size_content, arc89_native=True
+    metadata = AssetMetadata(
+        asset_id=arc_89_asa,
+        body=MetadataBody(raw_bytes=max_size_content.encode("utf-8")),
+        flags=MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(arc89_native=True),
+        ),
+        deprecated_by=0,
     )
-    assert metadata.size == const.MAX_METADATA_SIZE
-    assert metadata.validate_size()
-    assert not metadata.is_short
+    assert metadata.body.size == const.MAX_METADATA_SIZE
+    assert not metadata.body.is_short
     return metadata
 
 
@@ -180,10 +233,12 @@ def maxed_metadata(arc_89_asa: int) -> AssetMetadata:
 def oversized_metadata(arc_89_asa: int) -> AssetMetadata:
     oversized_content = "x" * (const.MAX_METADATA_SIZE + 1)
     metadata = AssetMetadata(
-        asset_id=arc_89_asa, metadata_bytes=oversized_content.encode("utf-8")
+        asset_id=arc_89_asa,
+        body=MetadataBody(raw_bytes=oversized_content.encode("utf-8")),
+        flags=MetadataFlags.empty(),
+        deprecated_by=0,
     )
-    assert metadata.size > const.MAX_METADATA_SIZE
-    assert not metadata.validate_size()
+    assert metadata.body.size > const.MAX_METADATA_SIZE
     return metadata
 
 
@@ -217,9 +272,13 @@ def _create_uploaded_metadata_fixture(
             asset_id
         )
         assert box_value is not None
-        return AssetMetadata.from_box_value(
-            asset_id,
-            box_value,
+        # Parse the box value into AssetMetadataBox, then convert to AssetMetadata
+        parsed_box = AssetMetadataBox.parse(asset_id=asset_id, value=box_value)
+        return AssetMetadata(
+            asset_id=asset_id,
+            body=parsed_box.body,
+            flags=parsed_box.header.flags,
+            deprecated_by=parsed_box.header.deprecated_by,
         )
 
     return uploaded_metadata
@@ -240,3 +299,51 @@ immutable_short_metadata = _create_uploaded_metadata_fixture(
 immutable_maxed_metadata = _create_uploaded_metadata_fixture(
     "maxed_metadata", immutable=True
 )
+
+
+# Reader-specific fixtures
+@pytest.fixture(scope="function")
+def reader_with_algod(
+    algorand_client: AlgorandClient,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+) -> AsaMetadataRegistryRead:
+    algod_reader = AlgodBoxReader(algod=algorand_client.client.algod)
+    return AsaMetadataRegistryRead(
+        app_id=asa_metadata_registry_client.app_id,
+        algod=algod_reader,
+    )
+
+
+@pytest.fixture(scope="function")
+def reader_with_avm(
+    algorand_client: AlgorandClient,
+    asa_metadata_registry_factory: AsaMetadataRegistryFactory,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+) -> AsaMetadataRegistryRead:
+    def avm_factory(app_id: int) -> AsaMetadataRegistryAvmRead:
+        client = asa_metadata_registry_factory.get_app_client_by_id(app_id)
+        return AsaMetadataRegistryAvmRead(client=client)
+
+    return AsaMetadataRegistryRead(
+        app_id=asa_metadata_registry_client.app_id,
+        avm_factory=avm_factory,
+    )
+
+
+@pytest.fixture(scope="function")
+def reader_full(
+    algorand_client: AlgorandClient,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    asa_metadata_registry_factory: AsaMetadataRegistryFactory,
+) -> "AsaMetadataRegistryRead":
+    algod_reader = AlgodBoxReader(algod=algorand_client.client.algod)
+
+    def avm_factory(app_id: int) -> AsaMetadataRegistryAvmRead:
+        client = asa_metadata_registry_factory.get_app_client_by_id(app_id)
+        return AsaMetadataRegistryAvmRead(client=client)
+
+    return AsaMetadataRegistryRead(
+        app_id=asa_metadata_registry_client.app_id,
+        algod=algod_reader,
+        avm_factory=avm_factory,
+    )
