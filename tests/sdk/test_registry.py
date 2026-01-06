@@ -201,7 +201,10 @@ class TestAsaMetadataRegistryInit:
             avm_reader = registry._avm_reader_factory(67890)
             assert isinstance(avm_reader, AsaMetadataRegistryAvmRead)
             mock_client_class.assert_called_once_with(
-                algorand=mock_algorand, app_id=67890
+                algorand=mock_algorand,
+                app_id=67890,
+                default_sender=None,
+                default_signer=None,
             )
 
 
@@ -543,8 +546,18 @@ class TestMakeGeneratedClientFactory:
             _ = factory(67890)
 
             assert mock_client_class.call_count == 2
-            mock_client_class.assert_any_call(algorand=mock_algorand, app_id=12345)
-            mock_client_class.assert_any_call(algorand=mock_algorand, app_id=67890)
+            mock_client_class.assert_any_call(
+                algorand=mock_algorand,
+                app_id=12345,
+                default_sender=None,
+                default_signer=None,
+            )
+            mock_client_class.assert_any_call(
+                algorand=mock_algorand,
+                app_id=67890,
+                default_sender=None,
+                default_signer=None,
+            )
 
     def test_factory_extracts_algorand_from_app_client(
         self, mock_app_client: Mock, mock_algorand: Mock
@@ -554,6 +567,8 @@ class TestMakeGeneratedClientFactory:
         mock_base = Mock(spec=[])
         mock_inner_app_client = Mock()
         mock_inner_app_client.algorand = mock_algorand
+        mock_inner_app_client._default_sender = Mock()
+        mock_inner_app_client._default_signer = Mock()
         mock_base.app_client = mock_inner_app_client
 
         with patch(
@@ -571,7 +586,10 @@ class TestMakeGeneratedClientFactory:
             factory(12345)
 
             mock_client_class.assert_called_once_with(
-                algorand=mock_algorand, app_id=12345
+                algorand=mock_algorand,
+                app_id=12345,
+                default_sender=mock_inner_app_client._default_sender,
+                default_signer=mock_inner_app_client._default_signer,
             )
 
     def test_factory_raises_on_missing_client_class(
@@ -635,7 +653,12 @@ class TestMakeGeneratedClientFactory:
             factory(12345)
 
             # Verify int() was called properly (app_id passed as int)
-            mock_client_class.assert_called_with(algorand=mock_algorand, app_id=12345)
+            mock_client_class.assert_called_with(
+                algorand=mock_algorand,
+                app_id=12345,
+                default_sender=None,
+                default_signer=None,
+            )
 
 
 # ================================================================
