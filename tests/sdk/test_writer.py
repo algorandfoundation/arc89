@@ -19,19 +19,22 @@ import pytest
 from algokit_utils import SendParams, SigningAccount
 from algosdk.error import AlgodHTTPError
 
-from src import AssetMetadataBox, flags
-from src._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
-from src.errors import MissingAppClientError
-from src.models import (
+from asa_metadata_registry import (
+    AsaMetadataRegistryWrite,
     AssetMetadata,
+    AssetMetadataBox,
     MbrDelta,
+    MissingAppClientError,
     RegistryParameters,
+    SimulateOptions,
+    WriteOptions,
+    flags,
     get_default_registry_params,
 )
-from src.read.avm import SimulateOptions
-from src.write.writer import (
-    AsaMetadataRegistryWrite,
-    WriteOptions,
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
+    AsaMetadataRegistryClient,
+)
+from asa_metadata_registry.write.writer import (
     _append_extra_resources,
     _chunks_for_slice,
 )

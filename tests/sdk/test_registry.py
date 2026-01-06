@@ -1,5 +1,5 @@
 """
-Unit tests for src.registry module.
+Unit tests for src.asa_metadata_registry.registry module.
 
 Tests cover:
 - RegistryConfig dataclass
@@ -17,14 +17,22 @@ from unittest.mock import Mock, patch
 import pytest
 from algosdk.v2client.algod import AlgodClient
 
-from src._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
-from src.algod import AlgodBoxReader
-from src.codec import Arc90Uri
-from src.errors import MissingAppClientError, RegistryResolutionError
-from src.read.avm import AsaMetadataRegistryAvmRead
-from src.read.reader import AsaMetadataRegistryRead
-from src.registry import AsaMetadataRegistry, RegistryConfig
-from src.write.writer import AsaMetadataRegistryWrite
+from asa_metadata_registry import (
+    Arc90Uri,
+    AsaMetadataRegistry,
+    AsaMetadataRegistryRead,
+    AsaMetadataRegistryWrite,
+    MissingAppClientError,
+    RegistryConfig,
+    RegistryResolutionError,
+)
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
+    AsaMetadataRegistryClient,
+)
+from asa_metadata_registry.read.reader import (
+    AlgodBoxReader,
+    AsaMetadataRegistryAvmRead,
+)
 
 # ================================================================
 # Fixtures
@@ -135,7 +143,9 @@ class TestAsaMetadataRegistryInit:
         mock_app_client.algorand = mock_algorand
 
         config = RegistryConfig(app_id=12345)
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module
@@ -155,7 +165,9 @@ class TestAsaMetadataRegistryInit:
         mock_app_client.algorand = mock_algorand
 
         config = RegistryConfig(app_id=12345, netauth="net:testnet")
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module
@@ -175,7 +187,9 @@ class TestAsaMetadataRegistryInit:
         mock_app_client.algorand = mock_algorand
 
         config = RegistryConfig(app_id=12345)
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_client_class = Mock(return_value=Mock())
             mock_module.AsaMetadataRegistryClient = mock_client_class
@@ -187,7 +201,10 @@ class TestAsaMetadataRegistryInit:
             avm_reader = registry._avm_reader_factory(67890)
             assert isinstance(avm_reader, AsaMetadataRegistryAvmRead)
             mock_client_class.assert_called_once_with(
-                algorand=mock_algorand, app_id=67890
+                algorand=mock_algorand,
+                app_id=67890,
+                default_sender=None,
+                default_signer=None,
             )
 
 
@@ -214,7 +231,9 @@ class TestAsaMetadataRegistryWriteProperty:
         mock_app_client.algorand = mock_algorand
 
         config = RegistryConfig(app_id=12345)
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module
@@ -275,7 +294,9 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_app_client.algorand = mock_algorand
         mock_app_client.app_id = 12345
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module
@@ -294,7 +315,9 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_app_client.algorand = mock_algorand
         mock_app_client.app_id = 12345
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module
@@ -312,7 +335,9 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_app_client.algorand = mock_algorand
         mock_app_client.app_id = 12345
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module
@@ -330,7 +355,9 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_app_client.algorand = mock_algorand
         mock_app_client.app_id = 12345
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module
@@ -349,7 +376,9 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_app_client.algorand = mock_algorand
         mock_app_client.app_id = 99999
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module
@@ -365,7 +394,9 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_app_client.algorand = mock_algorand
         mock_app_client.app_id = 0
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module
@@ -381,7 +412,9 @@ class TestAsaMetadataRegistryFromAppClient:
         mock_client_no_app_id = Mock(spec=[])  # No attributes
         mock_client_no_app_id.algorand = mock_algorand
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module
@@ -396,7 +429,9 @@ class TestAsaMetadataRegistryFromAppClient:
         """Test from_app_client with all parameters."""
         mock_app_client.algorand = mock_algorand
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module
@@ -494,7 +529,9 @@ class TestMakeGeneratedClientFactory:
         """Test that factory creates clients with correct parameters."""
         mock_app_client.algorand = mock_algorand
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_client_class = Mock(return_value=Mock())
             mock_module.AsaMetadataRegistryClient = mock_client_class
@@ -509,8 +546,18 @@ class TestMakeGeneratedClientFactory:
             _ = factory(67890)
 
             assert mock_client_class.call_count == 2
-            mock_client_class.assert_any_call(algorand=mock_algorand, app_id=12345)
-            mock_client_class.assert_any_call(algorand=mock_algorand, app_id=67890)
+            mock_client_class.assert_any_call(
+                algorand=mock_algorand,
+                app_id=12345,
+                default_sender=None,
+                default_signer=None,
+            )
+            mock_client_class.assert_any_call(
+                algorand=mock_algorand,
+                app_id=67890,
+                default_sender=None,
+                default_signer=None,
+            )
 
     def test_factory_extracts_algorand_from_app_client(
         self, mock_app_client: Mock, mock_algorand: Mock
@@ -520,9 +567,13 @@ class TestMakeGeneratedClientFactory:
         mock_base = Mock(spec=[])
         mock_inner_app_client = Mock()
         mock_inner_app_client.algorand = mock_algorand
+        mock_inner_app_client._default_sender = Mock()
+        mock_inner_app_client._default_signer = Mock()
         mock_base.app_client = mock_inner_app_client
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_client_class = Mock(return_value=Mock())
             mock_module.AsaMetadataRegistryClient = mock_client_class
@@ -535,7 +586,10 @@ class TestMakeGeneratedClientFactory:
             factory(12345)
 
             mock_client_class.assert_called_once_with(
-                algorand=mock_algorand, app_id=12345
+                algorand=mock_algorand,
+                app_id=12345,
+                default_sender=mock_inner_app_client._default_sender,
+                default_signer=mock_inner_app_client._default_signer,
             )
 
     def test_factory_raises_on_missing_client_class(
@@ -544,7 +598,9 @@ class TestMakeGeneratedClientFactory:
         """Test factory raises MissingAppClientError if client class not found."""
         mock_app_client.algorand = mock_algorand
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock(spec=[])  # No AsaMetadataRegistryClient attribute
             mock_import.return_value = mock_module
 
@@ -560,7 +616,9 @@ class TestMakeGeneratedClientFactory:
         """Test factory raises MissingAppClientError if algorand client not found."""
         mock_base = Mock(spec=[])  # No algorand or app_client attributes
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module
@@ -579,7 +637,9 @@ class TestMakeGeneratedClientFactory:
         """Test that factory converts app_id to int."""
         mock_app_client.algorand = mock_algorand
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_client_class = Mock(return_value=Mock())
             mock_module.AsaMetadataRegistryClient = mock_client_class
@@ -593,7 +653,12 @@ class TestMakeGeneratedClientFactory:
             factory(12345)
 
             # Verify int() was called properly (app_id passed as int)
-            mock_client_class.assert_called_with(algorand=mock_algorand, app_id=12345)
+            mock_client_class.assert_called_with(
+                algorand=mock_algorand,
+                app_id=12345,
+                default_sender=None,
+                default_signer=None,
+            )
 
 
 # ================================================================
@@ -626,7 +691,9 @@ class TestAsaMetadataRegistryIntegration:
         mock_app_client.algorand = mock_algorand
         mock_app_client.app_id = 12345
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module
@@ -648,7 +715,9 @@ class TestAsaMetadataRegistryIntegration:
         mock_app_client.algorand = mock_algorand
         mock_app_client.app_id = 12345
 
-        with patch("src.registry.import_generated_client") as mock_import:
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
             mock_module = Mock()
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module

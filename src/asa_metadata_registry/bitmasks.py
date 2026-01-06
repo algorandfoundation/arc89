@@ -1,4 +1,4 @@
-from src import flags
+from . import flags
 
 # Metadata Identifiers byte (set by the ASA Metadata Registry; clients just read)
 MASK_ID_SHORT = 1 << flags.ID_SHORT

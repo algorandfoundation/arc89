@@ -1,14 +1,14 @@
 import base64
 
+from asa_metadata_registry import AssetMetadata
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
+    Arc89GetMetadataB64BytesByKeyArgs,
+    AsaMetadataRegistryClient,
+)
 from smart_contracts.asa_metadata_registry.enums import (
     B64_STD_ENCODING,
     B64_URL_ENCODING,
 )
-from src._generated.asa_metadata_registry_client import (
-    Arc89GetMetadataB64BytesByKeyArgs,
-    AsaMetadataRegistryClient,
-)
-from tests.helpers.factories import AssetMetadata
 
 
 def test_get_b64_url_decoded_value(

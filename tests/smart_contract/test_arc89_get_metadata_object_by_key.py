@@ -1,10 +1,10 @@
 import json
 
-from src._generated.asa_metadata_registry_client import (
+from asa_metadata_registry import AssetMetadata
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     Arc89GetMetadataObjectByKeyArgs,
     AsaMetadataRegistryClient,
 )
-from src.models import AssetMetadata
 
 
 def test_get_object_value(

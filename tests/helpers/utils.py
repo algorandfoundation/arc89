@@ -11,8 +11,15 @@ from algokit_utils import (
 )
 from algosdk.transaction import Transaction
 
-from src import constants as const
-from src._generated.asa_metadata_registry_client import (
+from asa_metadata_registry import (
+    AssetMetadata,
+    AssetMetadataBox,
+    MetadataBody,
+    MetadataFlags,
+    get_default_registry_params,
+)
+from asa_metadata_registry import constants as const
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     Arc89CreateMetadataArgs,
     Arc89DeleteMetadataArgs,
     Arc89ExtraPayloadArgs,
@@ -25,11 +32,6 @@ from src._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryComposer,
     MbrDelta,
-)
-from src.models import (
-    AssetMetadata,
-    AssetMetadataBox,
-    get_default_registry_params,
 )
 
 
@@ -444,8 +446,6 @@ def create_metadata_with_page_count(
     Returns:
         AssetMetadata instance with the specified page count
     """
-    from src.models import MetadataBody, MetadataFlags
-
     if page_count < 0 or page_count > const.MAX_PAGES:
         raise ValueError(f"page_count must be between 0 and {const.MAX_PAGES}")
 

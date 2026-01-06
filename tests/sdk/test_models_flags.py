@@ -9,8 +9,13 @@ Tests cover:
 
 import pytest
 
-from src import bitmasks
-from src.models import IrreversibleFlags, MetadataFlags, ReversibleFlags
+from asa_metadata_registry import (
+    IrreversibleFlags,
+    MetadataFlags,
+    MetadataHeader,
+    ReversibleFlags,
+    bitmasks,
+)
 
 
 class TestReversibleFlags:
@@ -379,7 +384,6 @@ class TestMetadataHeaderIntegration:
 
     def test_metadata_header_get_flags(self):
         """Test that MetadataHeader.get_flags() returns correct MetadataFlags."""
-        from src.models import MetadataHeader
 
         header = MetadataHeader(
             identifiers=0,
@@ -398,7 +402,6 @@ class TestMetadataHeaderIntegration:
 
     def test_metadata_header_convenience_properties(self):
         """Test that existing header properties still work."""
-        from src.models import MetadataHeader
 
         header = MetadataHeader(
             identifiers=0,

@@ -13,14 +13,9 @@ an AlgoKit-generated ARC-56 AppClient for simulation and write operations.
 
 from __future__ import annotations
 
-from smart_contracts import constants
-from smart_contracts.asa_metadata_registry import enums, flags
-
-from . import bitmasks
+from . import bitmasks, constants, enums, flags
 from .codec import Arc90Compliance, Arc90Uri
-from .deployments import (
-    DEFAULT_DEPLOYMENTS,
-)
+from .deployments import DEFAULT_DEPLOYMENTS
 from .errors import (
     AsaMetadataRegistryError,
     AsaNotFoundError,

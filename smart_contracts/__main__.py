@@ -196,7 +196,9 @@ def main(action: str, contract_name: str | None = None) -> None:
     """Main entry point to build and/or deploy smart contracts."""
     artifact_path = root_path / "artifacts"
     # Define the client output directory
-    client_output_path = root_path.parent / "src" / "_generated"
+    client_output_path = (
+        root_path.parent / "src" / "asa_metadata_registry" / "_generated"
+    )
 
     # Filter contracts based on an optional specific contract name.
     filtered_contracts = [

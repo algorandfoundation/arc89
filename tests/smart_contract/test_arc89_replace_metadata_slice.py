@@ -1,10 +1,13 @@
 from algokit_utils import CommonAppCallParams, SigningAccount
 
-from src._generated.asa_metadata_registry_client import (
+from asa_metadata_registry import (
+    AssetMetadata,
+    AssetMetadataBox,
+)
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     Arc89ReplaceMetadataSliceArgs,
     AsaMetadataRegistryClient,
 )
-from src.models import AssetMetadata, AssetMetadataBox
 
 
 def test_replace_metadata_slice(

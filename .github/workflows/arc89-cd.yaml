@@ -1,10 +1,8 @@
-name: Release arc89
+name: Release ASA Metadata Registry on TestNet
 
 on:
   workflow_call:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   validate:

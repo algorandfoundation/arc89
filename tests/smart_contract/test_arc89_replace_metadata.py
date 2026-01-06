@@ -1,10 +1,10 @@
 from algokit_utils import SigningAccount
 
-from smart_contracts.asa_metadata_registry.enums import MBR_DELTA_NEG, MBR_DELTA_NULL
-from src._generated.asa_metadata_registry_client import (
+from asa_metadata_registry import AssetMetadata
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
-from src.models import AssetMetadata
+from smart_contracts.asa_metadata_registry.enums import MBR_DELTA_NEG, MBR_DELTA_NULL
 from tests.helpers.utils import replace_metadata
 
 

@@ -1,7 +1,7 @@
 """Factory helpers for creating test fixtures for ASA Metadata Registry tests."""
 
-from src import AssetMetadata, MetadataFlags, hashing
-from src import constants as const
+from asa_metadata_registry import AssetMetadata, MetadataFlags, hashing
+from asa_metadata_registry import constants as const
 
 
 def create_arc3_payload(

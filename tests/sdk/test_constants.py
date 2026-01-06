@@ -1,6 +1,6 @@
 import math
 
-from src import constants as const
+from asa_metadata_registry import constants as const
 
 
 def test_constants() -> None:

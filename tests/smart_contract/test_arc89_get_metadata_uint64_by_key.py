@@ -1,8 +1,10 @@
-from src._generated.asa_metadata_registry_client import (
+from asa_metadata_registry import (
+    AssetMetadata,
+)
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     Arc89GetMetadataUint64ByKeyArgs,
     AsaMetadataRegistryClient,
 )
-from src.models import AssetMetadata
 
 
 def test_get_uint64_value(

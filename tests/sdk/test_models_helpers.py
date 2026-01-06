@@ -11,19 +11,21 @@ Tests cover:
 
 import pytest
 
-from smart_contracts import constants as const
-from smart_contracts.asa_metadata_registry import enums
-from src.models import (
+from asa_metadata_registry import (
     MbrDelta,
     MbrDeltaSign,
     MetadataExistence,
     PaginatedMetadata,
     Pagination,
     RegistryParameters,
+    enums,
+)
+from asa_metadata_registry.models import (
     _coerce_bytes,
     _is_nonzero_32,
     _set_bit,
 )
+from smart_contracts import constants as const
 
 
 class TestMbrDeltaSign:

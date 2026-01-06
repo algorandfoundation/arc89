@@ -4,12 +4,12 @@ from algokit_utils import (
     SigningAccount,
 )
 
-from smart_contracts.asa_metadata_registry import errors as err
-from src._generated.asa_metadata_registry_client import (
+from asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryBareCallCreateParams,
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,
 )
+from smart_contracts.asa_metadata_registry import errors as err
 
 
 def test_create_asa_metadata_registry(

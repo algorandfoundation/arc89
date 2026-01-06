@@ -17,19 +17,20 @@ This test file focuses on edge cases and paths that weren't covered by existing 
 
 import pytest
 
-from smart_contracts import constants as const
-from src import bitmasks
-from src.errors import MetadataArc3Error
-from src.models import (
+from asa_metadata_registry import (
     AssetMetadata,
     AssetMetadataRecord,
     IrreversibleFlags,
+    MetadataArc3Error,
     MetadataBody,
     MetadataFlags,
     MetadataHeader,
     ReversibleFlags,
+    bitmasks,
+    compute_metadata_hash,
     get_default_registry_params,
 )
+from smart_contracts import constants as const
 
 
 class TestMetadataHeaderAdvanced:
@@ -249,7 +250,6 @@ class TestAssetMetadataRecordAdvanced:
 
     def test_hash_matches(self) -> None:
         """Test hash_matches delegates to AssetMetadataBox."""
-        from src.hashing import compute_metadata_hash
 
         metadata = b'{"name":"Test"}'
         params = get_default_registry_params()

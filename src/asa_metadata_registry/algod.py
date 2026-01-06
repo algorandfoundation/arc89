@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import Any
+
+from algosdk.v2client.algod import AlgodClient
 
 from .codec import (
     Arc90Uri,
@@ -17,9 +19,6 @@ from .models import (
     RegistryParameters,
     get_default_registry_params,
 )
-
-if TYPE_CHECKING:  # pragma: no cover
-    from algosdk.v2client.algod import AlgodClient
 
 
 @dataclass(slots=True)

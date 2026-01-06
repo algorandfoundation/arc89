@@ -18,29 +18,35 @@ from unittest.mock import Mock
 import pytest
 from algosdk.v2client.algod import AlgodClient
 
-from src.algod import AlgodBoxReader
-from src.codec import Arc90Uri, b64_encode
-from src.errors import (
-    InvalidArc90UriError,
-    MetadataDriftError,
-    MissingAppClientError,
-    RegistryResolutionError,
-)
-from src.models import (
+from asa_metadata_registry import (
+    Arc90Uri,
+    AsaMetadataRegistryRead,
     AssetMetadataRecord,
+    InvalidArc90UriError,
+    IrreversibleFlags,
     MbrDelta,
     MbrDeltaSign,
     MetadataBody,
+    MetadataDriftError,
     MetadataExistence,
     MetadataFlags,
     MetadataHeader,
+    MetadataSource,
+    MissingAppClientError,
     PaginatedMetadata,
     Pagination,
     RegistryParameters,
+    RegistryResolutionError,
+    ReversibleFlags,
+    SimulateOptions,
+    bitmasks,
 )
-from src.read.avm import AsaMetadataRegistryAvmRead, SimulateOptions
-from src.read.box import AsaMetadataRegistryBoxRead
-from src.read.reader import AsaMetadataRegistryRead, MetadataSource
+from asa_metadata_registry.algod import AlgodBoxReader
+from asa_metadata_registry.codec import b64_encode
+from asa_metadata_registry.read.reader import (
+    AsaMetadataRegistryAvmRead,
+    AsaMetadataRegistryBoxRead,
+)
 
 # ================================================================
 # Fixtures
@@ -817,9 +823,6 @@ class TestDispatcherIsMetadataImmutable:
         """Test AUTO source prefers BOX."""
         reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
 
-        # Mock returns immutable header
-        from src.models import IrreversibleFlags, ReversibleFlags
-
         flags = MetadataFlags(
             reversible=ReversibleFlags.empty(),
             irreversible=IrreversibleFlags(
@@ -858,8 +861,6 @@ class TestDispatcherIsMetadataShort:
     def test_box_source(self, mock_algod_reader: AlgodBoxReader) -> None:
         """Test BOX source."""
         reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
-
-        from src import bitmasks
 
         header = MetadataHeader(
             identifiers=bitmasks.MASK_ID_SHORT,  # short flag
