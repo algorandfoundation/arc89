@@ -50,7 +50,7 @@ registry = AsaMetadataRegistry.from_algod(
     app_id=testnet_deployment.app_id
 )
 
-record = registry.read.get_asset_metadata(asset_id=752902359, source=MetadataSource.BOX)
+record = registry.read.get_asset_metadata(asset_id=753203561, source=MetadataSource.BOX)
 print(record.header.metadata_hash.hex())
 print(record.json.get("name"))
 ```
@@ -74,8 +74,8 @@ testnet_app_client = algorand_client.client.get_typed_app_client_by_id(
 )
 registry = AsaMetadataRegistry.from_app_client(testnet_app_client)
 
-header = registry.read.avm().arc89_get_metadata_header(asset_id=752902359)
-page0 = registry.read.avm().arc89_get_metadata(asset_id=752902359, page=0)
+header = registry.read.avm().arc89_get_metadata_header(asset_id=753203561)
+page0 = registry.read.avm().arc89_get_metadata(asset_id=753203561, page=0)
 
 print(header)
 print(page0.page_content)
