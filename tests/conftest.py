@@ -8,8 +8,6 @@ from algokit_utils import (
     AlgorandClient,
     AppClientCompilationParams,
     AssetCreateParams,
-    OnSchemaBreak,
-    OnUpdate,
     PaymentParams,
     SigningAccount,
 )
@@ -120,10 +118,7 @@ def asa_metadata_registry_client(
     deployer: SigningAccount,
     asa_metadata_registry_factory: AsaMetadataRegistryFactory,
 ) -> AsaMetadataRegistryClient:
-    client, _ = asa_metadata_registry_factory.deploy(
-        on_schema_break=OnSchemaBreak.AppendApp,
-        on_update=OnUpdate.AppendApp,
-    )
+    client, _ = asa_metadata_registry_factory.send.create.bare()
     asa_metadata_registry_factory.algorand.send.payment(
         params=PaymentParams(
             sender=deployer.address,
