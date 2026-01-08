@@ -1,5 +1,5 @@
 import pytest
-from algokit_utils import AssetConfigParams, SigningAccount
+from algokit_utils import AssetConfigParams, LogicError, SigningAccount
 from algosdk.constants import ZERO_ADDRESS
 
 from asa_metadata_registry import AssetMetadata
@@ -7,6 +7,8 @@ from asa_metadata_registry._generated.asa_metadata_registry_client import (
     Arc89IsMetadataImmutableArgs,
     AsaMetadataRegistryClient,
 )
+from smart_contracts.asa_metadata_registry import errors as err
+from tests.helpers.utils import NON_EXISTENT_ASA_ID
 
 
 def test_immutable_metadata(
@@ -48,4 +50,20 @@ def test_mutable_metadata(
     assert not is_immutable
 
 
-# TODO: Test failing conditions
+def test_fail_asa_not_exists(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+) -> None:
+    with pytest.raises(LogicError, match=err.ASA_NOT_EXIST):
+        asa_metadata_registry_client.send.arc89_is_metadata_immutable(
+            args=Arc89IsMetadataImmutableArgs(asset_id=NON_EXISTENT_ASA_ID),
+        )
+
+
+def test_fail_asset_metadata_not_exist(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    arc_89_asa: int,
+) -> None:
+    with pytest.raises(LogicError, match=err.ASSET_METADATA_NOT_EXIST):
+        asa_metadata_registry_client.send.arc89_is_metadata_immutable(
+            args=Arc89IsMetadataImmutableArgs(asset_id=arc_89_asa),
+        )
