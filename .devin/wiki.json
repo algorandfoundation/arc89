@@ -1,0 +1,302 @@
+{
+  "repo_notes": [
+    {
+      "content": ""
+    }
+  ],
+  "pages": [
+    {
+      "title": "Overview",
+      "purpose": "Introduce the ARC-89 ASA Metadata Registry, explaining its purpose, core features, and relationship to the Algorand blockchain and various ARC standards",
+      "page_notes": [
+        {
+          "content": "Pagination and size limits (table): MAX_METADATA_SIZE=30506, PAGE_SIZE=1007"
+        }
+      ]
+    },
+    {
+      "title": "Architecture",
+      "purpose": "High-level architectural overview showing how the smart contract, SDK, and supporting systems interact",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "System Components",
+      "purpose": "Detailed breakdown of the major system components: smart contract layer, SDK layer, and developer tools",
+      "parent": "Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Data Flow and Lifecycle",
+      "purpose": "Explain how metadata flows through the system from creation to retrieval, including validation, storage, and retrieval paths",
+      "parent": "Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Smart Contract",
+      "purpose": "Comprehensive documentation of the AsaMetadataRegistry smart contract implementation",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Contract Methods",
+      "purpose": "Complete reference for all smart contract methods (arc89_create_metadata, arc89_replace_metadata, etc.) with parameters, return values, and behavior",
+      "parent": "Smart Contract",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Metadata Box Structure",
+      "purpose": "Detailed explanation of the box storage format, including header layout (51 bytes), body structure, and index offsets",
+      "parent": "Smart Contract",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Validation and Compliance",
+      "purpose": "Explain ASA validation, manager authorization, ARC-3 compliance checking, and ARC-89 native validation",
+      "parent": "Smart Contract",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Flag Management",
+      "purpose": "Document the reversible and irreversible flag system, including immutability enforcement and bit-level operations",
+      "parent": "Smart Contract",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "MBR Management",
+      "purpose": "Explain Minimum Balance Requirement calculations, payment handling, and refund mechanisms",
+      "parent": "Smart Contract",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Hashing and Integrity",
+      "purpose": "Document the hierarchical hashing scheme (header hash, page hashes, metadata hash) and integrity verification",
+      "parent": "Smart Contract",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Python SDK",
+      "purpose": "Overview of the Python SDK for interacting with the metadata registry",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Getting Started",
+      "purpose": "Quick start guide for installing and initializing the SDK, including AsaMetadataRegistry setup",
+      "parent": "Python SDK",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Data Models",
+      "purpose": "Reference for all data models: AssetMetadata, MetadataHeader, MetadataBody, MetadataFlags, AssetMetadataBox, etc.",
+      "parent": "Python SDK",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Reading Metadata",
+      "purpose": "Guide to using AsaMetadataRegistryRead, including BOX vs AVM sources, AUTO mode, and metadata retrieval methods",
+      "parent": "Python SDK",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Writing Metadata",
+      "purpose": "Guide to using AsaMetadataRegistryWrite for creating, updating, and deleting metadata, including WriteOptions and transaction composition",
+      "parent": "Python SDK",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Registry Configuration",
+      "purpose": "Explain RegistryConfig, RegistryParameters, network authorities, and registry initialization patterns",
+      "parent": "Python SDK",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "ARC-90 URI Handling",
+      "purpose": "Document Arc90Uri parsing, construction, resolution from assets, and compliance fragments",
+      "parent": "Python SDK",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "ARC Standards",
+      "purpose": "Comprehensive coverage of all ARC standards implemented or supported by the registry",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "ARC-89 Specification",
+      "purpose": "Detailed explanation of the ARC-89 standard for metadata registry, including box-based storage and pagination",
+      "parent": "ARC Standards",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "ARC-90 URI Scheme",
+      "purpose": "Explain the ARC-90 URI format (algorand://netauth/app/ID?box=), network authorities, and URI construction",
+      "parent": "ARC Standards",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "ARC-3 NFT Metadata",
+      "purpose": "Document ARC-3 compliance validation, metadata schema requirements, and hash computation",
+      "parent": "ARC Standards",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "ARC-20 and ARC-62",
+      "purpose": "Explain support for ARC-20 (Smart ASA) and ARC-62 (Circulating Supply) via reversible flags",
+      "parent": "ARC Standards",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Development Guide",
+      "purpose": "Complete guide for developers contributing to or extending the registry",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Project Setup",
+      "purpose": "Instructions for setting up the development environment, installing dependencies with Poetry, and AlgoKit setup",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Building Smart Contracts",
+      "purpose": "Guide to compiling smart contracts with PuyaPy, generating clients, and understanding the build process",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Testing",
+      "purpose": "Overview of the test suite, fixtures, factories, and testing utilities",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Deployment",
+      "purpose": "Instructions for deploying to LocalNet, TestNet, and MainNet, including environment configuration",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "CI/CD Pipeline",
+      "purpose": "Document the GitHub Actions workflows for continuous integration and deployment",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Reference",
+      "purpose": "Technical reference materials including constants, enums, error codes, and low-level details",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    }
+  ]
+}
