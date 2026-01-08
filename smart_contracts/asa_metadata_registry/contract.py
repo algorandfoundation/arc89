@@ -187,7 +187,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
     def _is_extra_payload_call(self, asa: Asset, txn: gtxn.Transaction) -> bool:
         return (
             self._is_registry_call(txn)
-            and txn.app_args(const.ARC4_ARG_METHOD_SELECTOR)
+            and txn.app_args(const.ARC4_METHOD_SELECTOR_ARG)
             == arc4.arc4_signature(Arc89Interface.arc89_extra_payload)
             and txn.app_args(const.ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID) == op.itob(asa.id)
         )
@@ -778,10 +778,12 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         Return the ASA Metadata Registry parameters.
 
         Returns:
-            Tuple of (HEADER_SIZE, MAX_METADATA_SIZE, SHORT_METADATA_SIZE, PAGE_SIZE,
-            FIRST_PAYLOAD_MAX_SIZE, EXTRA_PAYLOAD_MAX_SIZE, REPLACE_PAYLOAD_MAX_SIZE, FLAT_MBR, BYTE_MBR)
+            Tuple of (ASSET_METADATA_BOX_KEY_SIZE, HEADER_SIZE, MAX_METADATA_SIZE,
+            SHORT_METADATA_SIZE, PAGE_SIZE, FIRST_PAYLOAD_MAX_SIZE, EXTRA_PAYLOAD_MAX_SIZE,
+            REPLACE_PAYLOAD_MAX_SIZE, FLAT_MBR, BYTE_MBR)
         """
         return abi.RegistryParameters(
+            key_size=arc4.UInt8(const.ASSET_METADATA_BOX_KEY_SIZE),
             header_size=arc4.UInt16(const.HEADER_SIZE),
             max_metadata_size=arc4.UInt16(const.MAX_METADATA_SIZE),
             short_metadata_size=arc4.UInt16(const.SHORT_METADATA_SIZE),
