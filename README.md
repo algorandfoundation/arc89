@@ -1,4 +1,9 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/algorandfoundation/arc89)
+
 # ARC-89: ASA Metadata Registry
+
+An _experimental_ repository [DeepWiki](https://deepwiki.com/algorandfoundation/arc89)
+can be used as additional documentation.
 
 ## ASA Metadata Registry Reference Implementation
 
