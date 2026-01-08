@@ -140,6 +140,7 @@ class TestRegistryParameters:
     def test_defaults(self) -> None:
         """Test default registry parameters match constants."""
         params = RegistryParameters.defaults()
+        assert params.key_size == const.ASSET_METADATA_BOX_KEY_SIZE
         assert params.header_size == const.HEADER_SIZE
         assert params.max_metadata_size == const.MAX_METADATA_SIZE
         assert params.short_metadata_size == const.SHORT_METADATA_SIZE
@@ -152,8 +153,9 @@ class TestRegistryParameters:
 
     def test_from_tuple(self) -> None:
         """Test from_tuple parsing."""
-        values = [50, 30000, 4000, 1000, 2000, 1900, 1950, 2500, 400]
+        values = [8, 50, 30000, 4000, 1000, 2000, 1900, 1950, 2500, 400]
         params = RegistryParameters.from_tuple(values)
+        assert params.key_size == 8
         assert params.header_size == 50
         assert params.max_metadata_size == 30000
         assert params.short_metadata_size == 4000
@@ -166,7 +168,7 @@ class TestRegistryParameters:
 
     def test_from_tuple_invalid_length(self) -> None:
         """Test from_tuple with wrong number of elements."""
-        with pytest.raises(ValueError, match="Expected 9-tuple"):
+        with pytest.raises(ValueError, match="Expected 10-tuple"):
             RegistryParameters.from_tuple([1, 2, 3])
 
     def test_mbr_for_box_zero_metadata(self) -> None:

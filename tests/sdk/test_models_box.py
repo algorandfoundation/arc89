@@ -473,6 +473,7 @@ class TestAssetMetadataBoxAdvanced:
         """Test parse with params overrides header_size."""
         # Create custom params with different header size
         custom_params = RegistryParameters(
+            key_size=const.ASSET_METADATA_BOX_KEY_SIZE,
             header_size=60,  # Different from default
             max_metadata_size=const.MAX_METADATA_SIZE,
             short_metadata_size=const.SHORT_METADATA_SIZE,
@@ -501,6 +502,7 @@ class TestAssetMetadataBoxAdvanced:
         """Test parse with params overrides max_metadata_size."""
         # Create custom params with smaller max_metadata_size
         custom_params = RegistryParameters(
+            key_size=const.ASSET_METADATA_BOX_KEY_SIZE,
             header_size=const.HEADER_SIZE,
             max_metadata_size=100,  # Very small limit
             short_metadata_size=const.SHORT_METADATA_SIZE,
