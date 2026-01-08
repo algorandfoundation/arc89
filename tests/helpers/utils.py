@@ -6,6 +6,7 @@ from algokit_utils import (
     AlgorandClient,
     CommonAppCallParams,
     PaymentParams,
+    SendAtomicTransactionComposerResults,
     SendParams,
     SigningAccount,
 )
@@ -26,6 +27,7 @@ from asa_metadata_registry._generated.asa_metadata_registry_client import (
     Arc89GetMetadataPaginationArgs,
     Arc89ReplaceMetadataArgs,
     Arc89ReplaceMetadataLargerArgs,
+    Arc89ReplaceMetadataSliceArgs,
     Arc89SetImmutableArgs,
     Arc89SetIrreversibleFlagArgs,
     Arc89SetReversibleFlagArgs,
@@ -33,6 +35,110 @@ from asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryComposer,
     MbrDelta,
 )
+
+# =============================================================================
+# Test Constants
+# =============================================================================
+
+# Non-existent asset ID for testing ASA_NOT_EXIST errors
+NON_EXISTENT_ASA_ID = 420
+
+# =============================================================================
+# Common Helper Functions
+# =============================================================================
+
+
+def _get_min_fee(client: AsaMetadataRegistryClient) -> int:
+    """Get the minimum fee from the client's suggested params."""
+    return int(client.algorand.get_suggested_params().min_fee)
+
+
+def _get_chunks_and_fee(
+    client: AsaMetadataRegistryClient,
+    metadata: AssetMetadata,
+    extra_txns: int = 0,
+) -> tuple[list[bytes], int]:
+    """Get metadata chunks and calculate the total fee.
+
+    Args:
+        client: The ASA Metadata Registry Client
+        metadata: The metadata to chunk
+        extra_txns: Additional transactions to include in fee calculation
+
+    Returns:
+        Tuple of (chunks list, total fee in microAlgos)
+    """
+    min_fee = _get_min_fee(client)
+    chunks = metadata.body.chunked_payload()
+    return chunks, (len(chunks) + extra_txns) * min_fee
+
+
+def _extract_mbr_delta_from_response(
+    response: SendAtomicTransactionComposerResults,
+) -> MbrDelta:
+    """Extract MbrDelta from a composer send response."""
+    result = cast(tuple[int, int], response.returns[0].value)
+    return MbrDelta(sign=result[0], amount=result[1])
+
+
+def _create_mbr_payment_txn(
+    client: AsaMetadataRegistryClient,
+    sender: SigningAccount,
+    amount: int,
+    *,
+    receiver_override: str | None = None,
+    amount_override: int | None = None,
+) -> Transaction:
+    """Create an MBR payment transaction with optional overrides for testing.
+
+    Args:
+        client: The ASA Metadata Registry Client
+        sender: The sender of the payment
+        amount: The default amount in microAlgos
+        receiver_override: Override the receiver address (for testing error cases)
+        amount_override: Override the amount (for testing error cases)
+
+    Returns:
+        Payment transaction
+    """
+    return client.algorand.create_transaction.payment(
+        PaymentParams(
+            sender=sender.address,
+            receiver=(
+                receiver_override
+                if receiver_override is not None
+                else client.app_address
+            ),
+            amount=AlgoAmount(
+                micro_algo=(amount_override if amount_override is not None else amount)
+            ),
+            static_fee=AlgoAmount(micro_algo=0),
+        ),
+    )
+
+
+def _execute_flag_operation(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    asset_manager: SigningAccount,
+    metadata: AssetMetadata,
+    setup_composer: Callable[[AsaMetadataRegistryComposer, AlgoAmount], None],
+) -> None:
+    """Execute a flag operation with proper fee and extra resources handling.
+
+    Args:
+        asa_metadata_registry_client: The ASA Metadata Registry Client
+        asset_manager: The asset manager account
+        metadata: The metadata being modified
+        setup_composer: Function that sets up the specific operation on the composer
+    """
+    extra_count, total_fee = total_extra_resources(
+        asa_metadata_registry_client.algorand, metadata
+    )
+    composer = asa_metadata_registry_client.new_group()
+    setup_composer(composer, AlgoAmount.from_micro_algo(total_fee))
+    if extra_count > 0:
+        add_extra_resources(composer, extra_count)
+    composer.send()
 
 
 def _append_extra_payload(
@@ -159,12 +265,26 @@ def get_mbr_delta_payment(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     asset_manager: SigningAccount,
     mbr_delta_amount: AlgoAmount,
+    *,
+    receiver_override: str | None = None,
+    amount_override: int | None = None,
 ) -> Transaction:
+    """Create an MBR payment transaction with optional overrides for testing error cases."""
     return asa_metadata_registry_client.algorand.create_transaction.payment(
         PaymentParams(
             sender=asset_manager.address,
-            receiver=asa_metadata_registry_client.app_address,
-            amount=mbr_delta_amount,
+            receiver=(
+                receiver_override
+                if receiver_override is not None
+                else asa_metadata_registry_client.app_address
+            ),
+            amount=AlgoAmount(
+                micro_algo=(
+                    amount_override
+                    if amount_override is not None
+                    else mbr_delta_amount.micro_algo
+                )
+            ),
             static_fee=AlgoAmount(micro_algo=0),
         ),
     )
@@ -196,8 +316,9 @@ def create_metadata(
         AlgoAmount(micro_algo=creation_mbr_delta.amount),
     )
 
-    chunks = metadata.body.chunked_payload()
-    min_fee = asa_metadata_registry_client.algorand.get_suggested_params().min_fee
+    chunks, fee = _get_chunks_and_fee(
+        asa_metadata_registry_client, metadata, extra_txns=2
+    )
 
     create_metadata_composer = asa_metadata_registry_client.new_group()
     create_metadata_composer.arc89_create_metadata(
@@ -211,25 +332,15 @@ def create_metadata(
         ),
         params=CommonAppCallParams(
             sender=asset_manager.address,
-            static_fee=AlgoAmount(micro_algo=(len(chunks) + 2) * min_fee),
+            static_fee=AlgoAmount(micro_algo=fee),
         ),
     )
     _append_extra_payload(create_metadata_composer, asset_manager, metadata)
-    create_metadata_response = cast(
-        tuple[int, int],
-        cast(
-            object,
-            create_metadata_composer.send(
-                send_params=SendParams(cover_app_call_inner_transaction_fees=True)
-            )
-            .returns[0]
-            .value,
-        ),
+    response = create_metadata_composer.send(
+        send_params=SendParams(cover_app_call_inner_transaction_fees=True)
     )
 
-    return MbrDelta(
-        sign=create_metadata_response[0], amount=create_metadata_response[1]
-    )
+    return _extract_mbr_delta_from_response(response)
 
 
 def replace_metadata(
@@ -253,8 +364,10 @@ def replace_metadata(
     Returns:
         MBR Delta
     """
-    chunks = new_metadata.body.chunked_payload()
-    min_fee = asa_metadata_registry_client.algorand.get_suggested_params().min_fee
+    chunks, base_fee = _get_chunks_and_fee(
+        asa_metadata_registry_client, new_metadata, extra_txns=1
+    )
+    min_fee = _get_min_fee(asa_metadata_registry_client)
     replace_metadata_composer = asa_metadata_registry_client.new_group()
 
     pagination_result = asa_metadata_registry_client.send.arc89_get_metadata_pagination(
@@ -274,7 +387,7 @@ def replace_metadata(
             params=CommonAppCallParams(
                 sender=asset_manager.address,
                 static_fee=AlgoAmount(
-                    micro_algo=(len(chunks) + extra_resources + 1) * min_fee
+                    micro_algo=base_fee + (extra_resources * min_fee)
                 ),
             ),
         )
@@ -294,26 +407,16 @@ def replace_metadata(
             ),
             params=CommonAppCallParams(
                 sender=asset_manager.address,
-                static_fee=AlgoAmount(micro_algo=(len(chunks) + 1) * min_fee),
+                static_fee=AlgoAmount(micro_algo=base_fee),
             ),
         )
     _append_extra_payload(replace_metadata_composer, asset_manager, new_metadata)
     add_extra_resources(replace_metadata_composer, extra_resources)
-    replace_metadata_response = cast(
-        tuple[int, int],
-        cast(
-            object,
-            replace_metadata_composer.send(
-                send_params=SendParams(cover_app_call_inner_transaction_fees=True)
-            )
-            .returns[0]
-            .value,
-        ),
+    response = replace_metadata_composer.send(
+        send_params=SendParams(cover_app_call_inner_transaction_fees=True)
     )
 
-    return MbrDelta(
-        sign=replace_metadata_response[0], amount=replace_metadata_response[1]
-    )
+    return _extract_mbr_delta_from_response(response)
 
 
 def delete_metadata(
@@ -335,7 +438,7 @@ def delete_metadata(
     Returns:
         MBR Delta
     """
-    min_fee = asa_metadata_registry_client.algorand.get_suggested_params().min_fee
+    min_fee = _get_min_fee(asa_metadata_registry_client)
     delete_metadata_composer = asa_metadata_registry_client.new_group()
 
     delete_metadata_composer.arc89_delete_metadata(
@@ -346,21 +449,11 @@ def delete_metadata(
         ),
     ),
     add_extra_resources(delete_metadata_composer, extra_resources)
-    delete_metadata_response = cast(
-        tuple[int, int],
-        cast(
-            object,
-            delete_metadata_composer.send(
-                send_params=SendParams(cover_app_call_inner_transaction_fees=True)
-            )
-            .returns[0]
-            .value,
-        ),
+    response = delete_metadata_composer.send(
+        send_params=SendParams(cover_app_call_inner_transaction_fees=True)
     )
 
-    return MbrDelta(
-        sign=delete_metadata_response[0], amount=delete_metadata_response[1]
-    )
+    return _extract_mbr_delta_from_response(response)
 
 
 def set_reversible_flag(
@@ -371,22 +464,20 @@ def set_reversible_flag(
     *,
     value: bool,
 ) -> None:
-    extra_count, total_fee = total_extra_resources(
-        asa_metadata_registry_client.algorand, metadata
+    def setup(composer: AsaMetadataRegistryComposer, fee: AlgoAmount) -> None:
+        composer.arc89_set_reversible_flag(
+            args=Arc89SetReversibleFlagArgs(
+                asset_id=metadata.asset_id, flag=flag, value=value
+            ),
+            params=CommonAppCallParams(
+                sender=asset_manager.address,
+                static_fee=fee,
+            ),
+        )
+
+    _execute_flag_operation(
+        asa_metadata_registry_client, asset_manager, metadata, setup
     )
-    composer = asa_metadata_registry_client.new_group()
-    composer.arc89_set_reversible_flag(
-        args=Arc89SetReversibleFlagArgs(
-            asset_id=metadata.asset_id, flag=flag, value=value
-        ),
-        params=CommonAppCallParams(
-            sender=asset_manager.address,
-            static_fee=AlgoAmount.from_micro_algo(total_fee),
-        ),
-    )
-    if extra_count > 0:
-        add_extra_resources(composer, extra_count)
-    composer.send()
 
 
 def set_irreversible_flag(
@@ -395,20 +486,18 @@ def set_irreversible_flag(
     metadata: AssetMetadata,
     flag: int,
 ) -> None:
-    extra_count, total_fee = total_extra_resources(
-        asa_metadata_registry_client.algorand, metadata
+    def setup(composer: AsaMetadataRegistryComposer, fee: AlgoAmount) -> None:
+        composer.arc89_set_irreversible_flag(
+            args=Arc89SetIrreversibleFlagArgs(asset_id=metadata.asset_id, flag=flag),
+            params=CommonAppCallParams(
+                sender=asset_manager.address,
+                static_fee=fee,
+            ),
+        )
+
+    _execute_flag_operation(
+        asa_metadata_registry_client, asset_manager, metadata, setup
     )
-    composer = asa_metadata_registry_client.new_group()
-    composer.arc89_set_irreversible_flag(
-        args=Arc89SetIrreversibleFlagArgs(asset_id=metadata.asset_id, flag=flag),
-        params=CommonAppCallParams(
-            sender=asset_manager.address,
-            static_fee=AlgoAmount.from_micro_algo(total_fee),
-        ),
-    )
-    if extra_count > 0:
-        add_extra_resources(composer, extra_count)
-    composer.send()
 
 
 def set_immutable(
@@ -416,20 +505,18 @@ def set_immutable(
     asset_manager: SigningAccount,
     metadata: AssetMetadata,
 ) -> None:
-    extra_count, total_fee = total_extra_resources(
-        asa_metadata_registry_client.algorand, metadata
+    def setup(composer: AsaMetadataRegistryComposer, fee: AlgoAmount) -> None:
+        composer.arc89_set_immutable(
+            args=Arc89SetImmutableArgs(asset_id=metadata.asset_id),
+            params=CommonAppCallParams(
+                sender=asset_manager.address,
+                static_fee=fee,
+            ),
+        )
+
+    _execute_flag_operation(
+        asa_metadata_registry_client, asset_manager, metadata, setup
     )
-    composer = asa_metadata_registry_client.new_group()
-    composer.arc89_set_immutable(
-        args=Arc89SetImmutableArgs(asset_id=metadata.asset_id),
-        params=CommonAppCallParams(
-            sender=asset_manager.address,
-            static_fee=AlgoAmount.from_micro_algo(total_fee),
-        ),
-    )
-    if extra_count > 0:
-        add_extra_resources(composer, extra_count)
-    composer.send()
 
 
 def create_metadata_with_page_count(
@@ -474,3 +561,153 @@ def create_metadata_with_page_count(
     ), f"Expected {page_count} pages, got {metadata.body.total_pages(params)}"
 
     return metadata
+
+
+def get_create_metadata_fee(
+    client: AsaMetadataRegistryClient,
+    metadata: AssetMetadata,
+) -> int:
+    """Calculate the fee for create_metadata call."""
+    chunks = metadata.body.chunked_payload()
+    return (len(chunks) + 2) * _get_min_fee(client)
+
+
+def build_create_metadata_composer(
+    client: AsaMetadataRegistryClient,
+    sender: SigningAccount,
+    asset_id: int,
+    metadata: AssetMetadata,
+    mbr_payment: Transaction,
+    *,
+    metadata_size_override: int | None = None,
+    payload_override: bytes | None = None,
+) -> AsaMetadataRegistryComposer:
+    """Build a composer for arc89_create_metadata with common parameters."""
+    chunks = metadata.body.chunked_payload()
+    fee = get_create_metadata_fee(client, metadata)
+
+    composer = client.new_group()
+    composer.arc89_create_metadata(
+        args=Arc89CreateMetadataArgs(
+            asset_id=asset_id,
+            reversible_flags=metadata.flags.reversible_byte,
+            irreversible_flags=metadata.flags.irreversible_byte,
+            metadata_size=(
+                metadata_size_override
+                if metadata_size_override is not None
+                else metadata.body.size
+            ),
+            payload=payload_override if payload_override is not None else chunks[0],
+            mbr_delta_payment=mbr_payment,
+        ),
+        params=CommonAppCallParams(
+            sender=sender.address,
+            static_fee=AlgoAmount(micro_algo=fee),
+        ),
+    )
+    return composer
+
+
+def create_mbr_payment(
+    client: AsaMetadataRegistryClient,
+    sender: SigningAccount,
+    metadata: AssetMetadata,
+    *,
+    receiver_override: str | None = None,
+    amount_override: int | None = None,
+) -> Transaction:
+    """Create an MBR payment transaction for metadata creation with optional overrides."""
+    creation_mbr_delta = metadata.get_mbr_delta(old_size=None)
+    return get_mbr_delta_payment(
+        client,
+        sender,
+        AlgoAmount(micro_algo=creation_mbr_delta.amount),
+        receiver_override=receiver_override,
+        amount_override=amount_override,
+    )
+
+
+def build_replace_metadata_composer(
+    client: AsaMetadataRegistryClient,
+    sender: SigningAccount,
+    asset_id: int,
+    metadata: AssetMetadata,
+    *,
+    metadata_size_override: int | None = None,
+    payload_override: bytes | None = None,
+) -> AsaMetadataRegistryComposer:
+    """Build a composer for arc89_replace_metadata with common parameters."""
+    chunks = metadata.body.chunked_payload()
+    min_fee = _get_min_fee(client)
+
+    composer = client.new_group()
+    composer.arc89_replace_metadata(
+        args=Arc89ReplaceMetadataArgs(
+            asset_id=asset_id,
+            metadata_size=(
+                metadata_size_override
+                if metadata_size_override is not None
+                else metadata.body.size
+            ),
+            payload=payload_override if payload_override is not None else chunks[0],
+        ),
+        params=CommonAppCallParams(
+            sender=sender.address,
+            static_fee=AlgoAmount(micro_algo=(len(chunks) + 1) * min_fee),
+        ),
+    )
+    return composer
+
+
+def build_replace_metadata_larger_composer(
+    client: AsaMetadataRegistryClient,
+    sender: SigningAccount,
+    asset_id: int,
+    metadata: AssetMetadata,
+    mbr_payment: Transaction,
+    *,
+    metadata_size_override: int | None = None,
+    payload_override: bytes | None = None,
+) -> AsaMetadataRegistryComposer:
+    """Build a composer for arc89_replace_metadata_larger with common parameters."""
+    chunks = metadata.body.chunked_payload()
+    min_fee = _get_min_fee(client)
+
+    composer = client.new_group()
+    composer.arc89_replace_metadata_larger(
+        args=Arc89ReplaceMetadataLargerArgs(
+            asset_id=asset_id,
+            metadata_size=(
+                metadata_size_override
+                if metadata_size_override is not None
+                else metadata.body.size
+            ),
+            payload=payload_override if payload_override is not None else chunks[0],
+            mbr_delta_payment=mbr_payment,
+        ),
+        params=CommonAppCallParams(
+            sender=sender.address,
+            static_fee=AlgoAmount(micro_algo=(len(chunks) + 1) * min_fee),
+        ),
+    )
+    return composer
+
+
+def build_replace_metadata_slice_composer(
+    client: AsaMetadataRegistryClient,
+    sender: SigningAccount,
+    asset_id: int,
+    offset: int,
+    payload: bytes,
+) -> AsaMetadataRegistryComposer:
+    """Build a composer for arc89_replace_metadata_slice with common parameters."""
+    composer = client.new_group()
+    composer.arc89_replace_metadata_slice(
+        args=Arc89ReplaceMetadataSliceArgs(
+            asset_id=asset_id,
+            offset=offset,
+            payload=payload,
+        ),
+        params=CommonAppCallParams(sender=sender.address),
+    )
+    return composer
