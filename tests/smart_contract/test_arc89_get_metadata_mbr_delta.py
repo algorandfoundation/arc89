@@ -1,8 +1,13 @@
+import pytest
+from algokit_utils import LogicError
+
 from asa_metadata_registry import AssetMetadata
+from asa_metadata_registry import constants as const
 from asa_metadata_registry._generated.asa_metadata_registry_client import (
     Arc89GetMetadataMbrDeltaArgs,
     AsaMetadataRegistryClient,
 )
+from smart_contracts.asa_metadata_registry import errors as err
 
 
 def test_get_metadata_mbr_delta_for_existing_metadata(
@@ -75,4 +80,14 @@ def test_get_metadata_mbr_delta_for_nonexistent_metadata(
     assert mbr_delta.amount == maxed_metadata.get_mbr_delta().amount
 
 
-# TODO: Test failing conditions
+def test_fail_exceeds_max_metadata_size(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    arc_89_asa: int,
+) -> None:
+    with pytest.raises(LogicError, match=err.EXCEEDS_MAX_METADATA_SIZE):
+        asa_metadata_registry_client.send.arc89_get_metadata_mbr_delta(
+            args=Arc89GetMetadataMbrDeltaArgs(
+                asset_id=arc_89_asa,
+                new_metadata_size=const.MAX_METADATA_SIZE + 1,
+            ),
+        )
