@@ -11,6 +11,7 @@ def test_get_registry_parameters(
         asa_metadata_registry_client.send.arc89_get_metadata_registry_parameters().abi_return
     )
 
+    assert params.key_size == const.ASSET_METADATA_BOX_KEY_SIZE
     assert params.header_size == const.HEADER_SIZE
     assert params.max_metadata_size == const.MAX_METADATA_SIZE
     assert params.short_metadata_size == const.SHORT_METADATA_SIZE

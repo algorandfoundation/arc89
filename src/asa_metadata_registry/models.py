@@ -141,6 +141,7 @@ class MbrDelta:
 
 @dataclass(frozen=True, slots=True)
 class RegistryParameters:
+    key_size: int
     header_size: int
     max_metadata_size: int
     short_metadata_size: int
@@ -154,6 +155,7 @@ class RegistryParameters:
     @staticmethod
     def defaults() -> RegistryParameters:
         return RegistryParameters(
+            key_size=const.ASSET_METADATA_BOX_KEY_SIZE,
             header_size=const.HEADER_SIZE,
             max_metadata_size=const.MAX_METADATA_SIZE,
             short_metadata_size=const.SHORT_METADATA_SIZE,
@@ -167,18 +169,19 @@ class RegistryParameters:
 
     @staticmethod
     def from_tuple(value: Sequence[int]) -> RegistryParameters:
-        if len(value) != 9:
-            raise ValueError("Expected 9-tuple of registry parameters")
+        if len(value) != 10:
+            raise ValueError("Expected 10-tuple of registry parameters")
         return RegistryParameters(
-            header_size=int(value[0]),
-            max_metadata_size=int(value[1]),
-            short_metadata_size=int(value[2]),
-            page_size=int(value[3]),
-            first_payload_max_size=int(value[4]),
-            extra_payload_max_size=int(value[5]),
-            replace_payload_max_size=int(value[6]),
-            flat_mbr=int(value[7]),
-            byte_mbr=int(value[8]),
+            key_size=int(value[0]),
+            header_size=int(value[1]),
+            max_metadata_size=int(value[2]),
+            short_metadata_size=int(value[3]),
+            page_size=int(value[4]),
+            first_payload_max_size=int(value[5]),
+            extra_payload_max_size=int(value[6]),
+            replace_payload_max_size=int(value[7]),
+            flat_mbr=int(value[8]),
+            byte_mbr=int(value[9]),
         )
 
     def mbr_for_box(self, metadata_size: int) -> int:
@@ -188,7 +191,7 @@ class RegistryParameters:
         if metadata_size < 0:
             raise ValueError("metadata_size must be non-negative")
         return self.flat_mbr + self.byte_mbr * (
-            const.ASSET_METADATA_BOX_KEY_SIZE + self.header_size + metadata_size
+            self.key_size + self.header_size + metadata_size
         )
 
     def mbr_delta(

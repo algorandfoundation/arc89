@@ -62,6 +62,7 @@ class PaginatedMetadata(arc4.Struct, kw_only=True):
 class RegistryParameters(arc4.Struct, kw_only=True):
     """ASA Metadata Registry Parameters"""
 
+    key_size: arc4.UInt8
     header_size: arc4.UInt16
     max_metadata_size: arc4.UInt16
     short_metadata_size: arc4.UInt16

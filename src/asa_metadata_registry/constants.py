@@ -29,6 +29,7 @@ APP_CALL_OP_BUDGET: Final[int] = 700
 # ---------------------------------------------------------------------------
 # ABI Types Byte Sizes
 BOOL_SIZE: Final[int] = 1
+
 UINT8_SIZE: Final[int] = 1
 UINT16_SIZE: Final[int] = 2
 UINT32_SIZE: Final[int] = 4
@@ -38,7 +39,7 @@ BYTE_SIZE: Final[int] = 1
 BYTES32_SIZE: Final[int] = 32
 
 # ARC-4 ABI Encoding
-ARC4_ARG_METHOD_SELECTOR: Final[int] = 0
+ARC4_METHOD_SELECTOR_ARG: Final[int] = 0
 ARC4_METHOD_SELECTOR_SIZE: Final[int] = 4
 ARC4_RETURN_PREFIX_SIZE: Final[int] = 4
 ARC4_DYNAMIC_LENGTH_SIZE: Final[int] = 2
@@ -64,7 +65,6 @@ ARC3_HASH_AMJ_PREFIX: Final[bytes] = b"arc0003/amj"
 #   - TestNet:  algorand://net:testnet/app/752790676?box=AAAAAAAAAAE%3D#arc89
 #   - LocalNet: algorand://net:localnet/app/1002?box=AAAAAAAAA-w%3D#arc3
 #   - MainNet:  algorand://app/123456789?box=AAAAAAAAAAE%3D#arc89
-#
 
 ARC90_URI_SCHEME_NAME: Final[bytes] = b"algorand"
 ARC90_URI_APP_PATH_NAME: Final[bytes] = b"app"
