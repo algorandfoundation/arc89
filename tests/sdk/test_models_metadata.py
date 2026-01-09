@@ -17,6 +17,7 @@ from asa_metadata_registry import (
     MetadataArc3Error,
     MetadataBody,
     MetadataFlags,
+    MetadataHashMismatchError,
     MetadataHeader,
     ReversibleFlags,
     bitmasks,
@@ -555,6 +556,114 @@ class TestAssetMetadata:
                 asset_id=222,
                 json_obj=obj,
             )
+
+    def test_compute_metadata_hash_arc89_native_no_arc3_mismatch_raises(self) -> None:
+        """Test that MetadataHashMismatchError is raised when ARC89 native, not ARC3, and am doesn't match."""
+        body = MetadataBody(raw_bytes=b'{"name":"Test"}')
+        flags = MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(arc89_native=True, immutable=True),
+        )
+        metadata = AssetMetadata(
+            asset_id=123,
+            body=body,
+            flags=flags,
+            deprecated_by=0,
+        )
+        # Create a non-matching hash
+        wrong_hash = b"WRONG_HASH_THAT_WONT_MATCH__" + b"\x00" * 4
+        assert len(wrong_hash) == 32
+
+        with pytest.raises(MetadataHashMismatchError):
+            metadata.compute_metadata_hash(asa_am=wrong_hash)
+
+    def test_compute_metadata_hash_arc89_native_no_arc3_match_succeeds(self) -> None:
+        """Test that matching hash succeeds for ARC89 native without ARC3."""
+        body = MetadataBody(raw_bytes=b'{"name":"Test"}')
+        flags = MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(arc89_native=True, immutable=True),
+        )
+        metadata = AssetMetadata(
+            asset_id=123,
+            body=body,
+            flags=flags,
+            deprecated_by=0,
+        )
+        # Get the correct hash
+        correct_hash = metadata.compute_arc89_metadata_hash()
+
+        # This should succeed
+        result = metadata.compute_metadata_hash(asa_am=correct_hash)
+        assert result == correct_hash
+
+    def test_compute_metadata_hash_arc89_native_with_arc3_bypasses_check(self) -> None:
+        """Test that ARC3 flag bypasses the hash matching check for ARC89 native."""
+        body = MetadataBody(raw_bytes=b'{"name":"Test","decimals":0}')
+        flags = MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(
+                arc89_native=True, arc3=True, immutable=True
+            ),
+        )
+        metadata = AssetMetadata(
+            asset_id=123,
+            body=body,
+            flags=flags,
+            deprecated_by=0,
+        )
+        # Create a non-matching hash (would fail without ARC3 bypass)
+        arbitrary_hash = b"ARC3_HASH_THAT_DIFFERS_OK___" + b"\x00" * 4
+        assert len(arbitrary_hash) == 32
+
+        # This should succeed because ARC3 is set
+        result = metadata.compute_metadata_hash(asa_am=arbitrary_hash)
+        assert result == arbitrary_hash
+
+    def test_compute_metadata_hash_no_arc89_native_allows_any_hash(self) -> None:
+        """Test that without ARC89 native, any hash is accepted."""
+        body = MetadataBody(raw_bytes=b'{"name":"Test"}')
+        flags = MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(immutable=True),  # No arc89_native
+        )
+        metadata = AssetMetadata(
+            asset_id=123,
+            body=body,
+            flags=flags,
+            deprecated_by=0,
+        )
+        # Create a non-matching hash
+        arbitrary_hash = b"ANY_HASH_WITHOUT_ARC89_OK___" + b"\x00" * 4
+        assert len(arbitrary_hash) == 32
+
+        # This should succeed because arc89_native is not set
+        result = metadata.compute_metadata_hash(asa_am=arbitrary_hash)
+        assert result == arbitrary_hash
+
+    def test_compute_metadata_hash_arc89_native_enforce_disabled(self) -> None:
+        """Test that enforce_arc89_native_hash_match=False disables the check."""
+        body = MetadataBody(raw_bytes=b'{"name":"Test"}')
+        flags = MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(arc89_native=True, immutable=True),
+        )
+        metadata = AssetMetadata(
+            asset_id=123,
+            body=body,
+            flags=flags,
+            deprecated_by=0,
+        )
+        # Create a non-matching hash
+        wrong_hash = b"WRONG_HASH_BUT_CHECK_DISABLED_" + b"\x00" * 2
+        assert len(wrong_hash) == 32
+
+        # This should succeed because enforcement is disabled
+        result = metadata.compute_metadata_hash(
+            asa_am=wrong_hash,
+            enforce_arc89_native_hash_match=False,
+        )
+        assert result == wrong_hash
 
 
 class TestAssetMetadataRecord:

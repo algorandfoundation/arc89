@@ -525,3 +525,175 @@ def test_fail_metadata_size_mismatch(
 
     with pytest.raises(LogicError, match=err.METADATA_SIZE_MISMATCH):
         composer.send()
+
+
+def test_fail_asa_metadata_hash_mismatch(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    arc89_partial_uri: str,
+) -> None:
+    """
+    Test that metadata creation fails when:
+    - ASA has a non-zero metadata hash (am)
+    - Metadata is flagged as ARC89 native
+    - Metadata is NOT flagged as ARC3
+    - The ASA's metadata hash does NOT match the computed hash
+    """
+    # Create an arbitrary wrong metadata hash that won't match computed
+    wrong_metadata_hash = b"WRONG_HASH_THAT_WILL_NOT_MATCH"
+    assert len(wrong_metadata_hash) < 32
+    wrong_metadata_hash = wrong_metadata_hash.ljust(32, b"\x00")
+
+    # Create ASA with ARC89-compliant URL and a non-matching metadata hash
+    asset_id = asa_metadata_registry_client.algorand.send.asset_create(
+        params=AssetCreateParams(
+            sender=asset_manager.address,
+            manager=asset_manager.address,
+            total=42,
+            url=arc89_partial_uri,  # ARC89 compliant URL, NOT ARC3 (no #arc3 suffix)
+            metadata_hash=wrong_metadata_hash,
+        )
+    ).asset_id
+
+    # Create metadata with ARC89 native flag and immutable (required for non-zero am)
+    # Note: NOT setting arc3 flag
+    metadata = AssetMetadata(
+        asset_id=asset_id,
+        body=MetadataBody(raw_bytes=b'{"name":"Test"}'),
+        flags=MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(arc89_native=True, immutable=True),
+        ),
+        deprecated_by=0,
+    )
+
+    with pytest.raises(LogicError, match=re.escape(err.ASA_METADATA_HASH_MISMATCH)):
+        create_metadata(
+            asset_manager=asset_manager,
+            asa_metadata_registry_client=asa_metadata_registry_client,
+            asset_id=asset_id,
+            metadata=metadata,
+        )
+
+
+def test_arc89_native_with_matching_metadata_hash(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    arc89_partial_uri: str,
+) -> None:
+    """
+    Test that metadata creation SUCCEEDS when:
+    - ASA has a non-zero metadata hash (am)
+    - Metadata is flagged as ARC89 native
+    - Metadata is NOT flagged as ARC3
+    - The ASA's metadata hash MATCHES the computed hash
+
+    Note: This test demonstrates that when the ASA has no metadata hash (zero am),
+    the contract computes and sets the hash correctly. We verify the computed hash
+    matches what the SDK computes.
+    """
+    # Create ASA without metadata hash first (the contract will compute it)
+    asset_id = asa_metadata_registry_client.algorand.send.asset_create(
+        params=AssetCreateParams(
+            sender=asset_manager.address,
+            manager=asset_manager.address,
+            total=42,
+            url=arc89_partial_uri,  # ARC89 compliant URL, NOT ARC3
+        )
+    ).asset_id
+
+    # Create metadata with ARC89 native flag
+    metadata_body = MetadataBody(raw_bytes=b'{"name":"Test"}')
+    flags = MetadataFlags(
+        reversible=ReversibleFlags.empty(),
+        irreversible=IrreversibleFlags(
+            arc89_native=True
+        ),  # No immutable needed since no am
+    )
+    metadata = AssetMetadata(
+        asset_id=asset_id,
+        body=metadata_body,
+        flags=flags,
+        deprecated_by=0,
+    )
+
+    # This should succeed - the contract computes the hash since am is zero
+    create_metadata(
+        asset_manager=asset_manager,
+        asa_metadata_registry_client=asa_metadata_registry_client,
+        asset_id=asset_id,
+        metadata=metadata,
+    )
+
+    # Verify the metadata was created and hash matches SDK computation
+    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
+        asset_id
+    )
+    assert box_value is not None
+    created_metadata = AssetMetadataBox.parse(asset_id=asset_id, value=box_value)
+    assert created_metadata.header.flags.irreversible.arc89_native
+    assert not created_metadata.header.flags.irreversible.arc3
+    # The contract-computed hash should match what the SDK computes
+    assert (
+        created_metadata.header.metadata_hash == metadata.compute_arc89_metadata_hash()
+    )
+
+
+def test_arc89_native_with_arc3_bypasses_hash_check(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    arc89_partial_uri: str,
+) -> None:
+    """
+    Test that metadata creation SUCCEEDS when:
+    - ASA has a non-zero metadata hash (am)
+    - Metadata is flagged as ARC89 native
+    - Metadata IS flagged as ARC3
+    - The hash check is bypassed because ARC3 uses its own hash convention
+    """
+    # Create an arbitrary hash that won't match the computed hash
+    arbitrary_hash = b"ARC3_COMPUTED_HASH_EXAMPLE_OK__"
+    assert len(arbitrary_hash) < 32
+    arbitrary_hash = arbitrary_hash.ljust(32, b"\x00")
+
+    # Create ASA with ARC89+ARC3 compliant URL
+    arc89_arc3_url = arc89_partial_uri + const.ARC3_URL_SUFFIX.decode()
+    asset_id = asa_metadata_registry_client.algorand.send.asset_create(
+        params=AssetCreateParams(
+            sender=asset_manager.address,
+            manager=asset_manager.address,
+            total=42,
+            url=arc89_arc3_url,
+            metadata_hash=arbitrary_hash,
+        )
+    ).asset_id
+
+    # Create metadata with both ARC89 native AND ARC3 flags (and immutable for non-zero am)
+    metadata = AssetMetadata.from_json(
+        asset_id=asset_id,
+        json_obj=create_arc3_payload(name="ARC3 + ARC89 Test"),
+        flags=MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(
+                arc89_native=True, arc3=True, immutable=True
+            ),
+        ),
+    )
+
+    # This should succeed because ARC3 flag bypasses the hash check
+    create_metadata(
+        asset_manager=asset_manager,
+        asa_metadata_registry_client=asa_metadata_registry_client,
+        asset_id=asset_id,
+        metadata=metadata,
+    )
+
+    # Verify the metadata was created with the ASA's metadata hash
+    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
+        asset_id
+    )
+    assert box_value is not None
+    created_metadata = AssetMetadataBox.parse(asset_id=asset_id, value=box_value)
+    assert created_metadata.header.flags.irreversible.arc89_native
+    assert created_metadata.header.flags.irreversible.arc3
+    assert created_metadata.header.metadata_hash == arbitrary_hash
