@@ -14,7 +14,7 @@ an AlgoKit-generated ARC-56 AppClient for simulation and write operations.
 from __future__ import annotations
 
 from . import bitmasks, constants, enums, flags
-from .codec import Arc90Compliance, Arc90Uri
+from .codec import Arc90Compliance, Arc90Uri, complete_partial_asset_url
 from .deployments import DEFAULT_DEPLOYMENTS
 from .errors import (
     AsaMetadataRegistryError,
@@ -27,6 +27,7 @@ from .errors import (
     MetadataArc3Error,
     MetadataDriftError,
     MetadataEncodingError,
+    MetadataHashMismatchError,
     MetadataNotFoundError,
     MissingAppClientError,
     RegistryResolutionError,
@@ -79,6 +80,7 @@ __all__ = [
     # Codec
     "Arc90Uri",
     "Arc90Compliance",
+    "complete_partial_asset_url",
     # Errors
     "AsaMetadataRegistryError",
     "AsaNotFoundError",
@@ -90,6 +92,7 @@ __all__ = [
     "MetadataArc3Error",
     "MetadataDriftError",
     "MetadataEncodingError",
+    "MetadataHashMismatchError",
     "MetadataNotFoundError",
     "MissingAppClientError",
     "RegistryResolutionError",
