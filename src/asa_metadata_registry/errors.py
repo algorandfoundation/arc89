@@ -57,3 +57,12 @@ class MetadataDriftError(AsaMetadataRegistryError, RuntimeError):
 
 class RegistryResolutionError(AsaMetadataRegistryError, RuntimeError):
     """Raised when the registry app id cannot be resolved from inputs."""
+
+
+class MetadataHashMismatchError(AsaMetadataRegistryError, ValueError):
+    """
+    Raised when the ASA metadata hash (am) does not match the computed hash.
+
+    Per ARC-89: if an ASA has a non-zero metadata hash and is flagged as ARC89 native
+    but not ARC3 compliant, the ASA's metadata hash must match the computed hash.
+    """

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from . import bitmasks, enums
 from . import constants as const
-from .errors import BoxParseError, InvalidPageIndexError
+from .errors import BoxParseError, InvalidPageIndexError, MetadataHashMismatchError
 from .hashing import (
     MAX_UINT8,
     compute_header_hash,
@@ -712,24 +712,19 @@ class AssetMetadataBox:
         params: RegistryParameters | None = None,
         asa_am: bytes | None = None,
         enforce_immutable_on_override: bool = True,
+        enforce_arc89_native_hash_match: bool = True,
     ) -> bytes:
         """
         Compute the *effective* metadata hash for this record.
 
         If `asa_am` is provided and non-zero, returns it (ASA `am` override case).
+        If `enforce_arc89_native_hash_match` is True (default), when ARC89 native is set
+        but ARC3 is not, the ASA's `am` must match the computed metadata hash.
         """
         p = params or get_default_registry_params()
 
-        if asa_am is not None and _is_nonzero_32(asa_am):
-            if (
-                enforce_immutable_on_override
-                and not self.header.flags.irreversible.immutable
-            ):
-                raise ValueError("ASA `am` override requires immutable metadata")
-            return asa_am
-
         identifiers = self.header.expected_identifiers(body=self.body, params=p)
-        return compute_metadata_hash(
+        computed_hash = compute_metadata_hash(
             asset_id=self.asset_id,
             metadata_identifiers=identifiers,
             reversible_flags=self.header.flags.reversible_byte,
@@ -737,6 +732,27 @@ class AssetMetadataBox:
             metadata=self.body.raw_bytes,
             page_size=p.page_size,
         )
+
+        if asa_am is not None and _is_nonzero_32(asa_am):
+            if (
+                enforce_immutable_on_override
+                and not self.header.flags.irreversible.immutable
+            ):
+                raise ValueError("ASA `am` override requires immutable metadata")
+            # ARC89 native without ARC3: am must match computed hash
+            if (
+                enforce_arc89_native_hash_match
+                and self.header.is_arc89_native
+                and not self.header.is_arc3_compliant
+                and asa_am != computed_hash
+            ):
+                raise MetadataHashMismatchError(
+                    "ASA Metadata Hash (am) does not match the computed hash; "
+                    "ARC89 native metadata without ARC3 requires matching hashes"
+                )
+            return asa_am
+
+        return computed_hash
 
     def hash_matches(
         self,
@@ -804,6 +820,7 @@ class AssetMetadataRecord:
         params: RegistryParameters | None = None,
         asa_am: bytes | None = None,
         enforce_immutable_on_override: bool = True,
+        enforce_arc89_native_hash_match: bool = True,
     ) -> bytes:
         return AssetMetadataBox(
             asset_id=self.asset_id, header=self.header, body=self.body
@@ -811,6 +828,7 @@ class AssetMetadataRecord:
             params=params,
             asa_am=asa_am,
             enforce_immutable_on_override=enforce_immutable_on_override,
+            enforce_arc89_native_hash_match=enforce_arc89_native_hash_match,
         )
 
     def hash_matches(
@@ -928,6 +946,7 @@ class AssetMetadata:
         *,
         asa_am: bytes | None = None,
         enforce_immutable_on_override: bool = True,
+        enforce_arc89_native_hash_match: bool = True,
     ) -> bytes:
         """
         Compute the effective on-chain metadata hash.
@@ -936,7 +955,13 @@ class AssetMetadata:
         (ASA Asset Metadata Hash (`am`) override behavior per ARC-89). In that case,
         the registry does not validate the `am` content, but ARC-89 requires the
         metadata to be immutable at creation.
+
+        If `enforce_arc89_native_hash_match` is True (default), when ARC89 native is set
+        but ARC3 is not, the ASA's `am` must match the computed metadata hash.
         """
+
+        computed_hash = self.compute_arc89_metadata_hash()
+
         if asa_am is not None:
             if len(asa_am) != 32:
                 raise ValueError("ASA `am` override must be exactly 32 bytes")
@@ -946,9 +971,20 @@ class AssetMetadata:
                     and not self.flags.irreversible.immutable
                 ):
                     raise ValueError("ASA `am` override requires immutable metadata")
+                # ARC89 native without ARC3: am must match computed hash
+                if (
+                    enforce_arc89_native_hash_match
+                    and self.is_arc89_native
+                    and not self.is_arc3_compliant
+                    and asa_am != computed_hash
+                ):
+                    raise MetadataHashMismatchError(
+                        "ASA Metadata Hash (am) does not match the computed hash; "
+                        "ARC89 native metadata without ARC3 requires matching hashes"
+                    )
                 return asa_am
 
-        return self.compute_arc89_metadata_hash()
+        return computed_hash
 
     def get_mbr_delta(self, *, old_size: int | None = None) -> MbrDelta:
         p = get_default_registry_params()
