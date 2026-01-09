@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from . import bitmasks, enums
 from . import constants as const
-from .errors import BoxParseError, InvalidPageIndexError
+from .errors import BoxParseError, InvalidPageIndexError, MetadataHashMismatchError
 from .hashing import (
     MAX_UINT8,
     compute_header_hash,
@@ -721,8 +721,6 @@ class AssetMetadataBox:
         If `enforce_arc89_native_hash_match` is True (default), when ARC89 native is set
         but ARC3 is not, the ASA's `am` must match the computed metadata hash.
         """
-        from .errors import MetadataHashMismatchError
-
         p = params or get_default_registry_params()
 
         identifiers = self.header.expected_identifiers(body=self.body, params=p)
@@ -961,7 +959,6 @@ class AssetMetadata:
         If `enforce_arc89_native_hash_match` is True (default), when ARC89 native is set
         but ARC3 is not, the ASA's `am` must match the computed metadata hash.
         """
-        from .errors import MetadataHashMismatchError
 
         computed_hash = self.compute_arc89_metadata_hash()
 
