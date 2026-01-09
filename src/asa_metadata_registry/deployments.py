@@ -46,7 +46,7 @@ DEFAULT_DEPLOYMENTS: Final[Mapping[str, RegistryDeployment]] = {
     "mainnet": RegistryDeployment(
         network="mainnet",
         genesis_hash_b64=MAINNET_GH_B64,
-        app_id=None,  # MainNet app id was TBD in the draft spec snapshot used to build this SDK.
+        app_id=None,  # MainNet app id is TBD.
         creator_address=MAINNET_TRUSTED_DEPLOYER_ADDR,
         arc90_uri_netauth=None,
     ),
