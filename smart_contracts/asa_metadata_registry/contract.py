@@ -431,11 +431,12 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
                 uint=irreversible_flags.as_uint64(), size=UInt64(const.BYTE_SIZE)
             ),
         )
-        if asset_id.metadata_hash != Bytes(
-            const.BYTES32_SIZE * b"\x00"
-        ):  # Not empty metadata hash
+
+        asa_metadata_hash = asset_id.metadata_hash
+        has_am = asa_metadata_hash != Bytes(const.BYTES32_SIZE * b"\x00")
+        if has_am:
             assert self._is_immutable(asset_id), err.REQUIRES_IMMUTABLE
-            metadata_hash = asset_id.metadata_hash
+            metadata_hash = asa_metadata_hash
         else:
             metadata_hash = self._compute_metadata_hash(asset_id)
         self._set_metadata_hash(asset_id, metadata_hash)
@@ -447,6 +448,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             assert self._is_arc3_compliant(asset_id), err.ASA_NOT_ARC3_COMPLIANT
         if self._is_arc89_native(asset_id):
             assert self._is_arc89_compliant(asset_id), err.ASA_NOT_ARC89_COMPLIANT
+            if has_am and not self._is_arc3(asset_id):
+                assert asa_metadata_hash == self._compute_metadata_hash(
+                    asset_id
+                ), err.ASA_METADATA_HASH_MISMATCH
 
         self._emit_updated_event(asset_id, metadata_hash)
 
