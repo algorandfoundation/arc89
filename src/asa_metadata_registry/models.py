@@ -16,7 +16,6 @@ from .hashing import (
 from .validation import (
     decode_metadata_json,
     encode_metadata_json,
-    is_arc3_metadata,
     validate_arc3_schema,
 )
 
@@ -1006,11 +1005,8 @@ class AssetMetadata:
         deprecated_by: int = 0,
         arc3_compliant: bool = False,
     ) -> AssetMetadata:
-        # Auto-detect ARC-3 metadata if not explicitly specified
-        is_arc3 = arc3_compliant or is_arc3_metadata(json_obj)
-
         # Validate ARC-3 schema if metadata contains ARC-3 fields
-        if is_arc3:
+        if arc3_compliant:
             validate_arc3_schema(json_obj)
 
         body_raw_bytes = encode_metadata_json(json_obj)
@@ -1019,7 +1015,7 @@ class AssetMetadata:
 
         # Set arc3 flag if detected and not overridden by explicit flags
         final_flags = flags
-        if final_flags is None and is_arc3:
+        if final_flags is None and arc3_compliant:
             final_flags = MetadataFlags(
                 reversible=ReversibleFlags.empty(),
                 irreversible=IrreversibleFlags(arc3=True),
