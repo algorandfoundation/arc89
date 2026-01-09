@@ -2,7 +2,7 @@
 
 # ARC-89: ASA Metadata Registry
 
-The ASA Metadata Registry reference implementation implements the [ARC-89 specification](https://github.com/cusma/ARCs/blob/arc89/ARCs/arc-0089.md)
+The ASA Metadata Registry reference implementation implements the [ARC-89 specification](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0089.md)
 in Algorand Python and provides a Python SDK.
 
 ## Examples
