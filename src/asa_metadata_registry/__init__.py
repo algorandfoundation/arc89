@@ -61,6 +61,7 @@ from .registry import AsaMetadataRegistry, RegistryConfig
 from .validation import (
     decode_metadata_json,
     encode_metadata_json,
+    is_arc3_metadata,
     validate_arc3_schema,
 )
 from .write.writer import AsaMetadataRegistryWrite, WriteOptions
@@ -128,5 +129,6 @@ __all__ = [
     # Validation
     "encode_metadata_json",
     "decode_metadata_json",
+    "is_arc3_metadata",
     "validate_arc3_schema",
 ]

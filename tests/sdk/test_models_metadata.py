@@ -543,6 +543,7 @@ class TestAssetMetadata:
         metadata = AssetMetadata.from_json(
             asset_id=111,
             json_obj=obj,
+            arc3_compliant=True,
         )
 
         assert decode_metadata_json(metadata.body.raw_bytes) == obj
@@ -555,6 +556,7 @@ class TestAssetMetadata:
             AssetMetadata.from_json(
                 asset_id=222,
                 json_obj=obj,
+                arc3_compliant=True,
             )
 
     def test_compute_metadata_hash_arc89_native_no_arc3_mismatch_raises(self) -> None:

@@ -2,15 +2,19 @@
 
 # ARC-89: ASA Metadata Registry
 
-An _experimental_ repository [DeepWiki](https://deepwiki.com/algorandfoundation/arc89)
-can be used as additional documentation.
+The ASA Metadata Registry reference implementation implements the [ARC-89 specification](https://github.com/cusma/ARCs/blob/arc89/ARCs/arc-0089.md)
+in Algorand Python and provides a Python SDK.
+
+## Examples
+
+Use the [Jupyter Notebook](./notebooks) and interact with the SDK examples!
+
+> An _experimental_ repository [DeepWiki](https://deepwiki.com/algorandfoundation/arc89)
+> can be used as additional documentation.
 
 ## ASA Metadata Registry Reference Implementation
 
-The ASA Metadata Registry implements the [ARC-89 specification](https://github.com/cusma/ARCs/blob/arc89/ARCs/arc-0089.md)
-in Algorand Python.
-
-The reference implementation produces the [ARC-56 App Spec](https://github.com/algorandfoundation/arc89/blob/main/smart_contracts/artifacts/asa_metadata_registry/AsaMetadataRegistry.arc56.json),
+The Algorand Python reference implementation produces the [ARC-56 App Spec](https://github.com/algorandfoundation/arc89/blob/main/smart_contracts/artifacts/asa_metadata_registry/AsaMetadataRegistry.arc56.json),
 which can be used by AlgoKit to generate the App Client in Python or TypeScript:
 
 ```shell
@@ -39,23 +43,32 @@ pip install asa-metadata-registry
 ### Quick start
 
 The following examples use the TestNet deployment of the ASA Metadata Registry and
-assume `CALLER_MNEMONIC` environment variable is set for the AVM interactions.
+assume `CALLER_MNEMONIC` environment variable is available in `.env.testnet` for
+the AVM interactions.
 
 #### Algod read
 
 ```python
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
 from algokit_utils import AlgorandClient
 from asa_metadata_registry import DEFAULT_DEPLOYMENTS, AsaMetadataRegistry, MetadataSource
 
+project_root = Path("/your/path/to/arc89")
+load_dotenv(dotenv_path=project_root / ".env.testnet")
+
 algorand_client = AlgorandClient.testnet()
 testnet_deployment = DEFAULT_DEPLOYMENTS["testnet"]
+asset_id = int(os.environ["ARC3_NFT_ID"])
 
 registry = AsaMetadataRegistry.from_algod(
     algod=algorand_client.client.algod,
     app_id=testnet_deployment.app_id
 )
 
-record = registry.read.get_asset_metadata(asset_id=753324095, source=MetadataSource.BOX)
+record = registry.read.get_asset_metadata(asset_id=asset_id, source=MetadataSource.BOX)
 print(record.header.metadata_hash.hex())
 print(record.json.get("name"))
 ```
@@ -63,13 +76,21 @@ print(record.json.get("name"))
 #### AVM-parity read (simulate)
 
 ```python
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
 from algokit_utils import AlgorandClient
 from asa_metadata_registry import DEFAULT_DEPLOYMENTS, AsaMetadataRegistry
 from asa_metadata_registry._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 
+project_root = Path("/your/path/to/arc89")
+load_dotenv(dotenv_path=project_root / ".env.testnet")
+
 algorand_client = AlgorandClient.testnet()
 testnet_deployment = DEFAULT_DEPLOYMENTS["testnet"]
 caller = algorand_client.account.from_environment(name="CALLER")
+asset_id = int(os.environ["ARC3_NFT_ID"])
 
 testnet_app_client = algorand_client.client.get_typed_app_client_by_id(
     AsaMetadataRegistryClient,
@@ -79,8 +100,8 @@ testnet_app_client = algorand_client.client.get_typed_app_client_by_id(
 )
 registry = AsaMetadataRegistry.from_app_client(testnet_app_client)
 
-header = registry.read.avm().arc89_get_metadata_header(asset_id=753324095)
-page0 = registry.read.avm().arc89_get_metadata(asset_id=753324095, page=0)
+header = registry.read.avm().arc89_get_metadata_header(asset_id=asset_id)
+page0 = registry.read.avm().arc89_get_metadata(asset_id=asset_id, page=0)
 
 print(header)
 print(page0.page_content)
@@ -89,10 +110,15 @@ print(page0.page_content)
 #### Write (create metadata)
 
 ```python
+from pathlib import Path
+from dotenv import load_dotenv
+
 from algokit_utils import AlgorandClient, AssetCreateParams
 from asa_metadata_registry import DEFAULT_DEPLOYMENTS, Arc90Uri, AsaMetadataRegistry, AssetMetadata
 from asa_metadata_registry._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 
+project_root = Path("/your/path/to/arc89")
+load_dotenv(dotenv_path=project_root / ".env.testnet")
 
 algorand_client = AlgorandClient.testnet()
 testnet_deployment = DEFAULT_DEPLOYMENTS["testnet"]
