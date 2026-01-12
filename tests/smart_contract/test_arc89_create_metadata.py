@@ -1,4 +1,3 @@
-import base64
 import json
 import re
 
@@ -11,7 +10,6 @@ from algokit_utils import (
 
 from asa_metadata_registry import (
     AssetMetadata,
-    AssetMetadataBox,
     IrreversibleFlags,
     MetadataBody,
     MetadataFlags,
@@ -21,7 +19,6 @@ from asa_metadata_registry import constants as const
 from asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
-from asa_metadata_registry.codec import asset_id_to_box_name
 from smart_contracts.asa_metadata_registry import errors as err
 from tests.helpers.factories import (
     compute_arc3_metadata_hash,
@@ -32,6 +29,7 @@ from tests.helpers.utils import (
     build_create_metadata_composer,
     create_mbr_payment,
     create_metadata,
+    get_metadata_from_state,
 )
 
 
@@ -60,22 +58,14 @@ def test_create_metadata(
     )
     assert mbr_delta.amount == creation_mbr_delta.amount
 
-    box_response = (
-        asa_metadata_registry_client.algorand.client.algod.application_box_by_name(
-            asa_metadata_registry_client.app_id, asset_id_to_box_name(metadata.asset_id)
-        )
+    created_metadata = get_metadata_from_state(
+        asa_metadata_registry_client, metadata.asset_id
     )
-    assert box_response is not None
-
-    parsed_box = AssetMetadataBox.parse(
-        asset_id=metadata.asset_id,
-        value=base64.b64decode(box_response["value"]),
-    )
-    assert parsed_box.body.raw_bytes == metadata.body.raw_bytes
-    assert parsed_box.header.flags == metadata.flags
-    assert parsed_box.header.deprecated_by == metadata.deprecated_by
-    assert parsed_box.header.identifiers == metadata.identifiers_byte
-    assert parsed_box.header.metadata_hash == metadata.compute_metadata_hash()
+    assert created_metadata.body.raw_bytes == metadata.body.raw_bytes
+    assert created_metadata.header.flags == metadata.flags
+    assert created_metadata.header.deprecated_by == metadata.deprecated_by
+    assert created_metadata.header.identifiers == metadata.identifiers_byte
+    assert created_metadata.header.metadata_hash == metadata.compute_metadata_hash()
 
 
 @pytest.mark.parametrize(
@@ -136,14 +126,7 @@ def test_arc3_compliance(
         metadata=metadata,
     )
 
-    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
-        asset_id
-    )
-    assert box_value is not None
-    created_metadata = AssetMetadataBox.parse(
-        asset_id=asset_id,
-        value=box_value,
-    )
+    created_metadata = get_metadata_from_state(asa_metadata_registry_client, asset_id)
     assert created_metadata.header.flags.irreversible.arc3 == arc3_compliant
     if arc89_native:
         assert created_metadata.header.flags.irreversible.arc89_native
@@ -180,14 +163,7 @@ def test_arc89_native_arc3_url_compliance(
         metadata=metadata,
     )
 
-    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
-        asset_id
-    )
-    assert box_value is not None
-    created_metadata = AssetMetadataBox.parse(
-        asset_id=asset_id,
-        value=box_value,
-    )
+    created_metadata = get_metadata_from_state(asa_metadata_registry_client, asset_id)
     assert created_metadata.header.flags.irreversible.arc3
     assert created_metadata.header.flags.irreversible.arc89_native
 
@@ -229,14 +205,7 @@ def test_arc3_metadata_hash(
         metadata=metadata,
     )
 
-    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
-        asset_id
-    )
-    assert box_value is not None
-    created_metadata = AssetMetadataBox.parse(
-        asset_id=asset_id,
-        value=box_value,
-    )
+    created_metadata = get_metadata_from_state(asa_metadata_registry_client, asset_id)
     assert created_metadata.header.flags.irreversible.arc3
     assert created_metadata.header.metadata_hash == arc3_metadata_hash
 
@@ -644,11 +613,7 @@ def test_arc89_native_with_matching_metadata_hash(
     )
 
     # Verify the metadata was created and hash matches SDK computation
-    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
-        asset_id
-    )
-    assert box_value is not None
-    created_metadata = AssetMetadataBox.parse(asset_id=asset_id, value=box_value)
+    created_metadata = get_metadata_from_state(asa_metadata_registry_client, asset_id)
     assert created_metadata.header.flags.irreversible.arc89_native
     assert not created_metadata.header.flags.irreversible.arc3
     # The contract-computed hash should match what the SDK computes
@@ -707,11 +672,7 @@ def test_arc89_native_with_arc3_bypasses_hash_check(
     )
 
     # Verify the metadata was created with the ASA's metadata hash
-    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
-        asset_id
-    )
-    assert box_value is not None
-    created_metadata = AssetMetadataBox.parse(asset_id=asset_id, value=box_value)
+    created_metadata = get_metadata_from_state(asa_metadata_registry_client, asset_id)
     assert created_metadata.header.flags.irreversible.arc89_native
     assert created_metadata.header.flags.irreversible.arc3
     assert created_metadata.header.metadata_hash == arbitrary_hash

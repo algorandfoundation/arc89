@@ -290,6 +290,21 @@ def get_mbr_delta_payment(
     )
 
 
+def get_metadata_from_state(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    asset_id: int,
+) -> AssetMetadataBox:
+    """Fetch and parse metadata from box storage state."""
+    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
+        asset_id
+    )
+    assert box_value is not None, f"Metadata box not found for asset {asset_id}"
+    return AssetMetadataBox.parse(
+        asset_id=asset_id,
+        value=box_value,
+    )
+
+
 def create_metadata(
     *,
     asset_manager: SigningAccount,
