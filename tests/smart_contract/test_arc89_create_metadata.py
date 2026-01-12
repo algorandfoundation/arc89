@@ -1,3 +1,4 @@
+import base64
 import json
 import re
 
@@ -20,6 +21,7 @@ from asa_metadata_registry import constants as const
 from asa_metadata_registry._generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
+from asa_metadata_registry.codec import asset_id_to_box_name
 from smart_contracts.asa_metadata_registry import errors as err
 from tests.helpers.factories import (
     compute_arc3_metadata_hash,
@@ -57,7 +59,23 @@ def test_create_metadata(
         metadata=metadata,
     )
     assert mbr_delta.amount == creation_mbr_delta.amount
-    # TODO: Verify Asset Metadata Box contents matches fixture data
+
+    box_response = (
+        asa_metadata_registry_client.algorand.client.algod.application_box_by_name(
+            asa_metadata_registry_client.app_id, asset_id_to_box_name(metadata.asset_id)
+        )
+    )
+    assert box_response is not None
+
+    parsed_box = AssetMetadataBox.parse(
+        asset_id=metadata.asset_id,
+        value=base64.b64decode(box_response["value"]),
+    )
+    assert parsed_box.body.raw_bytes == metadata.body.raw_bytes
+    assert parsed_box.header.flags == metadata.flags
+    assert parsed_box.header.deprecated_by == metadata.deprecated_by
+    assert parsed_box.header.identifiers == metadata.identifiers_byte
+    assert parsed_box.header.metadata_hash == metadata.compute_metadata_hash()
 
 
 @pytest.mark.parametrize(
