@@ -305,6 +305,43 @@ def get_metadata_from_state(
     )
 
 
+def assert_metadata_replaced(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    old_metadata: AssetMetadata,
+    new_metadata: AssetMetadata,
+    prev_last_modified_round: int,
+) -> None:
+    """Verify that metadata was replaced correctly in the box storage.
+
+    Checks that:
+    - Body was replaced with new metadata body
+    - Identifiers and hash were automatically recomputed
+    - Last modified round was incremented
+    - Flags and deprecated_by remain unchanged from previous metadata
+    """
+    assert old_metadata.asset_id == new_metadata.asset_id, "Asset IDs do not match"
+    updated_metadata = get_metadata_from_state(
+        asa_metadata_registry_client, old_metadata.asset_id
+    )
+
+    assert updated_metadata.body.raw_bytes == new_metadata.body.raw_bytes
+    assert updated_metadata.header.identifiers == new_metadata.identifiers_byte
+    assert updated_metadata.header.flags == old_metadata.flags
+    assert updated_metadata.header.deprecated_by == old_metadata.deprecated_by
+    assert updated_metadata.header.last_modified_round > prev_last_modified_round
+
+    expected_metadata = AssetMetadata(
+        asset_id=old_metadata.asset_id,
+        body=new_metadata.body,
+        flags=old_metadata.flags,
+        deprecated_by=old_metadata.deprecated_by,
+    )
+    assert (
+        updated_metadata.header.metadata_hash
+        == expected_metadata.compute_metadata_hash()
+    )
+
+
 def create_metadata(
     *,
     asset_manager: SigningAccount,

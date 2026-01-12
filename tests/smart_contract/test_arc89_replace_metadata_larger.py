@@ -10,6 +10,7 @@ from smart_contracts.asa_metadata_registry import errors as err
 from smart_contracts.asa_metadata_registry.enums import MBR_DELTA_POS
 from tests.helpers.utils import (
     NON_EXISTENT_ASA_ID,
+    assert_metadata_replaced,
     build_replace_metadata_larger_composer,
     get_mbr_delta_payment,
     get_metadata_from_state,
@@ -41,25 +42,12 @@ def _assert_metadata_replaced_with_larger(
     assert mbr_delta.amount == replace_mbr_delta.amount
     assert mbr_delta.sign == MBR_DELTA_POS
 
-    updated_metadata = get_metadata_from_state(
-        asa_metadata_registry_client, old_metadata.asset_id
+    assert_metadata_replaced(
+        asa_metadata_registry_client,
+        old_metadata,
+        new_metadata,
+        last_modified_round_before,
     )
-    # Only metadata body is replaced (note identifiers and hash are automatically updated)
-    assert updated_metadata.body.raw_bytes == new_metadata.body.raw_bytes
-    assert updated_metadata.header.identifiers == new_metadata.identifiers_byte
-    assert updated_metadata.header.flags == old_metadata.flags
-    assert updated_metadata.header.deprecated_by == old_metadata.deprecated_by
-    expected_metadata = AssetMetadata(
-        asset_id=old_metadata.asset_id,
-        body=new_metadata.body,
-        flags=old_metadata.flags,
-        deprecated_by=old_metadata.deprecated_by,
-    )
-    assert (
-        updated_metadata.header.metadata_hash
-        == expected_metadata.compute_metadata_hash()
-    )
-    assert updated_metadata.header.last_modified_round > last_modified_round_before
 
 
 def test_replace_empty_with_short_metadata(

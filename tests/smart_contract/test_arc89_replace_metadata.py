@@ -14,38 +14,11 @@ from smart_contracts.asa_metadata_registry import errors as err
 from smart_contracts.asa_metadata_registry.enums import MBR_DELTA_NEG, MBR_DELTA_NULL
 from tests.helpers.utils import (
     NON_EXISTENT_ASA_ID,
+    assert_metadata_replaced,
     build_replace_metadata_composer,
     get_metadata_from_state,
     replace_metadata,
 )
-
-
-def _assert_metadata_replaced(
-    asa_metadata_registry_client: AsaMetadataRegistryClient,
-    prev_metadata: AssetMetadata,
-    new_metadata: AssetMetadata,
-    prev_last_modified_round: int,
-) -> None:
-    """Verify that metadata was replaced correctly in the box storage."""
-    updated_metadata = get_metadata_from_state(
-        asa_metadata_registry_client, prev_metadata.asset_id
-    )
-    # Only metadata body is replaced (note identifiers and hash are automatically updated)
-    assert updated_metadata.body.raw_bytes == new_metadata.body.raw_bytes
-    assert updated_metadata.header.identifiers == new_metadata.identifiers_byte
-    assert updated_metadata.header.flags == prev_metadata.flags
-    assert updated_metadata.header.deprecated_by == prev_metadata.deprecated_by
-    expected_metadata = AssetMetadata(
-        asset_id=prev_metadata.asset_id,
-        body=new_metadata.body,
-        flags=prev_metadata.flags,
-        deprecated_by=prev_metadata.deprecated_by,
-    )
-    assert (
-        updated_metadata.header.metadata_hash
-        == expected_metadata.compute_metadata_hash()
-    )
-    assert updated_metadata.header.last_modified_round > prev_last_modified_round
 
 
 def test_replace_with_empty_metadata(
@@ -71,7 +44,7 @@ def test_replace_with_empty_metadata(
     assert mbr_delta.amount == replace_mbr_delta.amount
     assert mbr_delta.sign == MBR_DELTA_NEG
 
-    _assert_metadata_replaced(
+    assert_metadata_replaced(
         asa_metadata_registry_client,
         mutable_short_metadata,
         empty_metadata,
@@ -103,7 +76,7 @@ def test_replace_with_smaller_metadata_size(
     assert mbr_delta.amount == replace_mbr_delta.amount
     assert mbr_delta.sign == MBR_DELTA_NEG
 
-    _assert_metadata_replaced(
+    assert_metadata_replaced(
         asa_metadata_registry_client,
         mutable_maxed_metadata,
         short_metadata,
@@ -134,7 +107,7 @@ def test_replace_with_equal_metadata_size(
     assert mbr_delta.amount == replace_mbr_delta.amount
     assert mbr_delta.sign == MBR_DELTA_NULL
 
-    _assert_metadata_replaced(
+    assert_metadata_replaced(
         asa_metadata_registry_client,
         mutable_maxed_metadata,
         maxed_metadata,
