@@ -10,8 +10,10 @@ from smart_contracts.asa_metadata_registry import errors as err
 from smart_contracts.asa_metadata_registry.enums import MBR_DELTA_POS
 from tests.helpers.utils import (
     NON_EXISTENT_ASA_ID,
+    assert_metadata_replaced,
     build_replace_metadata_larger_composer,
     get_mbr_delta_payment,
+    get_metadata_from_state,
     replace_metadata,
 )
 
@@ -23,6 +25,13 @@ def _assert_metadata_replaced_with_larger(
     new_metadata: AssetMetadata,
 ) -> None:
     replace_mbr_delta = new_metadata.get_mbr_delta(old_size=old_metadata.body.size)
+
+    # Fetch the last updated round before replacement
+    metadata_before = get_metadata_from_state(
+        asa_metadata_registry_client, old_metadata.asset_id
+    )
+    last_modified_round_before = metadata_before.header.last_modified_round
+
     mbr_delta = replace_metadata(
         asset_manager=asset_manager,
         asa_metadata_registry_client=asa_metadata_registry_client,
@@ -32,7 +41,13 @@ def _assert_metadata_replaced_with_larger(
     assert mbr_delta.amount == replace_mbr_delta.signed_amount
     assert mbr_delta.amount == replace_mbr_delta.amount
     assert mbr_delta.sign == MBR_DELTA_POS
-    # TODO: Verify Asset Metadata Box contents matches fixture data
+
+    assert_metadata_replaced(
+        asa_metadata_registry_client,
+        old_metadata,
+        new_metadata,
+        last_modified_round_before,
+    )
 
 
 def test_replace_empty_with_short_metadata(

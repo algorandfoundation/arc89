@@ -10,7 +10,6 @@ from algokit_utils import (
 
 from asa_metadata_registry import (
     AssetMetadata,
-    AssetMetadataBox,
     IrreversibleFlags,
     MetadataBody,
     MetadataFlags,
@@ -30,6 +29,7 @@ from tests.helpers.utils import (
     build_create_metadata_composer,
     create_mbr_payment,
     create_metadata,
+    get_metadata_from_state,
 )
 
 
@@ -57,7 +57,15 @@ def test_create_metadata(
         metadata=metadata,
     )
     assert mbr_delta.amount == creation_mbr_delta.amount
-    # TODO: Verify Asset Metadata Box contents matches fixture data
+
+    created_metadata = get_metadata_from_state(
+        asa_metadata_registry_client, metadata.asset_id
+    )
+    assert created_metadata.body.raw_bytes == metadata.body.raw_bytes
+    assert created_metadata.header.flags == metadata.flags
+    assert created_metadata.header.deprecated_by == metadata.deprecated_by
+    assert created_metadata.header.identifiers == metadata.identifiers_byte
+    assert created_metadata.header.metadata_hash == metadata.compute_metadata_hash()
 
 
 @pytest.mark.parametrize(
@@ -118,14 +126,7 @@ def test_arc3_compliance(
         metadata=metadata,
     )
 
-    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
-        asset_id
-    )
-    assert box_value is not None
-    created_metadata = AssetMetadataBox.parse(
-        asset_id=asset_id,
-        value=box_value,
-    )
+    created_metadata = get_metadata_from_state(asa_metadata_registry_client, asset_id)
     assert created_metadata.header.flags.irreversible.arc3 == arc3_compliant
     if arc89_native:
         assert created_metadata.header.flags.irreversible.arc89_native
@@ -162,14 +163,7 @@ def test_arc89_native_arc3_url_compliance(
         metadata=metadata,
     )
 
-    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
-        asset_id
-    )
-    assert box_value is not None
-    created_metadata = AssetMetadataBox.parse(
-        asset_id=asset_id,
-        value=box_value,
-    )
+    created_metadata = get_metadata_from_state(asa_metadata_registry_client, asset_id)
     assert created_metadata.header.flags.irreversible.arc3
     assert created_metadata.header.flags.irreversible.arc89_native
 
@@ -211,14 +205,7 @@ def test_arc3_metadata_hash(
         metadata=metadata,
     )
 
-    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
-        asset_id
-    )
-    assert box_value is not None
-    created_metadata = AssetMetadataBox.parse(
-        asset_id=asset_id,
-        value=box_value,
-    )
+    created_metadata = get_metadata_from_state(asa_metadata_registry_client, asset_id)
     assert created_metadata.header.flags.irreversible.arc3
     assert created_metadata.header.metadata_hash == arc3_metadata_hash
 
@@ -626,11 +613,7 @@ def test_arc89_native_with_matching_metadata_hash(
     )
 
     # Verify the metadata was created and hash matches SDK computation
-    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
-        asset_id
-    )
-    assert box_value is not None
-    created_metadata = AssetMetadataBox.parse(asset_id=asset_id, value=box_value)
+    created_metadata = get_metadata_from_state(asa_metadata_registry_client, asset_id)
     assert created_metadata.header.flags.irreversible.arc89_native
     assert not created_metadata.header.flags.irreversible.arc3
     # The contract-computed hash should match what the SDK computes
@@ -689,11 +672,7 @@ def test_arc89_native_with_arc3_bypasses_hash_check(
     )
 
     # Verify the metadata was created with the ASA's metadata hash
-    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
-        asset_id
-    )
-    assert box_value is not None
-    created_metadata = AssetMetadataBox.parse(asset_id=asset_id, value=box_value)
+    created_metadata = get_metadata_from_state(asa_metadata_registry_client, asset_id)
     assert created_metadata.header.flags.irreversible.arc89_native
     assert created_metadata.header.flags.irreversible.arc3
     assert created_metadata.header.metadata_hash == arbitrary_hash

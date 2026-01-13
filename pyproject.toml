@@ -7,7 +7,7 @@ name = "asa-metadata-registry"
 description = "ASA Metadata Registry (ARC-89) reference implementation and SDK"
 version = "0.7.0"
 authors = [{ name = "Cosimo Bassi", email = "cosimo.bassi@algorand.foundation" }]
-license = "LICENSE"
+license = { file = "LICENSE" }
 readme = "README.md"
 keywords = [ "algorand", "asa", "metadata", "arc89" ]
 requires-python = ">=3.10,<4"

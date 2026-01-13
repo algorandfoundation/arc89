@@ -3,14 +3,13 @@ from algokit_utils import CommonAppCallParams, LogicError, SigningAccount
 
 from asa_metadata_registry import (
     AssetMetadata,
-    AssetMetadataBox,
 )
 from asa_metadata_registry._generated.asa_metadata_registry_client import (
     Arc89SetImmutableArgs,
     AsaMetadataRegistryClient,
 )
 from smart_contracts.asa_metadata_registry import errors as err
-from tests.helpers.utils import NON_EXISTENT_ASA_ID
+from tests.helpers.utils import NON_EXISTENT_ASA_ID, get_metadata_from_state
 
 
 def test_set_immutable_flag(
@@ -29,11 +28,7 @@ def test_set_immutable_flag(
         params=CommonAppCallParams(sender=asset_manager.address),
     )
 
-    box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
-        asset_id
-    )
-    assert box_value is not None
-    parsed_box = AssetMetadataBox.parse(asset_id=asset_id, value=box_value)
+    parsed_box = get_metadata_from_state(asa_metadata_registry_client, asset_id)
     post_set = AssetMetadata(
         asset_id=asset_id,
         body=parsed_box.body,
