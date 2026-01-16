@@ -23,7 +23,7 @@ algokit-client-generator = "^2.2.0"
 algorand-python = { version = "==3.3.0", python = ">=3.12,<4" }
 black = "^25.12.0"
 ipykernel = "^7.1.0"
-ruff = "^0.14.11"
+ruff = "^0.14.13"
 mypy = "^1.19.1"
 pytest = "^9.0.2"
 pytest-cov = "^7.0.0"
