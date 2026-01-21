@@ -168,11 +168,14 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             start_index=old_asset_metadata_box_size, value=payload
         )
 
-    def _is_arc3(self, asa: Asset) -> bool:
+    def _is_arc3_metadata(self, asa: Asset) -> bool:
         return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_ARC3))
 
+    def _is_arc54_burnable(self, asa: Asset) -> bool:
+        return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_ARC54))
+
     def _is_arc89_native(self, asa: Asset) -> bool:
-        return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_ARC89_NATIVE))
+        return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_ARC89))
 
     def _is_immutable(self, asa: Asset) -> bool:
         return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_IMMUTABLE))
@@ -444,11 +447,13 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self._set_deprecated_by(asset_id, UInt64(0))
 
         # Postconditions
-        if self._is_arc3(asset_id):
+        if self._is_arc3_metadata(asset_id):
             assert self._is_arc3_compliant(asset_id), err.ASA_NOT_ARC3_COMPLIANT
+        if self._is_arc54_burnable(asset_id):
+            assert self._is_arc54_compliant(asset_id), err.ASA_NOT_ARC54_COMPLIANT
         if self._is_arc89_native(asset_id):
             assert self._is_arc89_compliant(asset_id), err.ASA_NOT_ARC89_COMPLIANT
-            if has_am and not self._is_arc3(asset_id):
+            if has_am and not self._is_arc3_metadata(asset_id):
                 assert asa_metadata_hash == self._compute_metadata_hash(
                     asset_id
                 ), err.ASA_METADATA_HASH_MISMATCH
@@ -741,7 +746,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         # Preconditions
         self._check_set_flag_preconditions(asset_id)
         assert (
-            flg.IRR_FLG_RESERVED_2 <= flag.as_uint64() <= flg.IRR_FLG_RESERVED_6
+            flg.IRR_FLG_ARC54 <= flag.as_uint64() <= flg.IRR_FLG_RESERVED_6
         ), err.FLAG_IDX_INVALID
 
         # Handle Not Idempotent
@@ -752,6 +757,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
             # Update Metadata Header
             self._update_header_excluding_flags_and_emit(asset_id)
+
+        # Postconditions
+        if self._is_arc54_burnable(asset_id):
+            assert self._is_arc54_compliant(asset_id), err.ASA_NOT_ARC54_COMPLIANT
 
     @arc4.abimethod
     def arc89_set_immutable(
