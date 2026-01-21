@@ -661,10 +661,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         mbr_i = Global.current_application_address.min_balance
         del self.asset_metadata[asset_id]
         mbr_delta_amount = mbr_i - Global.current_application_address.min_balance
-        itxn.Payment(
-            receiver=asset_id.manager if self._asa_exists(asset_id) else Txn.sender,
-            amount=mbr_delta_amount,
-        ).submit()
+        itxn.Payment(receiver=Txn.sender, amount=mbr_delta_amount).submit()
 
         arc4.emit(
             abi.Arc89MetadataDeleted(
