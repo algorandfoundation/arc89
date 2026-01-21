@@ -39,7 +39,7 @@ class AsaValidation(ARC4Contract):
 
     def _is_arc89_compliant(self, asa: Asset) -> bool:
         # This validation does not enforce ARC-90 compliance fragments (optional)
-        arc89_partial_uri = arc90_box_query(Global.current_application_id, Bytes())
+        arc89_partial_uri = arc90_box_query(Global.current_application_id.id, Bytes())
         asa_url = asa.url
 
         if asa_url.length < arc89_partial_uri.length:

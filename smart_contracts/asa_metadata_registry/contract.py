@@ -806,7 +806,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             Asset Metadata ARC-90 partial URI, without compliance fragment
         """
         return String.from_bytes(
-            arc90_box_query(Global.current_application_id, Bytes())
+            arc90_box_query(Global.current_application_id.id, Bytes())
         )
 
     @arc4.abimethod(readonly=True)
