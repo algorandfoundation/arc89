@@ -3,6 +3,7 @@ UNAUTHORIZED = "Unauthorized, must be the Asset Manager"
 
 ASA_NOT_EXIST = "The specified ASA does not exist"
 ASA_NOT_ARC3_COMPLIANT = "Invalid ARC-3 parameters (name or URL)"
+ASA_NOT_ARC54_COMPLIANT = "The ASA must not have a clawback address"
 ASA_NOT_ARC89_COMPLIANT = "Invalid ARC-89 partial URI"
 ASA_METADATA_HASH_MISMATCH = "ASA Metadata Hash (am) does not match the computed hash"
 
