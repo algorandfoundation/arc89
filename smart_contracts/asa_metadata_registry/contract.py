@@ -19,7 +19,7 @@ from algopy import (
 )
 
 from smart_contracts.asa_validation import AsaValidation
-from smart_contracts.avm_common import (
+from smart_contracts.avm_library import (
     arc90_box_query,
     ceil_div,
     trimmed_itob,

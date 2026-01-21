@@ -1,6 +1,6 @@
 from algopy import ARC4Contract, Asset, Bytes, Global, Txn, op
 
-from .avm_common import arc90_box_query, endswith, startswith
+from .avm_library import arc90_box_query, endswith, startswith
 from .constants import (
     ARC3_NAME,
     ARC3_NAME_SUFFIX,
