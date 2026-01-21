@@ -37,6 +37,10 @@ class AsaValidation(ARC4Contract):
 
         return False
 
+    def _is_arc54_compliant(self, asa: Asset) -> bool:
+        clawback, exists = op.AssetParamsGet.asset_clawback(asa)
+        return exists and clawback == Global.zero_address
+
     def _is_arc89_compliant(self, asa: Asset) -> bool:
         # This validation does not enforce ARC-90 compliance fragments (optional)
         arc89_partial_uri = arc90_box_query(Global.current_application_id.id, Bytes())
