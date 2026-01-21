@@ -154,6 +154,7 @@ def arc_89_asa(
             decimals=0,
             default_frozen=False,
             manager=asset_manager.address,
+            clawback=asset_manager.address,
         )
     ).asset_id
 
@@ -164,6 +165,16 @@ def flags_arc3_compliant() -> MetadataFlags:
     return MetadataFlags(
         reversible=ReversibleFlags.empty(),
         irreversible=IrreversibleFlags(arc3=True),
+    )
+
+
+@pytest.fixture(scope="function")
+def flags_arc54_burnable() -> MetadataFlags:
+    return MetadataFlags(
+        reversible=ReversibleFlags.empty(),
+        irreversible=IrreversibleFlags(
+            reserved_2=True
+        ),  # TODO: burnable=True when implemented in SDK
     )
 
 
