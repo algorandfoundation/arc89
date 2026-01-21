@@ -1,13 +1,20 @@
 from collections.abc import Callable
 
 import pytest
-from algokit_utils import CommonAppCallParams, LogicError, SigningAccount
+from algokit_utils import (
+    AssetConfigParams,
+    CommonAppCallParams,
+    LogicError,
+    SigningAccount,
+)
 
 from asa_metadata_registry import (
     AssetMetadata,
+    bitmasks,
     flags,
 )
 from asa_metadata_registry._generated.asa_metadata_registry_client import (
+    Arc89GetMetadataHeaderArgs,
     Arc89SetIrreversibleFlagArgs,
     AsaMetadataRegistryClient,
 )
@@ -18,7 +25,6 @@ from tests.helpers.utils import NON_EXISTENT_ASA_ID, set_flag_and_verify
 @pytest.mark.parametrize(
     "irreversible_flag,check_fn",
     [
-        (flags.IRR_FLG_RESERVED_2, lambda m: m.flags.irreversible.reserved_2),
         (flags.IRR_FLG_RESERVED_3, lambda m: m.flags.irreversible.reserved_3),
         (flags.IRR_FLG_RESERVED_4, lambda m: m.flags.irreversible.reserved_4),
         (flags.IRR_FLG_RESERVED_5, lambda m: m.flags.irreversible.reserved_5),
@@ -42,6 +48,33 @@ def test_set_irreversible_flags(
         mutable_short_metadata,
         irreversible_flag,
         check_fn,
+        reversible=False,
+    )
+
+
+def test_set_burnable_flag(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    mutable_short_metadata: AssetMetadata,
+) -> None:
+    # Verify initial state is False
+    assert not mutable_short_metadata.flags.irreversible.reserved_2
+
+    asa_metadata_registry_client.algorand.send.asset_config(
+        AssetConfigParams(
+            sender=asset_manager.address,
+            asset_id=mutable_short_metadata.asset_id,
+            manager=asset_manager.address,
+        )
+    )
+
+    # Set flag to True and verify
+    set_flag_and_verify(
+        asa_metadata_registry_client,
+        asset_manager,
+        mutable_short_metadata,
+        flags.IRR_FLG_RESERVED_2,
+        lambda m: True,
         reversible=False,
     )
 
@@ -120,6 +153,26 @@ def test_fail_flag_idx_invalid(
         asa_metadata_registry_client.send.arc89_set_irreversible_flag(
             args=Arc89SetIrreversibleFlagArgs(
                 asset_id=mutable_short_metadata.asset_id, flag=invalid_flag
+            ),
+            params=CommonAppCallParams(sender=asset_manager.address),
+        )
+
+
+def test_fail_not_arc54_compliant(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    mutable_short_metadata: AssetMetadata,
+) -> None:
+    irr_flags = asa_metadata_registry_client.send.arc89_get_metadata_header(
+        args=Arc89GetMetadataHeaderArgs(asset_id=mutable_short_metadata.asset_id)
+    ).abi_return.irreversible_flags
+    burnable = bool(irr_flags & bitmasks.MASK_IRR_RESERVED_2)
+    assert not burnable
+
+    with pytest.raises(LogicError, match=err.ASA_NOT_ARC54_COMPLIANT):
+        asa_metadata_registry_client.send.arc89_set_irreversible_flag(
+            args=Arc89SetIrreversibleFlagArgs(
+                asset_id=mutable_short_metadata.asset_id, flag=flags.IRR_FLG_RESERVED_2
             ),
             params=CommonAppCallParams(sender=asset_manager.address),
         )

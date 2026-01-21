@@ -210,6 +210,34 @@ def test_arc3_metadata_hash(
     assert created_metadata.header.metadata_hash == arc3_metadata_hash
 
 
+def test_arc54_burnable(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    flags_arc54_burnable: MetadataFlags,
+) -> None:
+    asset_id = asa_metadata_registry_client.algorand.send.asset_create(
+        params=AssetCreateParams(
+            sender=asset_manager.address,
+            manager=asset_manager.address,
+            total=42,
+        )
+    ).asset_id
+
+    metadata = AssetMetadata.from_bytes(
+        asset_id=asset_id,
+        metadata_bytes=b"",
+        flags=flags_arc54_burnable,
+    )
+    # TODO: assert metadata.is_burnable once implemented in SDK
+
+    create_metadata(
+        asset_manager=asset_manager,
+        asa_metadata_registry_client=asa_metadata_registry_client,
+        asset_id=asset_id,
+        metadata=metadata,
+    )
+
+
 def test_fail_asa_not_exists(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
@@ -404,6 +432,27 @@ def test_fail_asa_not_arc3_compliant(
             asset_manager=asset_manager,
             asa_metadata_registry_client=asa_metadata_registry_client,
             asset_id=asset_id,
+            metadata=metadata,
+        )
+
+
+def test_fail_not_arc54_compliant(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    arc_89_asa: int,
+    flags_arc54_burnable: MetadataFlags,
+) -> None:
+    metadata = AssetMetadata.from_bytes(
+        asset_id=arc_89_asa,
+        metadata_bytes=b"",
+        flags=flags_arc54_burnable,
+    )
+
+    with pytest.raises(LogicError, match=re.escape(err.ASA_NOT_ARC54_COMPLIANT)):
+        create_metadata(
+            asset_manager=asset_manager,
+            asa_metadata_registry_client=asa_metadata_registry_client,
+            asset_id=arc_89_asa,
             metadata=metadata,
         )
 
