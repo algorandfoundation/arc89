@@ -1085,7 +1085,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         if total_pages > 0:
             assert page.as_uint64() < total_pages, err.PAGE_IDX_INVALID
         else:
-            assert False, err.EMPTY_METADATA  # noqa: B011
+            op.err(err.EMPTY_METADATA)
 
         page_content = self._get_metadata_page(asset_id, page.as_uint64())
         page_hash = self._compute_page_hash(asset_id, page.as_uint64(), page_content)
