@@ -1796,8 +1796,8 @@ arc89_set_irreversible_flag_bool_merge@5:
     // )
     getbit
     // smart_contracts/asa_metadata_registry/contract.py:754
-    // if not existing_value:
-    bnz arc89_set_irreversible_flag_after_if_else@7
+    // if not already_set:
+    bnz arc89_set_irreversible_flag_after_if_else@9
     // smart_contracts/asa_metadata_registry/contract.py:755-756
     // # Set Irreversible Flag
     // self._set_irreversible_flag_value(asset_id, flag.as_uint64())
@@ -1809,8 +1809,6 @@ arc89_set_irreversible_flag_bool_merge@5:
     // # Update Metadata Header
     // self._update_header_excluding_flags_and_emit(asset_id)
     callsub _update_header_excluding_flags_and_emit
-
-arc89_set_irreversible_flag_after_if_else@7:
     // smart_contracts/asa_metadata_registry/contract.py:97-100
     // return self.asset_metadata.box(asa).extract(
     //     start_index=const.IDX_IRREVERSIBLE_FLAGS,
