@@ -67,6 +67,9 @@ def test_set_burnable_flag(
             manager=asset_manager.address,
         )
     )
+    assert not asa_metadata_registry_client.algorand.asset.get_by_id(
+        mutable_short_metadata.asset_id
+    ).clawback
 
     # Set flag to True and verify
     set_flag_and_verify(
@@ -74,7 +77,7 @@ def test_set_burnable_flag(
         asset_manager,
         mutable_short_metadata,
         flags.IRR_FLG_RESERVED_2,
-        lambda m: True,
+        lambda m: m.flags.irreversible.reserved_2,
         reversible=False,
     )
 
