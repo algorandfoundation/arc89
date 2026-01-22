@@ -1,6 +1,6 @@
 from algopy import ARC4Contract, Asset, Bytes, Global, Txn, op
 
-from .avm_common import arc90_box_query, endswith, startswith
+from .avm_library import arc90_box_query, endswith, startswith
 from .constants import (
     ARC3_NAME,
     ARC3_NAME_SUFFIX,
@@ -37,9 +37,13 @@ class AsaValidation(ARC4Contract):
 
         return False
 
+    def _is_arc54_compliant(self, asa: Asset) -> bool:
+        clawback, exists = op.AssetParamsGet.asset_clawback(asa)
+        return exists and clawback == Global.zero_address
+
     def _is_arc89_compliant(self, asa: Asset) -> bool:
         # This validation does not enforce ARC-90 compliance fragments (optional)
-        arc89_partial_uri = arc90_box_query(Global.current_application_id, Bytes())
+        arc89_partial_uri = arc90_box_query(Global.current_application_id.id, Bytes())
         asa_url = asa.url
 
         if asa_url.length < arc89_partial_uri.length:

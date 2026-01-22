@@ -19,7 +19,7 @@ from algopy import (
 )
 
 from smart_contracts.asa_validation import AsaValidation
-from smart_contracts.avm_common import (
+from smart_contracts.avm_library import (
     arc90_box_query,
     ceil_div,
     trimmed_itob,
@@ -168,11 +168,14 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             start_index=old_asset_metadata_box_size, value=payload
         )
 
-    def _is_arc3(self, asa: Asset) -> bool:
+    def _is_arc3_metadata(self, asa: Asset) -> bool:
         return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_ARC3))
 
+    def _is_arc54_burnable(self, asa: Asset) -> bool:
+        return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_ARC54))
+
     def _is_arc89_native(self, asa: Asset) -> bool:
-        return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_ARC89_NATIVE))
+        return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_ARC89))
 
     def _is_immutable(self, asa: Asset) -> bool:
         return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_IMMUTABLE))
@@ -444,11 +447,13 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self._set_deprecated_by(asset_id, UInt64(0))
 
         # Postconditions
-        if self._is_arc3(asset_id):
+        if self._is_arc3_metadata(asset_id):
             assert self._is_arc3_compliant(asset_id), err.ASA_NOT_ARC3_COMPLIANT
+        if self._is_arc54_burnable(asset_id):
+            assert self._is_arc54_compliant(asset_id), err.ASA_NOT_ARC54_COMPLIANT
         if self._is_arc89_native(asset_id):
             assert self._is_arc89_compliant(asset_id), err.ASA_NOT_ARC89_COMPLIANT
-            if has_am and not self._is_arc3(asset_id):
+            if has_am and not self._is_arc3_metadata(asset_id):
                 assert asa_metadata_hash == self._compute_metadata_hash(
                     asset_id
                 ), err.ASA_METADATA_HASH_MISMATCH
@@ -661,10 +666,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         mbr_i = Global.current_application_address.min_balance
         del self.asset_metadata[asset_id]
         mbr_delta_amount = mbr_i - Global.current_application_address.min_balance
-        itxn.Payment(
-            receiver=asset_id.manager if self._asa_exists(asset_id) else Txn.sender,
-            amount=mbr_delta_amount,
-        ).submit()
+        itxn.Payment(receiver=Txn.sender, amount=mbr_delta_amount).submit()
 
         arc4.emit(
             abi.Arc89MetadataDeleted(
@@ -744,17 +746,21 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         # Preconditions
         self._check_set_flag_preconditions(asset_id)
         assert (
-            flg.IRR_FLG_RESERVED_2 <= flag.as_uint64() <= flg.IRR_FLG_RESERVED_6
+            flg.IRR_FLG_ARC54 <= flag.as_uint64() <= flg.IRR_FLG_RESERVED_6
         ), err.FLAG_IDX_INVALID
 
         # Handle Not Idempotent
-        existing_value = self._get_irreversible_flag_value(asset_id, flag.as_uint64())
-        if not existing_value:
+        already_set = self._get_irreversible_flag_value(asset_id, flag.as_uint64())
+        if not already_set:
             # Set Irreversible Flag
             self._set_irreversible_flag_value(asset_id, flag.as_uint64())
 
             # Update Metadata Header
             self._update_header_excluding_flags_and_emit(asset_id)
+
+            # Postconditions
+            if self._is_arc54_burnable(asset_id):
+                assert self._is_arc54_compliant(asset_id), err.ASA_NOT_ARC54_COMPLIANT
 
     @arc4.abimethod
     def arc89_set_immutable(
@@ -809,7 +815,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             Asset Metadata ARC-90 partial URI, without compliance fragment
         """
         return String.from_bytes(
-            arc90_box_query(Global.current_application_id, Bytes())
+            arc90_box_query(Global.current_application_id.id, Bytes())
         )
 
     @arc4.abimethod(readonly=True)
@@ -1085,7 +1091,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         if total_pages > 0:
             assert page.as_uint64() < total_pages, err.PAGE_IDX_INVALID
         else:
-            assert False, err.EMPTY_METADATA  # noqa: B011
+            op.err(err.EMPTY_METADATA)
 
         page_content = self._get_metadata_page(asset_id, page.as_uint64())
         page_hash = self._compute_page_hash(asset_id, page.as_uint64(), page_content)

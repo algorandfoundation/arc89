@@ -315,7 +315,7 @@ class IrreversibleFlags:
 
     arc3: bool = False
     arc89_native: bool = False
-    reserved_2: bool = False
+    reserved_2: bool = False  # TODO: Rename to `burnable`
     reserved_3: bool = False
     reserved_4: bool = False
     reserved_5: bool = False

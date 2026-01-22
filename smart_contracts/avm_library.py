@@ -1,4 +1,4 @@
-from algopy import Application, Bytes, Global, TemplateVar, UInt64, op, subroutine
+from algopy import Bytes, Global, TemplateVar, UInt64, op, subroutine
 
 from .constants import (
     ARC90_URI_APP_PATH,
@@ -57,7 +57,7 @@ def endswith(s: Bytes, suffix: Bytes) -> bool:
 
 
 @subroutine
-def arc90_box_query(app: Application, box_name: Bytes) -> Bytes:
+def arc90_box_query(app_id: UInt64, box_name: Bytes) -> Bytes:
     if Global.genesis_hash == Bytes.from_base64(MAINNET_GH_B64):
         arc90_netauth = Bytes()
     else:
@@ -66,7 +66,7 @@ def arc90_box_query(app: Application, box_name: Bytes) -> Bytes:
         ARC90_URI_SCHEME
         + arc90_netauth
         + ARC90_URI_APP_PATH
-        + itoa(app.id)
+        + itoa(app_id)
         + ARC90_URI_BOX_QUERY
         + box_name
     )

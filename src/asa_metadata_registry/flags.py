@@ -1,5 +1,7 @@
 """Copy of ASA Metadata Registry smart contract flags."""
 
+# TODO: Copy of flags from ASA Metadata Registry smart contract and update TS SDK.
+
 from typing import Final
 
 # ---------------------------------------------------------------------------

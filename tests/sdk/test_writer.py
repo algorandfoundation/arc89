@@ -466,7 +466,7 @@ class TestSetIrreversibleFlag:
         writer.set_irreversible_flag(
             asset_manager=asset_manager,
             asset_id=mutable_short_metadata.asset_id,
-            flag_index=flags.IRR_FLG_RESERVED_2,
+            flag_index=flags.IRR_FLG_RESERVED_3,
         )
         # Verify flag was set
         box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
@@ -476,7 +476,7 @@ class TestSetIrreversibleFlag:
         updated = AssetMetadataBox.parse(
             asset_id=mutable_short_metadata.asset_id, value=box_value
         )
-        assert updated.header.flags.irreversible.reserved_2 is True
+        assert updated.header.flags.irreversible.reserved_3 is True
 
 
 class TestSetImmutable:
@@ -609,7 +609,7 @@ class TestWriteIntegration:
         writer.set_irreversible_flag(
             asset_manager=asset_manager,
             asset_id=arc_89_asa,
-            flag_index=flags.IRR_FLG_RESERVED_2,
+            flag_index=flags.IRR_FLG_RESERVED_3,
         )
 
         # Verify both flags are set
@@ -619,7 +619,7 @@ class TestWriteIntegration:
         assert box_value is not None
         result = AssetMetadataBox.parse(asset_id=arc_89_asa, value=box_value)
         assert result.header.is_arc20_smart_asa is True
-        assert result.header.flags.irreversible.reserved_2 is True
+        assert result.header.flags.irreversible.reserved_3 is True
 
 
 # ================================================================
