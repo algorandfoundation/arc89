@@ -750,17 +750,17 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         ), err.FLAG_IDX_INVALID
 
         # Handle Not Idempotent
-        existing_value = self._get_irreversible_flag_value(asset_id, flag.as_uint64())
-        if not existing_value:
+        already_set = self._get_irreversible_flag_value(asset_id, flag.as_uint64())
+        if not already_set:
             # Set Irreversible Flag
             self._set_irreversible_flag_value(asset_id, flag.as_uint64())
 
             # Update Metadata Header
             self._update_header_excluding_flags_and_emit(asset_id)
 
-        # Postconditions
-        if self._is_arc54_burnable(asset_id):
-            assert self._is_arc54_compliant(asset_id), err.ASA_NOT_ARC54_COMPLIANT
+            # Postconditions
+            if self._is_arc54_burnable(asset_id):
+                assert self._is_arc54_compliant(asset_id), err.ASA_NOT_ARC54_COMPLIANT
 
     @arc4.abimethod
     def arc89_set_immutable(
