@@ -255,7 +255,7 @@ class ReversibleFlags:
 
     arc20: bool = False
     arc62: bool = False
-    reserved_2: bool = False
+    reserved_2: bool = False  # TODO: Rename to `ntt`
     reserved_3: bool = False
     reserved_4: bool = False
     reserved_5: bool = False
