@@ -20,18 +20,18 @@ repository = "https://github.com/algorandfoundation/arc89"
 
 [tool.poetry.group.contracts.dependencies]
 algokit-client-generator = "^2.2.0"
-algorand-python = { version = "==3.3.0", python = ">=3.12,<4" }
-black = "^25.12.0"
-ipykernel = "^7.1.0"
-ruff = "^0.14.13"
+algorand-python = { version = "==3.4.0", python = ">=3.12,<4" }
+black = "^26.1.0"
+ipykernel = "^7.2.0"
+ruff = "^0.15.0"
 mypy = "^1.19.1"
 pytest = "^9.0.2"
 pytest-cov = "^7.0.0"
 python-dotenv = "^1.0.0"
-pip = "^25.3"
+pip = "^26.0.1"
 pip-audit = "^2.10.0"
 pre-commit = "^4.5.1"
-puyapy = { version = "==5.6.0", python = ">=3.12,<4" }
+puyapy = { version = "==5.7.1", python = ">=3.12,<4" }
 urllib3 = "^2.6.3"
 
 [tool.setuptools]
