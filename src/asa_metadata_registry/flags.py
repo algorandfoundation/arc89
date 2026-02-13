@@ -28,7 +28,7 @@ REV_FLG_RESERVED_7: Final[int] = 7  # reserved; default init False
 # Irreversible Flags byte (set by ASA Manager Address)
 IRR_FLG_ARC3: Final[int] = 0  # creation-only
 IRR_FLG_ARC89_NATIVE: Final[int] = 1  # creation-only
-IRR_FLG_RESERVED_2: Final[int] = 2  # reserved; default init False
+IRR_FLG_ARC54: Final[int] = 2  # any time
 IRR_FLG_RESERVED_3: Final[int] = 3  # reserved; default init False
 IRR_FLG_RESERVED_4: Final[int] = 4  # reserved; default init False
 IRR_FLG_RESERVED_5: Final[int] = 5  # reserved; default init False

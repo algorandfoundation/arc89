@@ -132,7 +132,7 @@ class TestIrreversibleFlags:
         flags = IrreversibleFlags.empty()
         assert flags.arc3 is False
         assert flags.arc89_native is False
-        assert flags.reserved_2 is False
+        assert flags.burnable is False
         assert flags.reserved_3 is False
         assert flags.reserved_4 is False
         assert flags.reserved_5 is False
@@ -179,7 +179,7 @@ class TestIrreversibleFlags:
         flags = IrreversibleFlags(
             arc3=True,
             arc89_native=True,
-            reserved_2=True,
+            burnable=True,
             reserved_3=True,
             reserved_4=True,
             reserved_5=True,
@@ -222,7 +222,7 @@ class TestIrreversibleFlags:
         flags = IrreversibleFlags.from_byte(0xFF)
         assert flags.arc3 is True
         assert flags.arc89_native is True
-        assert flags.reserved_2 is True
+        assert flags.burnable is True
         assert flags.reserved_3 is True
         assert flags.reserved_4 is True
         assert flags.reserved_5 is True
@@ -242,7 +242,7 @@ class TestIrreversibleFlags:
 
     def test_round_trip_conversion(self) -> None:
         """Test round-trip conversion flags -> byte -> flags."""
-        original = IrreversibleFlags(arc3=True, reserved_2=True, immutable=True)
+        original = IrreversibleFlags(arc3=True, burnable=True, immutable=True)
         byte_val = original.byte_value
         reconstructed = IrreversibleFlags.from_byte(byte_val)
         assert reconstructed == original
