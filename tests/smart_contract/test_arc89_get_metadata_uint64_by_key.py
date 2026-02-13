@@ -4,7 +4,7 @@ from algokit_utils import LogicError
 from asa_metadata_registry import (
     AssetMetadata,
 )
-from asa_metadata_registry._generated.asa_metadata_registry_client import (
+from asa_metadata_registry.generated.asa_metadata_registry_client import (
     Arc89GetMetadataUint64ByKeyArgs,
     AsaMetadataRegistryClient,
 )

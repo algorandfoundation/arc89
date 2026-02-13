@@ -197,7 +197,7 @@ def main(action: str, contract_name: str | None = None) -> None:
     artifact_path = root_path / "artifacts"
     # Define the client output directory
     client_output_path = (
-        root_path.parent / "src" / "asa_metadata_registry" / "_generated"
+        root_path.parent / "src" / "asa_metadata_registry" / "generated"
     )
 
     # Filter contracts based on an optional specific contract name.
