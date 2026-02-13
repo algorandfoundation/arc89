@@ -606,6 +606,12 @@ class TestWriteIntegration:
             flag_index=flags.REV_FLG_ARC20,
             value=True,
         )
+        writer.set_reversible_flag(
+            asset_manager=asset_manager,
+            asset_id=arc_89_asa,
+            flag_index=flags.REV_FLG_NTT,
+            value=True,
+        )
         writer.set_irreversible_flag(
             asset_manager=asset_manager,
             asset_id=arc_89_asa,
@@ -618,7 +624,8 @@ class TestWriteIntegration:
         )
         assert box_value is not None
         result = AssetMetadataBox.parse(asset_id=arc_89_asa, value=box_value)
-        assert result.header.is_arc20_smart_asa is True
+        assert result.header.flags.reversible.arc20 is True
+        assert result.header.flags.reversible.ntt is True
         assert result.header.flags.irreversible.reserved_3 is True
 
 

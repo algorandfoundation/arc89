@@ -255,7 +255,7 @@ class ReversibleFlags:
 
     arc20: bool = False
     arc62: bool = False
-    reserved_2: bool = False  # TODO: Rename to `ntt`
+    ntt: bool = False
     reserved_3: bool = False
     reserved_4: bool = False
     reserved_5: bool = False
@@ -269,8 +269,8 @@ class ReversibleFlags:
             value |= bitmasks.MASK_REV_ARC20
         if self.arc62:
             value |= bitmasks.MASK_REV_ARC62
-        if self.reserved_2:
-            value |= bitmasks.MASK_REV_RESERVED_2
+        if self.ntt:
+            value |= bitmasks.MASK_REV_NTT
         if self.reserved_3:
             value |= bitmasks.MASK_REV_RESERVED_3
         if self.reserved_4:
@@ -290,7 +290,7 @@ class ReversibleFlags:
         return ReversibleFlags(
             arc20=bool(value & bitmasks.MASK_REV_ARC20),
             arc62=bool(value & bitmasks.MASK_REV_ARC62),
-            reserved_2=bool(value & bitmasks.MASK_REV_RESERVED_2),
+            ntt=bool(value & bitmasks.MASK_REV_NTT),
             reserved_3=bool(value & bitmasks.MASK_REV_RESERVED_3),
             reserved_4=bool(value & bitmasks.MASK_REV_RESERVED_4),
             reserved_5=bool(value & bitmasks.MASK_REV_RESERVED_5),

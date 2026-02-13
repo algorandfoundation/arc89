@@ -26,7 +26,7 @@ class TestReversibleFlags:
         flags = ReversibleFlags.empty()
         assert flags.arc20 is False
         assert flags.arc62 is False
-        assert flags.reserved_2 is False
+        assert flags.ntt is False
         assert flags.reserved_3 is False
         assert flags.reserved_4 is False
         assert flags.reserved_5 is False
@@ -61,7 +61,7 @@ class TestReversibleFlags:
         flags = ReversibleFlags(
             arc20=True,
             arc62=True,
-            reserved_2=True,
+            ntt=True,
             reserved_3=True,
             reserved_4=True,
             reserved_5=True,
@@ -97,7 +97,7 @@ class TestReversibleFlags:
         flags = ReversibleFlags.from_byte(0xFF)
         assert flags.arc20 is True
         assert flags.arc62 is True
-        assert flags.reserved_2 is True
+        assert flags.ntt is True
         assert flags.reserved_3 is True
         assert flags.reserved_4 is True
         assert flags.reserved_5 is True
