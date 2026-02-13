@@ -328,7 +328,7 @@ class IrreversibleFlags:
         if self.arc3:
             value |= bitmasks.MASK_IRR_ARC3
         if self.arc89_native:
-            value |= bitmasks.MASK_IRR_ARC89_NATIVE
+            value |= bitmasks.MASK_IRR_ARC89
         if self.burnable:
             value |= bitmasks.MASK_IRR_ARC54
         if self.reserved_3:
@@ -349,7 +349,7 @@ class IrreversibleFlags:
             raise ValueError(f"Byte value must be 0-255, got {value}")
         return IrreversibleFlags(
             arc3=bool(value & bitmasks.MASK_IRR_ARC3),
-            arc89_native=bool(value & bitmasks.MASK_IRR_ARC89_NATIVE),
+            arc89_native=bool(value & bitmasks.MASK_IRR_ARC89),
             burnable=bool(value & bitmasks.MASK_IRR_ARC54),
             reserved_3=bool(value & bitmasks.MASK_IRR_RESERVED_3),
             reserved_4=bool(value & bitmasks.MASK_IRR_RESERVED_4),

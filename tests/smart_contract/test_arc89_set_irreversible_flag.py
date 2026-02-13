@@ -142,7 +142,7 @@ def test_fail_immutable(
     "invalid_flag",
     [
         flags.IRR_FLG_IMMUTABLE,  # Cannot set immutable via this method
-        flags.IRR_FLG_ARC89_NATIVE,  # Can only be set at creation time
+        flags.IRR_FLG_ARC89,  # Can only be set at creation time
         flags.IRR_FLG_RESERVED_6 + 1,  # Out of valid range
     ],
 )

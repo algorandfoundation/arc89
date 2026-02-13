@@ -151,7 +151,7 @@ class TestIrreversibleFlags:
         """Test ARC-89 native flag."""
         flags = IrreversibleFlags(arc89_native=True)
         assert flags.arc89_native is True
-        assert flags.byte_value == bitmasks.MASK_IRR_ARC89_NATIVE
+        assert flags.byte_value == bitmasks.MASK_IRR_ARC89
         assert flags.byte_value == 0b00000010
 
     def test_immutable_flag(self) -> None:
@@ -169,7 +169,7 @@ class TestIrreversibleFlags:
         assert flags.immutable is True
         assert flags.byte_value == (
             bitmasks.MASK_IRR_ARC3
-            | bitmasks.MASK_IRR_ARC89_NATIVE
+            | bitmasks.MASK_IRR_ARC89
             | bitmasks.MASK_IRR_IMMUTABLE
         )
         assert flags.byte_value == 0b10000011
