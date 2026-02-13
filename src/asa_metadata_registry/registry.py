@@ -6,11 +6,11 @@ from typing import Any
 
 from algosdk.v2client.algod import AlgodClient
 
-from .generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 from .algod import AlgodBoxReader
 from .app_client import import_generated_client
 from .codec import Arc90Uri
 from .errors import MissingAppClientError, RegistryResolutionError
+from .generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 from .read.avm import AsaMetadataRegistryAvmRead
 from .read.reader import AsaMetadataRegistryRead
 from .write.writer import AsaMetadataRegistryWrite

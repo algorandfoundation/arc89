@@ -28,11 +28,11 @@ from asa_metadata_registry import (
     get_default_registry_params,
 )
 from asa_metadata_registry import constants as const
+from asa_metadata_registry.algod import AlgodBoxReader
+from asa_metadata_registry.codec import asset_id_to_box_name, b64_encode
 from asa_metadata_registry.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
-from asa_metadata_registry.algod import AlgodBoxReader
-from asa_metadata_registry.codec import asset_id_to_box_name, b64_encode
 
 
 class TestAlgodBoxReaderGetBoxValue:

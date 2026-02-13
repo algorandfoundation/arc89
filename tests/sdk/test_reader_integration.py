@@ -12,10 +12,10 @@ from asa_metadata_registry import (
     AssetMetadata,
     MetadataSource,
 )
+from asa_metadata_registry.codec import asset_id_to_box_name, b64url_encode
 from asa_metadata_registry.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
-from asa_metadata_registry.codec import asset_id_to_box_name, b64url_encode
 
 # ================================================================
 # Test Reader with Uploaded Metadata
