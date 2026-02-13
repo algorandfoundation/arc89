@@ -4,7 +4,7 @@ from algokit_utils import (
     SigningAccount,
 )
 
-from asa_metadata_registry._generated.asa_metadata_registry_client import (
+from asa_metadata_registry.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryBareCallCreateParams,
     AsaMetadataRegistryClient,
     AsaMetadataRegistryFactory,

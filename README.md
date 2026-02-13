@@ -82,7 +82,7 @@ from dotenv import load_dotenv
 
 from algokit_utils import AlgorandClient
 from asa_metadata_registry import DEFAULT_DEPLOYMENTS, AsaMetadataRegistry
-from asa_metadata_registry._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
+from asa_metadata_registry.generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 
 project_root = Path("/your/path/to/arc89")
 load_dotenv(dotenv_path=project_root / ".env.testnet")
@@ -115,7 +115,7 @@ from dotenv import load_dotenv
 
 from algokit_utils import AlgorandClient, AssetCreateParams
 from asa_metadata_registry import DEFAULT_DEPLOYMENTS, Arc90Uri, AsaMetadataRegistry, AssetMetadata
-from asa_metadata_registry._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
+from asa_metadata_registry.generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 
 project_root = Path("/your/path/to/arc89")
 load_dotenv(dotenv_path=project_root / ".env.testnet")

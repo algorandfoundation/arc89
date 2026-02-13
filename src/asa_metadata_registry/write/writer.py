@@ -13,7 +13,7 @@ from algokit_utils import (
 )
 
 from .. import flags
-from .._generated.asa_metadata_registry_client import (
+from ..generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryComposer,
 )

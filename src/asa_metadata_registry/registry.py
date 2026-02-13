@@ -6,7 +6,7 @@ from typing import Any
 
 from algosdk.v2client.algod import AlgodClient
 
-from ._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
+from .generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 from .algod import AlgodBoxReader
 from .app_client import import_generated_client
 from .codec import Arc90Uri

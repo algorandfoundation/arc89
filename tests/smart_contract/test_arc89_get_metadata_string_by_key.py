@@ -5,7 +5,7 @@ from algokit_utils import LogicError, SigningAccount
 
 from asa_metadata_registry import AssetMetadata, MetadataBody, MetadataFlags
 from asa_metadata_registry import constants as const
-from asa_metadata_registry._generated.asa_metadata_registry_client import (
+from asa_metadata_registry.generated.asa_metadata_registry_client import (
     Arc89GetMetadataStringByKeyArgs,
     AsaMetadataRegistryClient,
 )

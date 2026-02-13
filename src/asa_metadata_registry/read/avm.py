@@ -4,7 +4,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from .._generated.asa_metadata_registry_client import AsaMetadataRegistryClient
+from ..generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 from ..errors import MissingAppClientError
 from ..models import (
     MbrDelta,
