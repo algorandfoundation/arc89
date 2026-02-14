@@ -172,9 +172,7 @@ def flags_arc3_compliant() -> MetadataFlags:
 def flags_arc54_burnable() -> MetadataFlags:
     return MetadataFlags(
         reversible=ReversibleFlags.empty(),
-        irreversible=IrreversibleFlags(
-            reserved_2=True
-        ),  # TODO: burnable=True when implemented in SDK
+        irreversible=IrreversibleFlags(burnable=True),
     )
 
 
