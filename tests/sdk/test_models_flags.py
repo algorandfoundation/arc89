@@ -61,7 +61,9 @@ class TestReversibleFlags:
         assert flags.arc20 is True
         assert flags.arc62 is True
         assert flags.ntt is True
-        assert flags.byte_value == (bitmasks.MASK_REV_ARC20 | bitmasks.MASK_REV_ARC62 | bitmasks.MASK_REV_NTT)
+        assert flags.byte_value == (
+            bitmasks.MASK_REV_ARC20 | bitmasks.MASK_REV_ARC62 | bitmasks.MASK_REV_NTT
+        )
         assert flags.byte_value == 0b00000111
 
     def test_all_flags_set(self) -> None:
@@ -112,7 +114,9 @@ class TestReversibleFlags:
 
     def test_from_byte_multiple(self) -> None:
         """Test from_byte with multiple flags."""
-        value = bitmasks.MASK_REV_ARC20 | bitmasks.MASK_REV_ARC62 | bitmasks.MASK_REV_NTT
+        value = (
+            bitmasks.MASK_REV_ARC20 | bitmasks.MASK_REV_ARC62 | bitmasks.MASK_REV_NTT
+        )
         flags = ReversibleFlags.from_byte(value)
         assert flags.arc20 is True
         assert flags.arc62 is True
@@ -197,7 +201,9 @@ class TestIrreversibleFlags:
 
     def test_multiple_flags(self) -> None:
         """Test multiple flags set simultaneously."""
-        flags = IrreversibleFlags(arc3=True, arc89_native=True, burnable=True, immutable=True)
+        flags = IrreversibleFlags(
+            arc3=True, arc89_native=True, burnable=True, immutable=True
+        )
         assert flags.arc3 is True
         assert flags.arc89_native is True
         assert flags.burnable is True
