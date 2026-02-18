@@ -586,7 +586,8 @@ class AsaMetadataRegistryWrite:
 
         if send_params is None:
             send_params = SendParams(
-                cover_app_call_inner_transaction_fees=opt.cover_app_call_inner_transaction_fees
+                cover_app_call_inner_transaction_fees=opt.cover_app_call_inner_transaction_fees,
+                populate_app_call_resources=opt.populate_app_call_resources,
             )
         composer.send(send_params=send_params)
 
@@ -622,7 +623,8 @@ class AsaMetadataRegistryWrite:
 
         if send_params is None:
             send_params = SendParams(
-                cover_app_call_inner_transaction_fees=opt.cover_app_call_inner_transaction_fees
+                cover_app_call_inner_transaction_fees=opt.cover_app_call_inner_transaction_fees,
+                populate_app_call_resources=opt.populate_app_call_resources,
             )
         composer.send(send_params=send_params)
 
@@ -652,7 +654,8 @@ class AsaMetadataRegistryWrite:
 
         if send_params is None:
             send_params = SendParams(
-                cover_app_call_inner_transaction_fees=opt.cover_app_call_inner_transaction_fees
+                cover_app_call_inner_transaction_fees=opt.cover_app_call_inner_transaction_fees,
+                populate_app_call_resources=opt.populate_app_call_resources,
             )
         composer.send(send_params=send_params)
 
@@ -683,6 +686,7 @@ class AsaMetadataRegistryWrite:
 
         if send_params is None:
             send_params = SendParams(
-                cover_app_call_inner_transaction_fees=opt.cover_app_call_inner_transaction_fees
+                cover_app_call_inner_transaction_fees=opt.cover_app_call_inner_transaction_fees,
+                populate_app_call_resources=opt.populate_app_call_resources,
             )
         composer.send(send_params=send_params)
