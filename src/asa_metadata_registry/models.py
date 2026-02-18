@@ -255,7 +255,7 @@ class ReversibleFlags:
 
     arc20: bool = False
     arc62: bool = False
-    reserved_2: bool = False  # TODO: Rename to `ntt`
+    ntt: bool = False
     reserved_3: bool = False
     reserved_4: bool = False
     reserved_5: bool = False
@@ -269,8 +269,8 @@ class ReversibleFlags:
             value |= bitmasks.MASK_REV_ARC20
         if self.arc62:
             value |= bitmasks.MASK_REV_ARC62
-        if self.reserved_2:
-            value |= bitmasks.MASK_REV_RESERVED_2
+        if self.ntt:
+            value |= bitmasks.MASK_REV_NTT
         if self.reserved_3:
             value |= bitmasks.MASK_REV_RESERVED_3
         if self.reserved_4:
@@ -290,7 +290,7 @@ class ReversibleFlags:
         return ReversibleFlags(
             arc20=bool(value & bitmasks.MASK_REV_ARC20),
             arc62=bool(value & bitmasks.MASK_REV_ARC62),
-            reserved_2=bool(value & bitmasks.MASK_REV_RESERVED_2),
+            ntt=bool(value & bitmasks.MASK_REV_NTT),
             reserved_3=bool(value & bitmasks.MASK_REV_RESERVED_3),
             reserved_4=bool(value & bitmasks.MASK_REV_RESERVED_4),
             reserved_5=bool(value & bitmasks.MASK_REV_RESERVED_5),
@@ -315,7 +315,7 @@ class IrreversibleFlags:
 
     arc3: bool = False
     arc89_native: bool = False
-    reserved_2: bool = False  # TODO: Rename to `burnable`
+    burnable: bool = False
     reserved_3: bool = False
     reserved_4: bool = False
     reserved_5: bool = False
@@ -328,9 +328,9 @@ class IrreversibleFlags:
         if self.arc3:
             value |= bitmasks.MASK_IRR_ARC3
         if self.arc89_native:
-            value |= bitmasks.MASK_IRR_ARC89_NATIVE
-        if self.reserved_2:
-            value |= bitmasks.MASK_IRR_RESERVED_2
+            value |= bitmasks.MASK_IRR_ARC89
+        if self.burnable:
+            value |= bitmasks.MASK_IRR_ARC54
         if self.reserved_3:
             value |= bitmasks.MASK_IRR_RESERVED_3
         if self.reserved_4:
@@ -349,8 +349,8 @@ class IrreversibleFlags:
             raise ValueError(f"Byte value must be 0-255, got {value}")
         return IrreversibleFlags(
             arc3=bool(value & bitmasks.MASK_IRR_ARC3),
-            arc89_native=bool(value & bitmasks.MASK_IRR_ARC89_NATIVE),
-            reserved_2=bool(value & bitmasks.MASK_IRR_RESERVED_2),
+            arc89_native=bool(value & bitmasks.MASK_IRR_ARC89),
+            burnable=bool(value & bitmasks.MASK_IRR_ARC54),
             reserved_3=bool(value & bitmasks.MASK_IRR_RESERVED_3),
             reserved_4=bool(value & bitmasks.MASK_IRR_RESERVED_4),
             reserved_5=bool(value & bitmasks.MASK_IRR_RESERVED_5),

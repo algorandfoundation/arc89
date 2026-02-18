@@ -20,7 +20,7 @@ from tests.helpers.utils import NON_EXISTENT_ASA_ID, set_flag_and_verify
     [
         (flags.REV_FLG_ARC20, lambda m: m.flags.reversible.arc20),
         (flags.REV_FLG_ARC62, lambda m: m.flags.reversible.arc62),
-        (flags.REV_FLG_RESERVED_2, lambda m: m.flags.reversible.reserved_2),
+        (flags.REV_FLG_NTT, lambda m: m.flags.reversible.ntt),
         (flags.REV_FLG_RESERVED_3, lambda m: m.flags.reversible.reserved_3),
         (flags.REV_FLG_RESERVED_4, lambda m: m.flags.reversible.reserved_4),
         (flags.REV_FLG_RESERVED_5, lambda m: m.flags.reversible.reserved_5),
