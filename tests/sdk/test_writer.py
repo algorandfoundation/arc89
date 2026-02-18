@@ -31,7 +31,7 @@ from asa_metadata_registry import (
     flags,
     get_default_registry_params,
 )
-from asa_metadata_registry._generated.asa_metadata_registry_client import (
+from asa_metadata_registry.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
 from asa_metadata_registry.write.writer import (
