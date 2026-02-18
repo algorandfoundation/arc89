@@ -189,59 +189,6 @@ class TestAsaMetadataRegistryWriteInit:
 
 
 # ================================================================
-# Group Builder Tests
-# ================================================================
-
-
-class TestBuildGroupMethods:
-    """Test group building methods."""
-
-    def test_build_create_metadata_group(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        arc_89_asa: int,
-    ) -> None:
-        """Test building create group for metadata."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        metadata = AssetMetadata.from_json(
-            asset_id=arc_89_asa,
-            json_obj={"name": "Test"},
-        )
-        composer = writer.build_create_metadata_group(
-            asset_manager=asset_manager, metadata=metadata
-        )
-        assert composer is not None
-
-    def test_build_delete_metadata_group(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test building delete group."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        composer = writer.build_delete_metadata_group(
-            asset_manager=asset_manager, asset_id=mutable_short_metadata.asset_id
-        )
-        assert composer is not None
-
-    def test_build_delete_with_options(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test building delete group with custom options."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        composer = writer.build_delete_metadata_group(
-            asset_manager=asset_manager,
-            asset_id=mutable_short_metadata.asset_id,
-        )
-        assert composer is not None
-
-
-# ================================================================
 # High-Level Send Method Tests
 # ================================================================
 
@@ -772,10 +719,12 @@ class TestBuildReplaceMetadataGroup:
             metadata_bytes=b"updated",
             validate_json_object=False,
         )
+        options = WriteOptions(extra_resources=2, fee_padding_txns=1)
         composer = writer.build_replace_metadata_group(
             asset_manager=asset_manager,
             metadata=new_metadata,
             assume_current_size=mutable_short_metadata.size,
+            options=options,
         )
         assert composer is not None
 
@@ -861,9 +810,11 @@ class TestBuildDeleteMetadataGroup:
     ) -> None:
         """Test building delete group with custom options."""
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        options = WriteOptions(extra_resources=1, fee_padding_txns=2)
         composer = writer.build_delete_metadata_group(
             asset_manager=asset_manager,
             asset_id=mutable_short_metadata.asset_id,
+            options=options,
         )
         assert composer is not None
 
