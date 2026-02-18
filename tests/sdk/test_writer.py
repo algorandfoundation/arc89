@@ -20,6 +20,7 @@ from algokit_utils import SendParams, SigningAccount
 from algosdk.error import AlgodHTTPError
 
 from asa_metadata_registry import (
+    AsaMetadataRegistryRead,
     AsaMetadataRegistryWrite,
     AssetMetadata,
     AssetMetadataBox,
@@ -966,6 +967,7 @@ class TestReplaceMetadataSlice:
         asa_metadata_registry_client: AsaMetadataRegistryClient,
         asset_manager: SigningAccount,
         mutable_short_metadata: AssetMetadata,
+        reader_with_algod: AsaMetadataRegistryRead,
     ) -> None:
         """Test replacing a slice of metadata."""
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
@@ -975,16 +977,25 @@ class TestReplaceMetadataSlice:
             offset=0,
             payload=b"patch",
         )
-        # Should complete without error
+        record = reader_with_algod.box.get_asset_metadata_record(
+            asset_id=mutable_short_metadata.asset_id,
+        )
+        assert record is not None
+        body = record.body.raw_bytes
+        assert body[:5].decode("utf-8") == "patch"
 
     def test_replace_slice_simulation(
         self,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
         asset_manager: SigningAccount,
         mutable_short_metadata: AssetMetadata,
+        reader_with_algod: AsaMetadataRegistryRead,
     ) -> None:
         """Test replacing slice simulation."""
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        record_before = reader_with_algod.box.get_asset_metadata_record(
+            asset_id=mutable_short_metadata.asset_id,
+        )
         writer.replace_metadata_slice(
             asset_manager=asset_manager,
             asset_id=mutable_short_metadata.asset_id,
@@ -992,3 +1003,7 @@ class TestReplaceMetadataSlice:
             payload=b"updated",
             simulate=SimulateOptions(),
         )
+        record_after = reader_with_algod.box.get_asset_metadata_record(
+            asset_id=mutable_short_metadata.asset_id,
+        )
+        assert record_before.body.raw_bytes == record_after.body.raw_bytes
