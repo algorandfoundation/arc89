@@ -16,7 +16,7 @@ Tests cover:
 from unittest.mock import Mock
 
 import pytest
-from algokit_utils import SendParams, SigningAccount
+from algokit_utils import AlgoAmount, CommonAppCallParams, SendParams, SigningAccount
 from algosdk.error import AlgodHTTPError
 
 from asa_metadata_registry import (
@@ -452,6 +452,59 @@ class TestDeleteMetadata:
             asa_metadata_registry_client.state.box.asset_metadata.get_value(
                 mutable_short_metadata.asset_id
             )
+
+
+# ================================================================
+# Single Transaction Compose Simulation Tests
+# ================================================================
+
+
+class TestWriteSingleTransactionSimulation:
+    """Test direct composer.simulate() for single-transaction writer methods."""
+
+    def test_simulate_set_reversible_flag_single_transaction(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        mutable_short_metadata: AssetMetadata,
+        reader_with_algod: AsaMetadataRegistryRead,
+    ) -> None:
+        """Test simulating set_reversible_flag via direct composer."""
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        min_fee = asa_metadata_registry_client.algorand.get_suggested_params().min_fee
+
+        before = reader_with_algod.box.get_asset_metadata_record(
+            asset_id=mutable_short_metadata.asset_id,
+        )
+
+        composer = writer.client.new_group()
+        composer.arc89_set_reversible_flag(
+            args=(mutable_short_metadata.asset_id, flags.REV_FLG_ARC20, True),
+            params=CommonAppCallParams(
+                sender=asset_manager.address, static_fee=AlgoAmount(micro_algo=min_fee)
+            ),
+        )
+
+        simulate = SimulateOptions()  # Any custom options can go here
+        simulate_result = composer.simulate(
+            allow_more_logs=simulate.allow_more_logs,
+            allow_empty_signatures=simulate.allow_empty_signatures,
+            allow_unnamed_resources=simulate.allow_unnamed_resources,
+            extra_opcode_budget=simulate.extra_opcode_budget,
+            exec_trace_config=simulate.exec_trace_config,
+            simulation_round=simulate.simulation_round,
+            skip_signatures=simulate.skip_signatures,
+        )
+
+        assert simulate_result is not None
+        assert simulate_result.simulate_response is not None
+        assert len(simulate_result.returns) == 1
+        assert simulate_result.returns[0].decode_error is None
+        assert simulate_result.returns[0].value is None
+        after = reader_with_algod.box.get_asset_metadata_record(
+            asset_id=mutable_short_metadata.asset_id
+        )
+        assert after == before
 
 
 # ================================================================
