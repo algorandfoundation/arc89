@@ -27,7 +27,6 @@ from asa_metadata_registry import (
     MbrDelta,
     MissingAppClientError,
     RegistryParameters,
-    SimulateOptions,
     WriteOptions,
     flags,
     get_default_registry_params,
@@ -260,43 +259,6 @@ class TestCreateMetadata:
         )
         assert isinstance(mbr_delta, MbrDelta)
         assert mbr_delta.is_positive
-
-    def test_create_simulation(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        arc_89_asa: int,
-    ) -> None:
-        """Test creating metadata simulation."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        metadata = AssetMetadata.from_json(
-            asset_id=arc_89_asa,
-            json_obj={"name": "Test Simulate"},
-        )
-        mbr_delta = writer.create_metadata(
-            asset_manager=asset_manager,
-            metadata=metadata,
-            simulate=SimulateOptions(),
-        )
-        assert isinstance(mbr_delta, MbrDelta)
-
-    def test_create_simulation_with_custom_options(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        short_metadata: AssetMetadata,
-    ) -> None:
-        """Test creating metadata simulation with custom SimulateOptions."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        sim_opts = SimulateOptions(
-            allow_empty_signatures=True, skip_signatures=True, allow_more_logs=True
-        )
-        mbr_delta = writer.create_metadata(
-            asset_manager=asset_manager,
-            metadata=short_metadata,
-            simulate=sim_opts,
-        )
-        assert isinstance(mbr_delta, MbrDelta)
 
     def test_create_with_custom_send_params(
         self,
@@ -888,27 +850,6 @@ class TestReplaceMetadata:
         )
         assert isinstance(mbr_delta, MbrDelta)
 
-    def test_replace_simulation(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test replace with simulation."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        new_metadata = AssetMetadata.from_bytes(
-            asset_id=mutable_short_metadata.asset_id,
-            metadata_bytes=b"new",
-            validate_json_object=False,
-        )
-        mbr_delta = writer.replace_metadata(
-            asset_manager=asset_manager,
-            metadata=new_metadata,
-            simulate=SimulateOptions(),
-            assume_current_size=mutable_short_metadata.size,
-        )
-        assert isinstance(mbr_delta, MbrDelta)
-
 
 class TestReplaceMetadataSlice:
     """Test replace_metadata_slice high-level method."""
@@ -934,27 +875,3 @@ class TestReplaceMetadataSlice:
         assert record is not None
         body = record.body.raw_bytes
         assert body[:5].decode("utf-8") == "patch"
-
-    def test_replace_slice_simulation(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-        reader_with_algod: AsaMetadataRegistryRead,
-    ) -> None:
-        """Test replacing slice simulation."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        record_before = reader_with_algod.box.get_asset_metadata_record(
-            asset_id=mutable_short_metadata.asset_id,
-        )
-        writer.replace_metadata_slice(
-            asset_manager=asset_manager,
-            asset_id=mutable_short_metadata.asset_id,
-            offset=5,
-            payload=b"updated",
-            simulate=SimulateOptions(),
-        )
-        record_after = reader_with_algod.box.get_asset_metadata_record(
-            asset_id=mutable_short_metadata.asset_id,
-        )
-        assert record_before.body.raw_bytes == record_after.body.raw_bytes

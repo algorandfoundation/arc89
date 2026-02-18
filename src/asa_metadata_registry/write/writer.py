@@ -435,7 +435,7 @@ class AsaMetadataRegistryWrite:
         send_params: SendParams | None,
         options: WriteOptions | None = None,
         composer: AsaMetadataRegistryComposer,
-        simulate: SimulateOptions | None,
+        simulate: SimulateOptions | None = None,
     ) -> SendAtomicTransactionComposerResults:
         """
         Send or simulate a transaction group.
@@ -469,13 +469,11 @@ class AsaMetadataRegistryWrite:
         metadata: AssetMetadata,
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
-        simulate: SimulateOptions | None = None,
     ) -> MbrDelta:
         composer = self.build_create_metadata_group(
             asset_manager=asset_manager, metadata=metadata, options=options
         )
         result = self._send_group(
-            simulate=simulate,
             send_params=send_params,
             options=options,
             composer=composer,
@@ -491,7 +489,6 @@ class AsaMetadataRegistryWrite:
         metadata: AssetMetadata,
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
-        simulate: SimulateOptions | None = None,
         assume_current_size: int | None = None,
     ) -> MbrDelta:
         composer = self.build_replace_metadata_group(
@@ -501,7 +498,6 @@ class AsaMetadataRegistryWrite:
             assume_current_size=assume_current_size,
         )
         result = self._send_group(
-            simulate=simulate,
             send_params=send_params,
             options=options,
             composer=composer,
@@ -519,7 +515,6 @@ class AsaMetadataRegistryWrite:
         payload: bytes,
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
-        simulate: SimulateOptions | None = None,
     ) -> None:
         composer = self.build_replace_metadata_slice_group(
             asset_manager=asset_manager,
@@ -529,7 +524,6 @@ class AsaMetadataRegistryWrite:
             options=options,
         )
         self._send_group(
-            simulate=simulate,
             send_params=send_params,
             options=options,
             composer=composer,
@@ -542,13 +536,11 @@ class AsaMetadataRegistryWrite:
         asset_id: int,
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
-        simulate: SimulateOptions | None = None,
     ) -> MbrDelta:
         composer = self.build_delete_metadata_group(
             asset_manager=asset_manager, asset_id=asset_id, options=options
         )
         result = self._send_group(
-            simulate=simulate,
             send_params=send_params,
             options=options,
             composer=composer,
