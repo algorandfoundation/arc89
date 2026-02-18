@@ -27,6 +27,7 @@ from asa_metadata_registry import (
     MbrDelta,
     MissingAppClientError,
     RegistryParameters,
+    SimulateOptions,
     WriteOptions,
     flags,
     get_default_registry_params,
@@ -132,6 +133,159 @@ class TestComposerHelpers:
         composer = Mock()
         _append_extra_resources(composer, count=3, sender=asset_manager.address)
         assert composer.extra_resources.call_count == 3
+
+
+# ================================================================
+# Send Group Helper Tests
+# ================================================================
+
+
+class TestSendGroupHelper:
+    """Test _send_group helper behavior (mocked)."""
+
+    def test_send_group_builds_send_params_from_options(self) -> None:
+        """Test _send_group derives SendParams from WriteOptions."""
+        composer = Mock()
+        send_result = Mock()
+        composer.send.return_value = send_result
+
+        options = WriteOptions(
+            cover_app_call_inner_transaction_fees=False,
+            populate_app_call_resources=False,
+        )
+
+        result = AsaMetadataRegistryWrite._send_group(
+            send_params=None,
+            options=options,
+            composer=composer,
+        )
+
+        assert result is send_result
+        composer.simulate.assert_not_called()
+        composer.send.assert_called_once()
+        sent = composer.send.call_args.kwargs["send_params"]
+        assert sent["cover_app_call_inner_transaction_fees"] is False
+        assert sent["populate_app_call_resources"] is False
+
+    def test_send_group_uses_provided_send_params(self) -> None:
+        """Test _send_group passes through explicit send_params unchanged."""
+        composer = Mock()
+        send_result = Mock()
+        composer.send.return_value = send_result
+        send_params = SendParams(
+            cover_app_call_inner_transaction_fees=False,
+            populate_app_call_resources=False,
+        )
+
+        result = AsaMetadataRegistryWrite._send_group(
+            send_params=send_params,
+            options=WriteOptions(
+                cover_app_call_inner_transaction_fees=True,
+                populate_app_call_resources=True,
+            ),
+            composer=composer,
+        )
+
+        assert result is send_result
+        composer.simulate.assert_not_called()
+        composer.send.assert_called_once()
+        sent = composer.send.call_args.kwargs["send_params"]
+        assert sent is send_params
+
+    def test_send_group_builds_send_params_with_default_options(self) -> None:
+        """Test _send_group derives default SendParams when options are omitted."""
+        composer = Mock()
+        send_result = Mock()
+        composer.send.return_value = send_result
+
+        result = AsaMetadataRegistryWrite._send_group(
+            send_params=None,
+            options=None,
+            composer=composer,
+        )
+
+        assert result is send_result
+        composer.simulate.assert_not_called()
+        composer.send.assert_called_once()
+        sent = composer.send.call_args.kwargs["send_params"]
+        assert sent["cover_app_call_inner_transaction_fees"] is True
+        assert sent["populate_app_call_resources"] is True
+
+    def test_send_group_simulate_over_send(self) -> None:
+        """Test _send_group uses simulate when SimulateOptions is provided."""
+        composer = Mock()
+        simulate_result = Mock()
+        composer.simulate.return_value = simulate_result
+        send_params = SendParams(
+            cover_app_call_inner_transaction_fees=False,
+            populate_app_call_resources=False,
+        )
+        simulate = SimulateOptions(
+            allow_more_logs=True,
+            allow_empty_signatures=True,
+            extra_opcode_budget=4567,
+            allow_unnamed_resources=True,
+            exec_trace_config={"enable": True},
+            simulation_round=999,
+            skip_signatures=False,
+        )
+
+        result = AsaMetadataRegistryWrite._send_group(
+            send_params=send_params,
+            options=WriteOptions(),
+            composer=composer,
+            simulate=simulate,
+        )
+
+        assert result is simulate_result
+        composer.send.assert_not_called()
+        composer.simulate.assert_called_once_with(
+            allow_more_logs=True,
+            allow_empty_signatures=True,
+            extra_opcode_budget=4567,
+            allow_unnamed_resources=True,
+            exec_trace_config={"enable": True},
+            simulation_round=999,
+            skip_signatures=False,
+        )
+
+
+class TestSendGroupHelperSimulate:
+    """Test _send_group helper for simulation."""
+
+    def test_send_group_simulate(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        short_metadata: AssetMetadata,
+    ) -> None:
+        """Test _send_group with simulate."""
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        composer = writer.build_create_metadata_group(
+            asset_manager=asset_manager, metadata=short_metadata
+        )
+        simulate_result = writer._send_group(
+            send_params=None,
+            options=None,
+            composer=composer,
+            simulate=SimulateOptions(),
+        )
+
+        assert simulate_result is not None
+        assert simulate_result.returns
+
+        # Example of inspecting a return value from simulate
+        ret_val = simulate_result.returns[0].value
+        assert isinstance(ret_val, (tuple, list))
+        mbr_delta = MbrDelta.from_tuple(ret_val)
+        assert isinstance(mbr_delta, MbrDelta)
+        assert mbr_delta.is_positive
+
+        # Simulate must not persist metadata
+        with pytest.raises(AlgodHTTPError, match="box not found"):
+            asa_metadata_registry_client.state.box.asset_metadata.get_value(
+                short_metadata.asset_id
+            )
 
 
 # ================================================================
@@ -782,7 +936,7 @@ class TestBuildDeleteMetadataGroup:
 
 
 # ================================================================
-# High-Level Send Method Tests
+# High-Level Send Method Tests (Replace)
 # ================================================================
 
 
