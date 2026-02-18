@@ -143,12 +143,11 @@ class TestComposerHelpers:
 class TestSendGroupHelper:
     """Test _send_group helper behavior (mocked)."""
 
-    def test_send_group_builds_send_params_from_options(self) -> None:
+    def test_send_group_build_send_params_from_options(self) -> None:
         """Test _send_group derives SendParams from WriteOptions."""
         composer = Mock()
         send_result = Mock()
         composer.send.return_value = send_result
-
         options = WriteOptions(
             cover_app_call_inner_transaction_fees=False,
             populate_app_call_resources=False,
@@ -159,7 +158,6 @@ class TestSendGroupHelper:
             options=options,
             composer=composer,
         )
-
         assert result is send_result
         composer.simulate.assert_not_called()
         composer.send.assert_called_once()
@@ -167,8 +165,8 @@ class TestSendGroupHelper:
         assert sent["cover_app_call_inner_transaction_fees"] is False
         assert sent["populate_app_call_resources"] is False
 
-    def test_send_group_uses_provided_send_params(self) -> None:
-        """Test _send_group passes through explicit send_params unchanged."""
+    def test_send_group_use_provided_send_params(self) -> None:
+        """Test _send_group uses provided send_params."""
         composer = Mock()
         send_result = Mock()
         composer.send.return_value = send_result
@@ -185,14 +183,13 @@ class TestSendGroupHelper:
             ),
             composer=composer,
         )
-
         assert result is send_result
         composer.simulate.assert_not_called()
         composer.send.assert_called_once()
         sent = composer.send.call_args.kwargs["send_params"]
         assert sent is send_params
 
-    def test_send_group_builds_send_params_with_default_options(self) -> None:
+    def test_send_group_build_send_params_with_default_options(self) -> None:
         """Test _send_group derives default SendParams when options are omitted."""
         composer = Mock()
         send_result = Mock()
@@ -203,7 +200,6 @@ class TestSendGroupHelper:
             options=None,
             composer=composer,
         )
-
         assert result is send_result
         composer.simulate.assert_not_called()
         composer.send.assert_called_once()
@@ -236,7 +232,6 @@ class TestSendGroupHelper:
             composer=composer,
             simulate=simulate,
         )
-
         assert result is simulate_result
         composer.send.assert_not_called()
         composer.simulate.assert_called_once_with(
@@ -259,16 +254,17 @@ class TestSendGroupHelperSimulate:
         asset_manager: SigningAccount,
         short_metadata: AssetMetadata,
     ) -> None:
-        """Test _send_group with simulate."""
+        """Test simulating a create metadata transaction group."""
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
         composer = writer.build_create_metadata_group(
             asset_manager=asset_manager, metadata=short_metadata
         )
+        simulate = SimulateOptions()  # Any custom options can go here
         simulate_result = writer._send_group(
             send_params=None,
             options=None,
             composer=composer,
-            simulate=SimulateOptions(),
+            simulate=simulate,
         )
 
         assert simulate_result is not None
