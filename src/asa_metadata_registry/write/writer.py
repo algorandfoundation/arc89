@@ -95,6 +95,7 @@ class WriteOptions:
     extra_resources: int = 0
     fee_padding_txns: int = 0
     cover_app_call_inner_transaction_fees: bool = True
+    populate_app_call_resources: bool = True
 
 
 @dataclass(slots=True)
@@ -431,31 +432,32 @@ class AsaMetadataRegistryWrite:
     @staticmethod
     def _send_group(
         *,
-        simulate_before_send: bool,
-        simulate_options: SimulateOptions | None,
         send_params: SendParams | None,
         options: WriteOptions | None = None,
         composer: AsaMetadataRegistryComposer,
+        simulate: SimulateOptions | None,
     ) -> SendAtomicTransactionComposerResults:
-        if simulate_before_send:
-            # Use user's simulate options if provided.
-            sim = simulate_options or SimulateOptions(
-                allow_empty_signatures=True, skip_signatures=True
-            )
-            composer.simulate(
-                allow_more_logs=sim.allow_more_logs,
-                allow_empty_signatures=sim.allow_empty_signatures,
-                allow_unnamed_resources=sim.allow_unnamed_resources,
-                extra_opcode_budget=sim.extra_opcode_budget,
-                exec_trace_config=sim.exec_trace_config,
-                simulation_round=sim.simulation_round,
-                skip_signatures=sim.skip_signatures,
+        """
+        Send or simulate a transaction group.
+        If `simulate` is provided, simulate instead of sending.
+        """
+
+        if simulate is not None:
+            return composer.simulate(
+                allow_more_logs=simulate.allow_more_logs,
+                allow_empty_signatures=simulate.allow_empty_signatures,
+                allow_unnamed_resources=simulate.allow_unnamed_resources,
+                extra_opcode_budget=simulate.extra_opcode_budget,
+                exec_trace_config=simulate.exec_trace_config,
+                simulation_round=simulate.simulation_round,
+                skip_signatures=simulate.skip_signatures,
             )
 
         if send_params is None:
             opt = options or WriteOptions()
             send_params = SendParams(
-                cover_app_call_inner_transaction_fees=opt.cover_app_call_inner_transaction_fees
+                cover_app_call_inner_transaction_fees=opt.cover_app_call_inner_transaction_fees,
+                populate_app_call_resources=opt.populate_app_call_resources,
             )
 
         return composer.send(send_params=send_params)
@@ -467,15 +469,13 @@ class AsaMetadataRegistryWrite:
         metadata: AssetMetadata,
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
-        simulate_before_send: bool = False,
-        simulate_options: SimulateOptions | None = None,
+        simulate: SimulateOptions | None = None,
     ) -> MbrDelta:
         composer = self.build_create_metadata_group(
             asset_manager=asset_manager, metadata=metadata, options=options
         )
         result = self._send_group(
-            simulate_before_send=simulate_before_send,
-            simulate_options=simulate_options,
+            simulate=simulate,
             send_params=send_params,
             options=options,
             composer=composer,
@@ -491,8 +491,7 @@ class AsaMetadataRegistryWrite:
         metadata: AssetMetadata,
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
-        simulate_before_send: bool = False,
-        simulate_options: SimulateOptions | None = None,
+        simulate: SimulateOptions | None = None,
         assume_current_size: int | None = None,
     ) -> MbrDelta:
         composer = self.build_replace_metadata_group(
@@ -502,8 +501,7 @@ class AsaMetadataRegistryWrite:
             assume_current_size=assume_current_size,
         )
         result = self._send_group(
-            simulate_before_send=simulate_before_send,
-            simulate_options=simulate_options,
+            simulate=simulate,
             send_params=send_params,
             options=options,
             composer=composer,
@@ -521,8 +519,7 @@ class AsaMetadataRegistryWrite:
         payload: bytes,
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
-        simulate_before_send: bool = False,
-        simulate_options: SimulateOptions | None = None,
+        simulate: SimulateOptions | None = None,
     ) -> None:
         composer = self.build_replace_metadata_slice_group(
             asset_manager=asset_manager,
@@ -532,8 +529,7 @@ class AsaMetadataRegistryWrite:
             options=options,
         )
         self._send_group(
-            simulate_before_send=simulate_before_send,
-            simulate_options=simulate_options,
+            simulate=simulate,
             send_params=send_params,
             options=options,
             composer=composer,
@@ -546,15 +542,13 @@ class AsaMetadataRegistryWrite:
         asset_id: int,
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
-        simulate_before_send: bool = False,
-        simulate_options: SimulateOptions | None = None,
+        simulate: SimulateOptions | None = None,
     ) -> MbrDelta:
         composer = self.build_delete_metadata_group(
             asset_manager=asset_manager, asset_id=asset_id, options=options
         )
         result = self._send_group(
-            simulate_before_send=simulate_before_send,
-            simulate_options=simulate_options,
+            simulate=simulate,
             send_params=send_params,
             options=options,
             composer=composer,
