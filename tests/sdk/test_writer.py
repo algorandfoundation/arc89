@@ -5,7 +5,7 @@ Tests cover:
 - WriteOptions configuration
 - AsaMetadataRegistryWrite initialization and validation
 - Group building methods
-- High-level send methods (e.g., create_metadata, replace_metadata) using simulate_before_send option
+- High-level send methods (e.g., create_metadata, replace_metadata)
 - Flag management methods
 - Utility methods
 - Fee pooling and padding
@@ -16,10 +16,11 @@ Tests cover:
 from unittest.mock import Mock
 
 import pytest
-from algokit_utils import SendParams, SigningAccount
+from algokit_utils import AlgoAmount, CommonAppCallParams, SendParams, SigningAccount
 from algosdk.error import AlgodHTTPError
 
 from asa_metadata_registry import (
+    AsaMetadataRegistryRead,
     AsaMetadataRegistryWrite,
     AssetMetadata,
     AssetMetadataBox,
@@ -53,6 +54,7 @@ class TestWriteOptions:
         assert opts.extra_resources == 0
         assert opts.fee_padding_txns == 0
         assert opts.cover_app_call_inner_transaction_fees is True
+        assert opts.populate_app_call_resources is True
 
     def test_custom_options(self) -> None:
         """Test custom WriteOptions configuration."""
@@ -60,10 +62,12 @@ class TestWriteOptions:
             extra_resources=5,
             fee_padding_txns=2,
             cover_app_call_inner_transaction_fees=False,
+            populate_app_call_resources=False,
         )
         assert opts.extra_resources == 5
         assert opts.fee_padding_txns == 2
         assert opts.cover_app_call_inner_transaction_fees is False
+        assert opts.populate_app_call_resources is False
 
 
 # ================================================================
@@ -132,6 +136,155 @@ class TestComposerHelpers:
 
 
 # ================================================================
+# Send Group Helper Tests
+# ================================================================
+
+
+class TestSendGroupHelper:
+    """Test _send_group helper behavior (mocked)."""
+
+    def test_send_group_build_send_params_from_options(self) -> None:
+        """Test _send_group derives SendParams from WriteOptions."""
+        composer = Mock()
+        send_result = Mock()
+        composer.send.return_value = send_result
+        options = WriteOptions(
+            cover_app_call_inner_transaction_fees=False,
+            populate_app_call_resources=False,
+        )
+
+        result = AsaMetadataRegistryWrite._send_group(
+            send_params=None,
+            options=options,
+            composer=composer,
+        )
+        assert result is send_result
+        composer.simulate.assert_not_called()
+        composer.send.assert_called_once()
+        sent = composer.send.call_args.kwargs["send_params"]
+        assert sent["cover_app_call_inner_transaction_fees"] is False
+        assert sent["populate_app_call_resources"] is False
+
+    def test_send_group_use_provided_send_params(self) -> None:
+        """Test _send_group uses provided send_params."""
+        composer = Mock()
+        send_result = Mock()
+        composer.send.return_value = send_result
+        send_params = SendParams(
+            cover_app_call_inner_transaction_fees=False,
+            populate_app_call_resources=False,
+        )
+
+        result = AsaMetadataRegistryWrite._send_group(
+            send_params=send_params,
+            options=WriteOptions(
+                cover_app_call_inner_transaction_fees=True,
+                populate_app_call_resources=True,
+            ),
+            composer=composer,
+        )
+        assert result is send_result
+        composer.simulate.assert_not_called()
+        composer.send.assert_called_once()
+        sent = composer.send.call_args.kwargs["send_params"]
+        assert sent is send_params
+
+    def test_send_group_build_send_params_with_default_options(self) -> None:
+        """Test _send_group derives default SendParams when options are omitted."""
+        composer = Mock()
+        send_result = Mock()
+        composer.send.return_value = send_result
+
+        result = AsaMetadataRegistryWrite._send_group(
+            send_params=None,
+            options=None,
+            composer=composer,
+        )
+        assert result is send_result
+        composer.simulate.assert_not_called()
+        composer.send.assert_called_once()
+        sent = composer.send.call_args.kwargs["send_params"]
+        assert sent["cover_app_call_inner_transaction_fees"] is True
+        assert sent["populate_app_call_resources"] is True
+
+    def test_send_group_simulate_over_send(self) -> None:
+        """Test _send_group uses simulate when SimulateOptions is provided."""
+        composer = Mock()
+        simulate_result = Mock()
+        composer.simulate.return_value = simulate_result
+        send_params = SendParams(
+            cover_app_call_inner_transaction_fees=False,
+            populate_app_call_resources=False,
+        )
+        simulate = SimulateOptions(
+            allow_more_logs=True,
+            allow_empty_signatures=True,
+            extra_opcode_budget=4567,
+            allow_unnamed_resources=True,
+            exec_trace_config={"enable": True},
+            simulation_round=999,
+            skip_signatures=False,
+        )
+
+        result = AsaMetadataRegistryWrite._send_group(
+            send_params=send_params,
+            options=WriteOptions(),
+            composer=composer,
+            simulate=simulate,
+        )
+        assert result is simulate_result
+        composer.send.assert_not_called()
+        composer.simulate.assert_called_once_with(
+            allow_more_logs=True,
+            allow_empty_signatures=True,
+            extra_opcode_budget=4567,
+            allow_unnamed_resources=True,
+            exec_trace_config={"enable": True},
+            simulation_round=999,
+            skip_signatures=False,
+        )
+
+
+class TestSendGroupHelperSimulate:
+    """Test _send_group helper for simulation."""
+
+    def test_send_group_simulate(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        short_metadata: AssetMetadata,
+    ) -> None:
+        """Test simulating a create metadata transaction group."""
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        composer = writer.build_create_metadata_group(
+            asset_manager=asset_manager, metadata=short_metadata
+        )
+        simulate = SimulateOptions()  # Any custom options can go here
+        simulate_result = writer._send_group(
+            send_params=None,
+            options=None,
+            composer=composer,
+            simulate=simulate,
+        )
+
+        assert simulate_result is not None
+        assert simulate_result.returns
+
+        # Example of inspecting a return value from simulate
+        ret_val = simulate_result.returns[0].value
+        assert isinstance(ret_val, (tuple, list))
+        mbr_delta = MbrDelta.from_tuple(ret_val)
+        assert isinstance(mbr_delta, MbrDelta)
+        assert mbr_delta.is_positive
+
+        # Simulate must not persist metadata
+        with pytest.raises(AlgodHTTPError, match="box not found"):
+            asa_metadata_registry_client.state.box.asset_metadata.get_value(
+                short_metadata.asset_id
+            )
+
+
+# ================================================================
 # AsaMetadataRegistryWrite Initialization Tests
 # ================================================================
 
@@ -185,59 +338,6 @@ class TestAsaMetadataRegistryWriteInit:
 
 
 # ================================================================
-# Group Builder Tests
-# ================================================================
-
-
-class TestBuildGroupMethods:
-    """Test group building methods."""
-
-    def test_build_create_metadata_group(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        arc_89_asa: int,
-    ) -> None:
-        """Test building create group for metadata."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        metadata = AssetMetadata.from_json(
-            asset_id=arc_89_asa,
-            json_obj={"name": "Test"},
-        )
-        composer = writer.build_create_metadata_group(
-            asset_manager=asset_manager, metadata=metadata
-        )
-        assert composer is not None
-
-    def test_build_delete_metadata_group(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test building delete group."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        composer = writer.build_delete_metadata_group(
-            asset_manager=asset_manager, asset_id=mutable_short_metadata.asset_id
-        )
-        assert composer is not None
-
-    def test_build_delete_with_options(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test building delete group with custom options."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        composer = writer.build_delete_metadata_group(
-            asset_manager=asset_manager,
-            asset_id=mutable_short_metadata.asset_id,
-        )
-        assert composer is not None
-
-
-# ================================================================
 # High-Level Send Method Tests
 # ================================================================
 
@@ -262,25 +362,6 @@ class TestCreateMetadata:
         )
         assert isinstance(mbr_delta, MbrDelta)
         assert mbr_delta.is_positive
-
-    def test_create_with_simulate_before_send(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        arc_89_asa: int,
-    ) -> None:
-        """Test creating metadata with simulate_before_send=True."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        metadata = AssetMetadata.from_json(
-            asset_id=arc_89_asa,
-            json_obj={"name": "Test Simulate"},
-        )
-        mbr_delta = writer.create_metadata(
-            asset_manager=asset_manager,
-            metadata=metadata,
-            simulate_before_send=True,
-        )
-        assert isinstance(mbr_delta, MbrDelta)
 
     def test_create_empty_metadata_returns_mbr_delta(
         self,
@@ -329,25 +410,6 @@ class TestCreateMetadata:
         assert isinstance(mbr_delta, MbrDelta)
         assert mbr_delta.is_positive
 
-    def test_create_with_custom_simulate_options(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        short_metadata: AssetMetadata,
-    ) -> None:
-        """Test creating metadata with custom SimulateOptions."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        sim_opts = SimulateOptions(
-            allow_empty_signatures=True, skip_signatures=True, allow_more_logs=True
-        )
-        mbr_delta = writer.create_metadata(
-            asset_manager=asset_manager,
-            metadata=short_metadata,
-            simulate_before_send=True,
-            simulate_options=sim_opts,
-        )
-        assert isinstance(mbr_delta, MbrDelta)
-
     def test_create_with_custom_send_params(
         self,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
@@ -386,6 +448,59 @@ class TestDeleteMetadata:
             asa_metadata_registry_client.state.box.asset_metadata.get_value(
                 mutable_short_metadata.asset_id
             )
+
+
+# ================================================================
+# Single Transaction Compose Simulation Tests
+# ================================================================
+
+
+class TestWriteSingleTransactionSimulation:
+    """Test direct composer.simulate() for single-transaction writer methods."""
+
+    def test_simulate_set_reversible_flag_single_transaction(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        mutable_short_metadata: AssetMetadata,
+        reader_with_algod: AsaMetadataRegistryRead,
+    ) -> None:
+        """Test simulating set_reversible_flag via direct composer."""
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        min_fee = asa_metadata_registry_client.algorand.get_suggested_params().min_fee
+
+        before = reader_with_algod.box.get_asset_metadata_record(
+            asset_id=mutable_short_metadata.asset_id,
+        )
+
+        composer = writer.client.new_group()
+        composer.arc89_set_reversible_flag(
+            args=(mutable_short_metadata.asset_id, flags.REV_FLG_ARC20, True),
+            params=CommonAppCallParams(
+                sender=asset_manager.address, static_fee=AlgoAmount(micro_algo=min_fee)
+            ),
+        )
+
+        simulate = SimulateOptions()  # Any custom options can go here
+        simulate_result = composer.simulate(
+            allow_more_logs=simulate.allow_more_logs,
+            allow_empty_signatures=simulate.allow_empty_signatures,
+            allow_unnamed_resources=simulate.allow_unnamed_resources,
+            extra_opcode_budget=simulate.extra_opcode_budget,
+            exec_trace_config=simulate.exec_trace_config,
+            simulation_round=simulate.simulation_round,
+            skip_signatures=simulate.skip_signatures,
+        )
+
+        assert simulate_result is not None
+        assert simulate_result.simulate_response is not None
+        assert len(simulate_result.returns) == 1
+        assert simulate_result.returns[0].decode_error is None
+        assert simulate_result.returns[0].value is None
+        after = reader_with_algod.box.get_asset_metadata_record(
+            asset_id=mutable_short_metadata.asset_id
+        )
+        assert after == before
 
 
 # ================================================================
@@ -769,10 +884,12 @@ class TestBuildReplaceMetadataGroup:
             metadata_bytes=b"updated",
             validate_json_object=False,
         )
+        options = WriteOptions(extra_resources=2, fee_padding_txns=1)
         composer = writer.build_replace_metadata_group(
             asset_manager=asset_manager,
             metadata=new_metadata,
             assume_current_size=mutable_short_metadata.size,
+            options=options,
         )
         assert composer is not None
 
@@ -858,15 +975,17 @@ class TestBuildDeleteMetadataGroup:
     ) -> None:
         """Test building delete group with custom options."""
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        options = WriteOptions(extra_resources=1, fee_padding_txns=2)
         composer = writer.build_delete_metadata_group(
             asset_manager=asset_manager,
             asset_id=mutable_short_metadata.asset_id,
+            options=options,
         )
         assert composer is not None
 
 
 # ================================================================
-# High-Level Send Method Tests
+# High-Level Send Method Tests (Replace)
 # ================================================================
 
 
@@ -934,27 +1053,6 @@ class TestReplaceMetadata:
         )
         assert isinstance(mbr_delta, MbrDelta)
 
-    def test_replace_with_simulate(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test replace with simulate_before_send."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        new_metadata = AssetMetadata.from_bytes(
-            asset_id=mutable_short_metadata.asset_id,
-            metadata_bytes=b"new",
-            validate_json_object=False,
-        )
-        mbr_delta = writer.replace_metadata(
-            asset_manager=asset_manager,
-            metadata=new_metadata,
-            simulate_before_send=True,
-            assume_current_size=mutable_short_metadata.size,
-        )
-        assert isinstance(mbr_delta, MbrDelta)
-
 
 class TestReplaceMetadataSlice:
     """Test replace_metadata_slice high-level method."""
@@ -964,6 +1062,7 @@ class TestReplaceMetadataSlice:
         asa_metadata_registry_client: AsaMetadataRegistryClient,
         asset_manager: SigningAccount,
         mutable_short_metadata: AssetMetadata,
+        reader_with_algod: AsaMetadataRegistryRead,
     ) -> None:
         """Test replacing a slice of metadata."""
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
@@ -973,20 +1072,9 @@ class TestReplaceMetadataSlice:
             offset=0,
             payload=b"patch",
         )
-        # Should complete without error
-
-    def test_replace_slice_with_simulate(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test replacing slice with simulate_before_send."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        writer.replace_metadata_slice(
-            asset_manager=asset_manager,
+        record = reader_with_algod.box.get_asset_metadata_record(
             asset_id=mutable_short_metadata.asset_id,
-            offset=5,
-            payload=b"updated",
-            simulate_before_send=True,
         )
+        assert record is not None
+        body = record.body.raw_bytes
+        assert body[:5].decode("utf-8") == "patch"
