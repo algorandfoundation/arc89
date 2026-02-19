@@ -24,9 +24,13 @@ from asa_metadata_registry import (
     AsaMetadataRegistryWrite,
     AssetMetadata,
     AssetMetadataBox,
+    InvalidArc3PropertiesError,
+    IrreversibleFlags,
     MbrDelta,
+    MetadataFlags,
     MissingAppClientError,
     RegistryParameters,
+    ReversibleFlags,
     SimulateOptions,
     WriteOptions,
     flags,
@@ -39,6 +43,7 @@ from asa_metadata_registry.write.writer import (
     _append_extra_resources,
     _chunks_for_slice,
 )
+from tests.helpers.factories import create_arc3_payload
 
 # ================================================================
 # WriteOptions Tests
@@ -425,6 +430,111 @@ class TestCreateMetadata:
             send_params=send_params,
         )
         assert isinstance(mbr_delta, MbrDelta)
+
+
+class TestCreateMetadataArc3Compliant:
+    """Test create_metadata validation for declared ARC-3 compliant ASAs."""
+
+    @pytest.mark.parametrize(
+        "rev_flag,prop_key",
+        [
+            pytest.param(ReversibleFlags(arc20=True), "arc-20", id="arc20"),
+            pytest.param(ReversibleFlags(arc62=True), "arc-62", id="arc62"),
+        ],
+    )
+    def test_invalid_properties_raises(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        arc_3_asa: int,
+        rev_flag: ReversibleFlags,
+        prop_key: str,
+    ) -> None:
+        """Test that missing or invalid properties field for declared ARC-3 & ARC-20/ARC-62 raises."""
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        metadata_flags = MetadataFlags(
+            reversible=rev_flag, irreversible=IrreversibleFlags(arc3=True)
+        )
+
+        cases = [
+            create_arc3_payload(name="ARC3 Compliant Test"),
+            create_arc3_payload(
+                name="ARC3 Compliant Test", properties={"some-key": 123}
+            ),
+            create_arc3_payload(
+                name="ARC3 Compliant Test", properties={prop_key: "123"}
+            ),
+            create_arc3_payload(name="ARC3 Compliant Test", properties={prop_key: 0}),
+            create_arc3_payload(
+                name="ARC3 Compliant Test", properties={prop_key: 2**64}
+            ),
+            create_arc3_payload(
+                name="ARC3 Compliant Test", properties={prop_key: "not-an-int"}
+            ),
+        ]
+        for json_obj in cases:
+            metadata = AssetMetadata.from_json(
+                asset_id=arc_3_asa,
+                json_obj=json_obj,
+                flags=metadata_flags,
+            )
+            with pytest.raises(InvalidArc3PropertiesError):
+                writer.create_metadata(asset_manager=asset_manager, metadata=metadata)
+
+    def test_invalid_properties_no_reversible_creates_metadata(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        arc_3_asa: int,
+    ) -> None:
+        """Test that invalid properties field for declared ARC-3 without ARC-20/ARC-62 reversible flags passes."""
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        metadata = AssetMetadata.from_json(
+            asset_id=arc_3_asa,
+            json_obj=create_arc3_payload(
+                name="ARC3 Compliant Test", properties={"some-key": 123}
+            ),
+            flags=MetadataFlags(
+                reversible=ReversibleFlags(), irreversible=IrreversibleFlags(arc3=True)
+            ),
+        )
+        mbr_delta = writer.create_metadata(
+            asset_manager=asset_manager, metadata=metadata
+        )
+        assert isinstance(mbr_delta, MbrDelta)
+        assert mbr_delta.is_positive
+
+    @pytest.mark.parametrize(
+        "rev_flag,prop_key",
+        [
+            pytest.param(ReversibleFlags(arc20=True), "arc-20", id="arc20"),
+            pytest.param(ReversibleFlags(arc62=True), "arc-62", id="arc62"),
+        ],
+    )
+    def test_valid_properties_creates_metadata(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        arc_3_asa: int,
+        rev_flag: ReversibleFlags,
+        prop_key: str,
+    ) -> None:
+        """Test that valid properties field for declared ARC-3 & ARC-20/ARC-62 creates metadata successfully."""
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        metadata = AssetMetadata.from_json(
+            asset_id=arc_3_asa,
+            json_obj=create_arc3_payload(
+                name="ARC3 Compliant Test", properties={prop_key: 123456}
+            ),
+            flags=MetadataFlags(
+                reversible=rev_flag, irreversible=IrreversibleFlags(arc3=True)
+            ),
+        )
+        mbr_delta = writer.create_metadata(
+            asset_manager=asset_manager, metadata=metadata
+        )
+        assert isinstance(mbr_delta, MbrDelta)
+        assert mbr_delta.is_positive
 
 
 class TestDeleteMetadata:

@@ -13,7 +13,11 @@ from algokit_utils import (
 )
 
 from .. import flags
-from ..errors import InvalidFlagIndexError, MissingAppClientError
+from ..errors import (
+    InvalidArc3PropertiesError,
+    InvalidFlagIndexError,
+    MissingAppClientError,
+)
 from ..generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryComposer,
@@ -77,6 +81,26 @@ def _append_extra_resources(
                 note=i.to_bytes(8, "big", signed=False),
                 static_fee=AlgoAmount(micro_algo=0),
             )
+        )
+
+
+def _is_positive_uint64(value: object) -> bool:
+    return isinstance(value, int) and 0 < value <= 2**64 - 1
+
+
+def _validate_arc_property(body: dict[str, object], arc_key: str) -> None:
+    """
+    Validate that metadata `body` has a valid `arc_key` in properties with a
+    valid app ID value.
+    """
+    properties = body.get("properties")
+    if not isinstance(properties, dict):
+        raise InvalidArc3PropertiesError(
+            f"{arc_key.upper()} metadata must have a valid 'properties' field"
+        )
+    if not _is_positive_uint64(properties.get(arc_key)):
+        raise InvalidArc3PropertiesError(
+            f'properties["{arc_key}"] must be a valid app ID'
         )
 
 
@@ -470,6 +494,14 @@ class AsaMetadataRegistryWrite:
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
     ) -> MbrDelta:
+
+        if metadata.flags.irreversible.arc3:
+            rev = metadata.flags.reversible
+            if rev.arc20:
+                _validate_arc_property(metadata.body.json, "arc-20")
+            elif rev.arc62:
+                _validate_arc_property(metadata.body.json, "arc-62")
+
         composer = self.build_create_metadata_group(
             asset_manager=asset_manager, metadata=metadata, options=options
         )

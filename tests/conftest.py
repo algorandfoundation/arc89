@@ -159,6 +159,22 @@ def arc_89_asa(
     ).asset_id
 
 
+@pytest.fixture(scope="function")
+def arc_3_asa(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+) -> int:
+    """Create a valid ARC-3 ASA (`asset_name` ends with `@arc3`)"""
+    return asa_metadata_registry_client.algorand.send.asset_create(
+        params=AssetCreateParams(
+            sender=asset_manager.address,
+            total=42,
+            asset_name="ARC3 Test ASA" + const.ARC3_NAME_SUFFIX.decode(),
+            manager=asset_manager.address,
+        )
+    ).asset_id
+
+
 # AssetMetadata factory fixtures
 @pytest.fixture(scope="function")
 def flags_arc3_compliant() -> MetadataFlags:
