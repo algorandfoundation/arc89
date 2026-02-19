@@ -462,14 +462,22 @@ class TestCreateMetadataArc3Compliant:
                 name="ARC3 Compliant Test", properties={"some-key": 123}
             ),
             create_arc3_payload(
-                name="ARC3 Compliant Test", properties={prop_key: "123"}
-            ),
-            create_arc3_payload(name="ARC3 Compliant Test", properties={prop_key: 0}),
-            create_arc3_payload(
-                name="ARC3 Compliant Test", properties={prop_key: 2**64}
+                name="ARC3 Compliant Test", properties={prop_key: "not-a-dict"}
             ),
             create_arc3_payload(
-                name="ARC3 Compliant Test", properties={prop_key: "not-an-int"}
+                name="ARC3 Compliant Test", properties={prop_key: {"application-id": 0}}
+            ),
+            create_arc3_payload(
+                name="ARC3 Compliant Test",
+                properties={prop_key: {"application-id": -1}},
+            ),
+            create_arc3_payload(
+                name="ARC3 Compliant Test",
+                properties={prop_key: {"application-id": "123"}},
+            ),
+            create_arc3_payload(
+                name="ARC3 Compliant Test",
+                properties={prop_key: {"application-id": 2**64}},
             ),
         ]
         for json_obj in cases:
@@ -524,7 +532,8 @@ class TestCreateMetadataArc3Compliant:
         metadata = AssetMetadata.from_json(
             asset_id=arc_3_asa,
             json_obj=create_arc3_payload(
-                name="ARC3 Compliant Test", properties={prop_key: 123456}
+                name="ARC3 Compliant Test",
+                properties={prop_key: {"application-id": 123456}},
             ),
             flags=MetadataFlags(
                 reversible=rev_flag, irreversible=IrreversibleFlags(arc3=True)

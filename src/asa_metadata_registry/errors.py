@@ -74,5 +74,5 @@ class InvalidArc3PropertiesError(AsaMetadataRegistryError, ValueError):
     is missing or has an invalid `properties` field.
 
     The `properties` field must include the relevant ARC key ("arc-20" or "arc-62")
-    with a valid app ID value.
+    as an object with an "application-id" key set to a valid app ID (positive uint64).
     """
