@@ -25,6 +25,7 @@ from asa_metadata_registry import (
     AssetMetadata,
     AssetMetadataBox,
     InvalidArc3PropertiesError,
+    InvalidFlagIndexError,
     IrreversibleFlags,
     MbrDelta,
     MetadataFlags,
@@ -45,7 +46,8 @@ from asa_metadata_registry.write.writer import (
     _is_positive_uint64,
     _validate_arc_property,
 )
-from tests.helpers.factories import create_arc3_payload
+from tests.helpers.factories import create_arc3_payload, create_test_metadata
+from tests.helpers.utils import create_metadata
 
 # ================================================================
 # WriteOptions Tests
@@ -159,8 +161,8 @@ class TestValidateArcProperty:
         ],
     )
     def test_is_positive_uint64(
-        self, value: object, expected: bool
-    ) -> None:  # noqa: FBT001
+        self, value: object, expected: bool  # noqa: FBT001
+    ) -> None:
         """Test _is_positive_uint64 helper."""
         assert _is_positive_uint64(value) is expected
 
@@ -525,10 +527,10 @@ class TestCreateMetadataArc3Compliant:
     """Test create_metadata validation for declared ARC-3 compliant ASAs."""
 
     @pytest.mark.parametrize(
-        "rev_flag,prop_key",
+        "rev_flag",
         [
-            pytest.param(ReversibleFlags(arc20=True), "arc-20", id="arc20"),
-            pytest.param(ReversibleFlags(arc62=True), "arc-62", id="arc62"),
+            pytest.param(ReversibleFlags(arc20=True), id="arc20"),
+            pytest.param(ReversibleFlags(arc62=True), id="arc62"),
         ],
     )
     def test_invalid_properties_raises(
@@ -772,6 +774,111 @@ class TestSetReversibleFlag:
             asset_id=mutable_short_metadata.asset_id, value=box_value
         )
         assert updated.header.is_arc62_circulating_supply is False
+
+    def test_fail_invalid_flag_index(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        mutable_short_metadata: AssetMetadata,
+    ) -> None:
+        """Test that an out-of-range flag index raises InvalidFlagIndexError."""
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        with pytest.raises(InvalidFlagIndexError):
+            writer.set_reversible_flag(
+                asset_manager=asset_manager,
+                asset_id=mutable_short_metadata.asset_id,
+                flag_index=flags.REV_FLG_RESERVED_7 + 1,
+                value=True,
+            )
+
+    @pytest.mark.parametrize(
+        "flag_index",
+        [
+            pytest.param(flags.REV_FLG_ARC20, id="arc20"),
+            pytest.param(flags.REV_FLG_ARC62, id="arc62"),
+        ],
+    )
+    def test_fail_arc3_invalid_properties(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        arc_3_asa: int,
+        flag_index: int,
+    ) -> None:
+        """Test that missing properties with arc3 + arc20/arc62 flags raises InvalidArc3PropertiesError."""
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        metadata = create_test_metadata(
+            arc_3_asa,
+            metadata_content=create_arc3_payload(name="ARC3 Test", properties={}),
+            flags=MetadataFlags(
+                reversible=ReversibleFlags.empty(),
+                irreversible=IrreversibleFlags(arc3=True),
+            ),
+        )
+        create_metadata(
+            asset_manager=asset_manager,
+            asa_metadata_registry_client=asa_metadata_registry_client,
+            asset_id=arc_3_asa,
+            metadata=metadata,
+        )
+        with pytest.raises(InvalidArc3PropertiesError):
+            writer.set_reversible_flag(
+                asset_manager=asset_manager,
+                asset_id=arc_3_asa,
+                flag_index=flag_index,
+                value=True,
+            )
+
+    @pytest.mark.parametrize(
+        "flag_index,arc_key",
+        [
+            pytest.param(flags.REV_FLG_ARC20, "arc-20", id="arc20"),
+            pytest.param(flags.REV_FLG_ARC62, "arc-62", id="arc62"),
+        ],
+    )
+    def test_arc3_valid_properties_sets_flag(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        reader_with_algod: AsaMetadataRegistryRead,
+        arc_3_asa: int,
+        flag_index: int,
+        arc_key: str,
+    ) -> None:
+        """Test that valid properties with arc3 + arc20/arc62 flags sets the flag successfully."""
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        metadata = create_test_metadata(
+            arc_3_asa,
+            metadata_content=create_arc3_payload(
+                name="ARC3 Test", properties={arc_key: {"application-id": 123456}}
+            ),
+            flags=MetadataFlags(
+                reversible=ReversibleFlags.empty(),
+                irreversible=IrreversibleFlags(arc3=True),
+            ),
+        )
+        create_metadata(
+            asset_manager=asset_manager,
+            asa_metadata_registry_client=asa_metadata_registry_client,
+            asset_id=arc_3_asa,
+            metadata=metadata,
+        )
+        writer.set_reversible_flag(
+            asset_manager=asset_manager,
+            asset_id=arc_3_asa,
+            flag_index=flag_index,
+            value=True,
+        )
+        record = reader_with_algod.box.get_asset_metadata_record(
+            asset_id=arc_3_asa,
+        )
+        assert record is not None
+        assert record.header.flags.reversible.arc20 is (
+            flag_index == flags.REV_FLG_ARC20
+        )
+        assert record.header.flags.reversible.arc62 is (
+            flag_index == flags.REV_FLG_ARC62
+        )
 
 
 class TestSetIrreversibleFlag:

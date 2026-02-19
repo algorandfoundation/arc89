@@ -22,7 +22,7 @@ from ..generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryComposer,
 )
-from ..models import AssetMetadata, MbrDelta, RegistryParameters
+from ..models import AssetMetadata, AssetMetadataBox, MbrDelta, RegistryParameters
 from ..read.avm import AsaMetadataRegistryAvmRead, SimulateOptions
 
 
@@ -82,6 +82,25 @@ def _append_extra_resources(
                 static_fee=AlgoAmount(micro_algo=0),
             )
         )
+
+
+_ARC_FLAG_KEYS: dict[int, str] = {
+    flags.REV_FLG_ARC20: "arc-20",
+    flags.REV_FLG_ARC62: "arc-62",
+}
+"""Mapping from reversible flag index to its ARC-3 metadata propoerties key."""
+
+
+def _parse_metadata_box(
+    client: AsaMetadataRegistryClient, asset_id: int
+) -> AssetMetadataBox | None:
+    """Read and parse the metadata box for `asset_id`, or return None if not found."""
+    box_value = client.state.box.asset_metadata.get_value(asset_id)
+    return (
+        AssetMetadataBox.parse(asset_id=asset_id, value=box_value)
+        if box_value is not None
+        else None
+    )
 
 
 def _is_positive_uint64(value: object) -> bool:
@@ -608,6 +627,11 @@ class AsaMetadataRegistryWrite:
             raise InvalidFlagIndexError(
                 f"Invalid reversible flag index: {flag_index}, must be in [0, 7]"
             )
+
+        if value and flag_index in _ARC_FLAG_KEYS:
+            box = _parse_metadata_box(self.client, asset_id)
+            if box is not None and box.header.flags.irreversible.arc3:
+                _validate_arc_property(box.body.json, _ARC_FLAG_KEYS[flag_index])
 
         opt = options or WriteOptions()
 
