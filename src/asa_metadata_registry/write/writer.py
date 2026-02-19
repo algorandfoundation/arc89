@@ -526,7 +526,7 @@ class AsaMetadataRegistryWrite:
             rev = metadata.flags.reversible
             if rev.arc20:
                 _validate_arc_property(metadata.body.json, "arc-20")
-            elif rev.arc62:
+            if rev.arc62:
                 _validate_arc_property(metadata.body.json, "arc-62")
 
         composer = self.build_create_metadata_group(
