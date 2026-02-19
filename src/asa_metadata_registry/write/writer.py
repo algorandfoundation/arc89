@@ -114,21 +114,20 @@ def _validate_arc_property(body: dict[str, object], arc_key: str) -> None:
     Per ARC-20 and ARC-62, the value must be a dict with an "application-id" key
     whose value is a valid app ID (positive uint64).
     """
-    properties = body.get("properties")
-    arc_key_value = properties.get(arc_key) if isinstance(properties, dict) else None
-    app_id = (
-        arc_key_value.get("application-id") if isinstance(arc_key_value, dict) else None
-    )
 
+    properties = body.get("properties")
     if not isinstance(properties, dict):
         raise InvalidArc3PropertiesError(
             f"{arc_key.upper()} metadata must have a valid 'properties' field"
         )
-    if not isinstance(arc_key_value, dict):
-        raise InvalidArc3PropertiesError(f'properties["{arc_key}"] must be an object')
-    if not _is_positive_uint64(app_id):
+
+    arc_value = properties.get(arc_key)
+    if not isinstance(arc_value, dict):
+        raise InvalidArc3PropertiesError(f"properties['{arc_key}'] must be an object")
+
+    if not _is_positive_uint64(arc_value.get("application-id")):
         raise InvalidArc3PropertiesError(
-            f'properties["{arc_key}"]["application-id"] must be a positive uint64'
+            f"properties['{arc_key}']['application-id'] must be a positive uint64"
         )
 
 
