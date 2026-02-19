@@ -88,7 +88,7 @@ _ARC_FLAG_KEYS: dict[int, str] = {
     flags.REV_FLG_ARC20: "arc-20",
     flags.REV_FLG_ARC62: "arc-62",
 }
-"""Mapping from reversible flag index to its ARC-3 metadata propoerties key."""
+"""Mapping from reversible flag index to its ARC-3 metadata properties key."""
 
 
 def _parse_metadata_box(
