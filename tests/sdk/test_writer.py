@@ -146,7 +146,7 @@ class TestComposerHelpers:
         assert composer.extra_resources.call_count == 3
 
 
-class TestValidateArcProperty:
+class TestValidateArc3Properties:
     """Test is_positive_uint64 and validate_arc3_properties helpers."""
 
     @pytest.mark.parametrize(
