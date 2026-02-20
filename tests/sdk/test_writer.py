@@ -40,11 +40,13 @@ from asa_metadata_registry import (
 from asa_metadata_registry.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
+from asa_metadata_registry.validation import (
+    is_positive_uint64,
+    validate_arc3_properties,
+)
 from asa_metadata_registry.write.writer import (
     _append_extra_resources,
     _chunks_for_slice,
-    _is_positive_uint64,
-    _validate_arc_property,
 )
 from tests.helpers.factories import create_arc3_payload, create_test_metadata
 from tests.helpers.utils import create_metadata
@@ -145,7 +147,7 @@ class TestComposerHelpers:
 
 
 class TestValidateArcProperty:
-    """Test _is_positive_uint64 and _validate_arc_property helpers."""
+    """Test is_positive_uint64 and validate_arc3_properties helpers."""
 
     @pytest.mark.parametrize(
         "value,expected",
@@ -163,8 +165,8 @@ class TestValidateArcProperty:
     def test_is_positive_uint64(
         self, value: object, expected: bool  # noqa: FBT001
     ) -> None:
-        """Test _is_positive_uint64 helper."""
-        assert _is_positive_uint64(value) is expected
+        """Test is_positive_uint64 helper."""
+        assert is_positive_uint64(value) is expected
 
     @pytest.mark.parametrize("arc_key", ["arc-20", "arc-62"])
     @pytest.mark.parametrize(
@@ -222,13 +224,13 @@ class TestValidateArcProperty:
     def test_invalid_raises(self, body: dict[str, object], arc_key: str) -> None:
         """Test invalid properties raises."""
         with pytest.raises(InvalidArc3PropertiesError):
-            _validate_arc_property(body, arc_key)
+            validate_arc3_properties(body, arc_key)
 
     @pytest.mark.parametrize("arc_key", ["arc-20", "arc-62"])
     def test_valid_passes(self, arc_key: str) -> None:
         """Test valid properties passes."""
         body = {"properties": {arc_key: {"application-id": 123456}}}
-        _validate_arc_property(body, arc_key)
+        validate_arc3_properties(body, arc_key)
 
 
 # ================================================================

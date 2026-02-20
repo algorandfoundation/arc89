@@ -13,8 +13,8 @@ from algokit_utils import (
 )
 
 from .. import flags
+from ..constants import ARC3_PROPERTIES_FLAG_TO_KEY
 from ..errors import (
-    InvalidArc3PropertiesError,
     InvalidFlagIndexError,
     MissingAppClientError,
 )
@@ -24,7 +24,7 @@ from ..generated.asa_metadata_registry_client import (
 )
 from ..models import AssetMetadata, AssetMetadataBox, MbrDelta, RegistryParameters
 from ..read.avm import AsaMetadataRegistryAvmRead, SimulateOptions
-from ..constants import ARC3_PROPERTIES_FLAG_TO_KEY
+from ..validation import validate_arc3_properties
 
 
 def _chunks_for_create(metadata: AssetMetadata) -> list[bytes]:
@@ -95,34 +95,6 @@ def _parse_metadata_box(
         if box_value is not None
         else None
     )
-
-
-def _is_positive_uint64(value: object) -> bool:
-    return isinstance(value, int) and 0 < value <= 2**64 - 1
-
-
-def _validate_arc_property(body: dict[str, object], arc_key: str) -> None:
-    """
-    Validate that metadata `body` has a valid `arc_key` in properties.
-
-    Per ARC-20 and ARC-62, the value must be a dict with an "application-id" key
-    whose value is a valid app ID (positive uint64).
-    """
-
-    properties = body.get("properties")
-    if not isinstance(properties, dict):
-        raise InvalidArc3PropertiesError(
-            f"{arc_key.upper()} metadata must have a valid 'properties' field"
-        )
-
-    arc_value = properties.get(arc_key)
-    if not isinstance(arc_value, dict):
-        raise InvalidArc3PropertiesError(f"properties['{arc_key}'] must be an object")
-
-    if not _is_positive_uint64(arc_value.get("application-id")):
-        raise InvalidArc3PropertiesError(
-            f"properties['{arc_key}']['application-id'] must be a positive uint64"
-        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -519,9 +491,9 @@ class AsaMetadataRegistryWrite:
         if metadata.flags.irreversible.arc3:
             rev = metadata.flags.reversible
             if rev.arc20:
-                _validate_arc_property(metadata.body.json, "arc-20")
+                validate_arc3_properties(metadata.body.json, "arc-20")
             if rev.arc62:
-                _validate_arc_property(metadata.body.json, "arc-62")
+                validate_arc3_properties(metadata.body.json, "arc-62")
 
         composer = self.build_create_metadata_group(
             asset_manager=asset_manager, metadata=metadata, options=options
@@ -624,7 +596,9 @@ class AsaMetadataRegistryWrite:
         if value and flag_index in ARC3_PROPERTIES_FLAG_TO_KEY:
             box = _parse_metadata_box(self.client, asset_id)
             if box is not None and box.header.flags.irreversible.arc3:
-                _validate_arc_property(box.body.json, ARC3_PROPERTIES_FLAG_TO_KEY[flag_index])
+                validate_arc3_properties(
+                    box.body.json, ARC3_PROPERTIES_FLAG_TO_KEY[flag_index]
+                )
 
         opt = options or WriteOptions()
 

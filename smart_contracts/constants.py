@@ -1,4 +1,5 @@
 from typing import Final
+
 from .asa_metadata_registry import flags
 
 # ---------------------------------------------------------------------------
