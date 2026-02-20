@@ -24,6 +24,7 @@ from ..generated.asa_metadata_registry_client import (
 )
 from ..models import AssetMetadata, AssetMetadataBox, MbrDelta, RegistryParameters
 from ..read.avm import AsaMetadataRegistryAvmRead, SimulateOptions
+from ..constants import ARC3_PROPERTIES_FLAG_TO_KEY
 
 
 def _chunks_for_create(metadata: AssetMetadata) -> list[bytes]:
@@ -82,13 +83,6 @@ def _append_extra_resources(
                 static_fee=AlgoAmount(micro_algo=0),
             )
         )
-
-
-_ARC_FLAG_KEYS: dict[int, str] = {
-    flags.REV_FLG_ARC20: "arc-20",
-    flags.REV_FLG_ARC62: "arc-62",
-}
-"""Mapping from reversible flag index to its ARC-3 metadata properties key."""
 
 
 def _parse_metadata_box(
@@ -627,10 +621,10 @@ class AsaMetadataRegistryWrite:
                 f"Invalid reversible flag index: {flag_index}, must be in [0, 7]"
             )
 
-        if value and flag_index in _ARC_FLAG_KEYS:
+        if value and flag_index in ARC3_PROPERTIES_FLAG_TO_KEY:
             box = _parse_metadata_box(self.client, asset_id)
             if box is not None and box.header.flags.irreversible.arc3:
-                _validate_arc_property(box.body.json, _ARC_FLAG_KEYS[flag_index])
+                _validate_arc_property(box.body.json, ARC3_PROPERTIES_FLAG_TO_KEY[flag_index])
 
         opt = options or WriteOptions()
 
