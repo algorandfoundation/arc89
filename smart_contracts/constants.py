@@ -1,7 +1,5 @@
 from typing import Final
 
-from .asa_metadata_registry import flags
-
 # ---------------------------------------------------------------------------
 # Algorand constants
 # ---------------------------------------------------------------------------
@@ -53,12 +51,6 @@ ARC3_NAME_SUFFIX: Final[bytes] = b"@arc3"
 ARC3_URL_SUFFIX: Final[bytes] = b"#arc3"
 ARC3_HASH_AM_PREFIX: Final[bytes] = b"arc0003/am"
 ARC3_HASH_AMJ_PREFIX: Final[bytes] = b"arc0003/amj"
-
-# Mapping from reversible flag index to its ARC-3 metadata properties key.
-ARC3_PROPERTIES_FLAG_TO_KEY: dict[int, str] = {
-    flags.REV_FLG_ARC20: "arc-20",
-    flags.REV_FLG_ARC62: "arc-62",
-}
 
 
 # ---------------------------------------------------------------------------

@@ -1,6 +1,8 @@
 import json
 from collections.abc import Mapping
+from typing import Literal
 
+from . import flags
 from .errors import InvalidArc3PropertiesError, MetadataArc3Error, MetadataEncodingError
 
 
@@ -151,7 +153,19 @@ def is_arc3_metadata(obj: Mapping[str, object]) -> bool:
     return any(key in arc3_indicator_fields for key in obj.keys())
 
 
-def validate_arc3_properties(body: dict[str, object], arc_key: str) -> None:
+# ARC-3 metadata properties keys
+Arc3PropertiesKey = Literal["arc-20", "arc-62"]
+
+# Mapping from reversible flag index to its ARC-3 metadata properties key.
+ARC3_PROPERTIES_FLAG_TO_KEY: dict[int, Arc3PropertiesKey] = {
+    flags.REV_FLG_ARC20: "arc-20",
+    flags.REV_FLG_ARC62: "arc-62",
+}
+
+
+def validate_arc3_properties(
+    body: dict[str, object], arc_key: Arc3PropertiesKey
+) -> None:
     """
     Validate that ARC-3 metadata `body` has a valid `arc_key` in properties.
 

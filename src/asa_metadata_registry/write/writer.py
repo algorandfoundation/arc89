@@ -13,7 +13,6 @@ from algokit_utils import (
 )
 
 from .. import flags
-from ..constants import ARC3_PROPERTIES_FLAG_TO_KEY
 from ..errors import (
     InvalidFlagIndexError,
     MissingAppClientError,
@@ -24,7 +23,7 @@ from ..generated.asa_metadata_registry_client import (
 )
 from ..models import AssetMetadata, AssetMetadataBox, MbrDelta, RegistryParameters
 from ..read.avm import AsaMetadataRegistryAvmRead, SimulateOptions
-from ..validation import validate_arc3_properties
+from ..validation import ARC3_PROPERTIES_FLAG_TO_KEY, validate_arc3_properties
 
 
 def _chunks_for_create(metadata: AssetMetadata) -> list[bytes]:
