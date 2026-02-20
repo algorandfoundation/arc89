@@ -51,7 +51,8 @@ ARC3_NAME_SUFFIX: Final[bytes] = b"@arc3"
 ARC3_URL_SUFFIX: Final[bytes] = b"#arc3"
 ARC3_HASH_AM_PREFIX: Final[bytes] = b"arc0003/am"
 ARC3_HASH_AMJ_PREFIX: Final[bytes] = b"arc0003/amj"
-ARC3_PROPERTIES_KEYS: Final[tuple[str, str]] = ("arc-20", "arc-62")
+ARC3_PROPERTIES_KEY_ARC20: Final[str] = "arc-20"
+ARC3_PROPERTIES_KEY_ARC62: Final[str] = "arc-62"
 
 
 # ---------------------------------------------------------------------------

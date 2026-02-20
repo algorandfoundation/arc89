@@ -38,4 +38,6 @@ def test_constants() -> None:
     print("REPLACE_PAYLOAD_MAX_SIZE:\t", const.REPLACE_PAYLOAD_MAX_SIZE)
 
     # Ensure ARC3_PROPERTIES_KEYS and Arc3PropertiesKey stay in sync if new ARC keys are added
+    assert const.ARC3_PROPERTIES_KEY_ARC20 in const.ARC3_PROPERTIES_KEYS
+    assert const.ARC3_PROPERTIES_KEY_ARC62 in const.ARC3_PROPERTIES_KEYS
     assert set(const.ARC3_PROPERTIES_KEYS) == set(get_args(Arc3PropertiesKey))
