@@ -66,3 +66,13 @@ class MetadataHashMismatchError(AsaMetadataRegistryError, ValueError):
     Per ARC-89: if an ASA has a non-zero metadata hash and is flagged as ARC89 native
     but not ARC3 compliant, the ASA's metadata hash must match the computed hash.
     """
+
+
+class InvalidArc3PropertiesError(AsaMetadataRegistryError, ValueError):
+    """
+    Raised when metadata is declared as ARC-3 and ARC-20 or ARC-62 compliant but
+    is missing or has an invalid `properties` field.
+
+    The `properties` field must include the relevant ARC key ("arc-20" or "arc-62")
+    as an object with an "application-id" key set to a valid app ID (positive uint64).
+    """

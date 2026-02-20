@@ -13,13 +13,17 @@ from algokit_utils import (
 )
 
 from .. import flags
-from ..errors import InvalidFlagIndexError, MissingAppClientError
+from ..errors import (
+    InvalidFlagIndexError,
+    MissingAppClientError,
+)
 from ..generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
     AsaMetadataRegistryComposer,
 )
-from ..models import AssetMetadata, MbrDelta, RegistryParameters
+from ..models import AssetMetadata, AssetMetadataBox, MbrDelta, RegistryParameters
 from ..read.avm import AsaMetadataRegistryAvmRead, SimulateOptions
+from ..validation import ARC3_PROPERTIES_FLAG_TO_KEY, validate_arc3_properties
 
 
 def _chunks_for_create(metadata: AssetMetadata) -> list[bytes]:
@@ -78,6 +82,18 @@ def _append_extra_resources(
                 static_fee=AlgoAmount(micro_algo=0),
             )
         )
+
+
+def _parse_metadata_box(
+    client: AsaMetadataRegistryClient, asset_id: int
+) -> AssetMetadataBox | None:
+    """Read and parse the metadata box for `asset_id`, or return None if not found."""
+    box_value = client.state.box.asset_metadata.get_value(asset_id)
+    return (
+        AssetMetadataBox.parse(asset_id=asset_id, value=box_value)
+        if box_value is not None
+        else None
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -470,6 +486,14 @@ class AsaMetadataRegistryWrite:
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
     ) -> MbrDelta:
+
+        if metadata.flags.irreversible.arc3:
+            rev = metadata.flags.reversible
+            if rev.arc20:
+                validate_arc3_properties(metadata.body.json, "arc-20")
+            if rev.arc62:
+                validate_arc3_properties(metadata.body.json, "arc-62")
+
         composer = self.build_create_metadata_group(
             asset_manager=asset_manager, metadata=metadata, options=options
         )
@@ -567,6 +591,13 @@ class AsaMetadataRegistryWrite:
             raise InvalidFlagIndexError(
                 f"Invalid reversible flag index: {flag_index}, must be in [0, 7]"
             )
+
+        if value and flag_index in ARC3_PROPERTIES_FLAG_TO_KEY:
+            box = _parse_metadata_box(self.client, asset_id)
+            if box is not None and box.header.flags.irreversible.arc3:
+                validate_arc3_properties(
+                    box.body.json, ARC3_PROPERTIES_FLAG_TO_KEY[flag_index]
+                )
 
         opt = options or WriteOptions()
 

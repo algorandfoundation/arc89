@@ -1,7 +1,14 @@
 import json
 from collections.abc import Mapping
+from typing import Literal
 
-from .errors import MetadataArc3Error, MetadataEncodingError
+from . import flags
+from .errors import InvalidArc3PropertiesError, MetadataArc3Error, MetadataEncodingError
+
+
+def is_positive_uint64(value: object) -> bool:
+    """Return True if `value` is an integer in the range [1, 2**64 - 1], False otherwise."""
+    return isinstance(value, int) and 0 < value <= 2**64 - 1
 
 
 def decode_metadata_json(metadata: bytes) -> dict[str, object]:
@@ -144,3 +151,41 @@ def is_arc3_metadata(obj: Mapping[str, object]) -> bool:
         "localization",  # ARC-3 specific
     }
     return any(key in arc3_indicator_fields for key in obj.keys())
+
+
+# ARC-3 metadata properties keys
+Arc3PropertiesKey = Literal["arc-20", "arc-62"]
+
+# Mapping from reversible flag index to its ARC-3 metadata properties key.
+ARC3_PROPERTIES_FLAG_TO_KEY: dict[int, Arc3PropertiesKey] = {
+    flags.REV_FLG_ARC20: "arc-20",
+    flags.REV_FLG_ARC62: "arc-62",
+}
+
+
+def validate_arc3_properties(
+    body: dict[str, object], arc_key: Arc3PropertiesKey
+) -> None:
+    """
+    Validate that ARC-3 metadata `body` has a valid `arc_key` in properties.
+
+    Per ARC-20 and ARC-62, the value must be a dict with an "application-id" key
+    whose value is a valid app ID (positive uint64).
+
+    Raises `InvalidArc3PropertiesError` if validation fails.
+    """
+
+    properties = body.get("properties")
+    if not isinstance(properties, dict):
+        raise InvalidArc3PropertiesError(
+            f"{arc_key.upper()} metadata must have a valid 'properties' field"
+        )
+
+    arc_value = properties.get(arc_key)
+    if not isinstance(arc_value, dict):
+        raise InvalidArc3PropertiesError(f"properties['{arc_key}'] must be an object")
+
+    if not is_positive_uint64(arc_value.get("application-id")):
+        raise InvalidArc3PropertiesError(
+            f"properties['{arc_key}']['application-id'] must be a positive uint64"
+        )
