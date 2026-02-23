@@ -34,6 +34,16 @@ class RegistryDeployment:
     creator_address: str | None = None
     arc90_uri_netauth: str | None = None
 
+    def __post_init__(self) -> None:
+        if self.network != "localnet" and self.genesis_hash_b64 is None:
+            raise ValueError(
+                "`RegistryDeployment.genesis_hash_b64` is required for non-localnet deployments"
+            )
+        if self.network != "mainnet" and self.arc90_uri_netauth is None:
+            raise ValueError(
+                "`RegistryDeployment.arc90_uri_netauth` is required for non-mainnet deployments"
+            )
+
 
 DEFAULT_DEPLOYMENTS: Final[Mapping[str, RegistryDeployment]] = {
     "localnet": RegistryDeployment(
