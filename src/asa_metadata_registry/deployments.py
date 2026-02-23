@@ -28,11 +28,21 @@ class RegistryDeployment:
     list data-only so it can be updated without affecting the rest of the architecture.
     """
 
-    network: Literal["mainnet", "testnet"]
-    genesis_hash_b64: str
+    network: Literal["mainnet", "testnet", "localnet"]
+    genesis_hash_b64: str | None
     app_id: int | None
     creator_address: str | None = None
     arc90_uri_netauth: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.network != "localnet" and self.genesis_hash_b64 is None:
+            raise ValueError(
+                "`RegistryDeployment.genesis_hash_b64` is required for non-localnet deployments"
+            )
+        if self.network != "mainnet" and self.arc90_uri_netauth is None:
+            raise ValueError(
+                "`RegistryDeployment.arc90_uri_netauth` is required for non-mainnet deployments"
+            )
 
 
 DEFAULT_DEPLOYMENTS: Final[Mapping[str, RegistryDeployment]] = {
