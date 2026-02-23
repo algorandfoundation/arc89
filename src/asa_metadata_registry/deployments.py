@@ -28,14 +28,21 @@ class RegistryDeployment:
     list data-only so it can be updated without affecting the rest of the architecture.
     """
 
-    network: Literal["mainnet", "testnet"]
-    genesis_hash_b64: str
+    network: Literal["mainnet", "testnet", "localnet"]
+    genesis_hash_b64: str | None
     app_id: int | None
     creator_address: str | None = None
     arc90_uri_netauth: str | None = None
 
 
 DEFAULT_DEPLOYMENTS: Final[Mapping[str, RegistryDeployment]] = {
+    "localnet": RegistryDeployment(
+        network="localnet",
+        genesis_hash_b64=None,
+        app_id=None,
+        creator_address=None,
+        arc90_uri_netauth="net:localnet",
+    ),
     "testnet": RegistryDeployment(
         network="testnet",
         genesis_hash_b64=TESTNET_GH_B64,
