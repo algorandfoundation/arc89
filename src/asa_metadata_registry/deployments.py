@@ -46,13 +46,6 @@ class RegistryDeployment:
 
 
 DEFAULT_DEPLOYMENTS: Final[Mapping[str, RegistryDeployment]] = {
-    "localnet": RegistryDeployment(
-        network="localnet",
-        genesis_hash_b64=None,
-        app_id=None,
-        creator_address=None,
-        arc90_uri_netauth="net:localnet",
-    ),
     "testnet": RegistryDeployment(
         network="testnet",
         genesis_hash_b64=TESTNET_GH_B64,
