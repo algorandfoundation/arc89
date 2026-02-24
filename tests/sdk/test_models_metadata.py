@@ -263,6 +263,21 @@ class TestMetadataHeader:
         )
         assert header.is_arc3_compliant is True
 
+    def test_is_arc54_burnable(self) -> None:
+        """Test is_arc54_burnable property."""
+        flags = MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(burnable=True),
+        )
+        header = MetadataHeader(
+            identifiers=0,
+            flags=flags,
+            metadata_hash=b"\x00" * 32,
+            last_modified_round=1000,
+            deprecated_by=0,
+        )
+        assert header.is_arc54_burnable is True
+
     def test_is_arc89_native(self) -> None:
         """Test is_arc89_native property."""
         flags = MetadataFlags(
@@ -307,6 +322,21 @@ class TestMetadataHeader:
             deprecated_by=0,
         )
         assert header.is_arc62_circulating_supply is True
+
+    def test_is_ntt_cross_chain(self) -> None:
+        """Test is_ntt_cross_chain property."""
+        flags = MetadataFlags(
+            reversible=ReversibleFlags(ntt=True),
+            irreversible=IrreversibleFlags.empty(),
+        )
+        header = MetadataHeader(
+            identifiers=0,
+            flags=flags,
+            metadata_hash=b"\x00" * 32,
+            last_modified_round=1000,
+            deprecated_by=0,
+        )
+        assert header.is_ntt_cross_chain is True
 
     def test_from_tuple(self) -> None:
         """Test from_tuple parsing."""

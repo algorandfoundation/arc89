@@ -413,6 +413,10 @@ class MetadataHeader:
         return self.flags.irreversible.arc3
 
     @property
+    def is_arc54_burnable(self) -> bool:
+        return self.flags.irreversible.burnable
+
+    @property
     def is_arc89_native(self) -> bool:
         return self.flags.irreversible.arc89_native
 
@@ -423,6 +427,10 @@ class MetadataHeader:
     @property
     def is_arc62_circulating_supply(self) -> bool:
         return self.flags.reversible.arc62
+
+    @property
+    def is_ntt_cross_chain(self) -> bool:
+        return self.flags.reversible.ntt
 
     @property
     def is_deprecated(self) -> bool:
@@ -880,6 +888,10 @@ class AssetMetadata:
         return self.flags.irreversible.arc3
 
     @property
+    def is_arc54_burnable(self) -> bool:
+        return self.flags.irreversible.burnable
+
+    @property
     def is_arc89_native(self) -> bool:
         return self.flags.irreversible.arc89_native
 
@@ -890,6 +902,10 @@ class AssetMetadata:
     @property
     def is_arc62_circulating_supply(self) -> bool:
         return self.flags.reversible.arc62
+
+    @property
+    def is_ntt_cross_chain(self) -> bool:
+        return self.flags.reversible.ntt
 
     @property
     def is_deprecated(self) -> bool:
