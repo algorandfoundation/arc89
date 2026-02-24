@@ -58,6 +58,29 @@ class AsaMetadataRegistry:
         self._write: AsaMetadataRegistryWrite | None = None
 
         if app_client is not None:
+            # Normalize app_id from the provided generated client.
+            # - missing attribute => None
+            # - 0 / falsy => None
+            client_app_id_raw = getattr(app_client, "app_id", None)
+            client_app_id = (
+                int(client_app_id_raw) if client_app_id_raw not in (None, "") else 0
+            )
+            client_app_id = client_app_id or None
+
+            # Guard against accidental mismatches when callers construct the registry directly
+            # with a pinned app_id. If callers want to retarget the registry (e.g.
+            # `from_app_client(..., app_id=...)`), they can pass an unbound client (app_id 0/None)
+            # or rely on the higher-level constructor.
+            if (
+                config.app_id is not None
+                and client_app_id is not None
+                and client_app_id != config.app_id
+            ):
+                raise ValueError(
+                    "App ID mismatch: provided app_client has app_id "
+                    f"{client_app_id_raw}, but config specifies {config.app_id}"
+                )
+
             # Build a factory that can create a generated client for arbitrary registry app_id,
             # using the same AlgoKit Algorand client instance.
             self._generated_client_factory = self._make_generated_client_factory(
