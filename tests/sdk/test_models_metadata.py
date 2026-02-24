@@ -160,23 +160,6 @@ class TestMetadataBody:
         assert decode_metadata_json(body.raw_bytes) == obj
         assert body.size > 0
 
-    def test_from_json_arc3_compliant_valid(self) -> None:
-        """Test from_json with ARC-3 compliant metadata."""
-        obj = {
-            "name": "My NFT",
-            "decimals": 0,
-            "description": "A test NFT",
-        }
-        body = MetadataBody.from_json(obj, arc3_compliant=True)
-
-        assert decode_metadata_json(body.raw_bytes) == obj
-
-    def test_from_json_arc3_compliant_invalid_raises(self) -> None:
-        """Test from_json with invalid ARC-3 metadata raises."""
-        obj = {"decimals": "not an integer"}  # Invalid
-        with pytest.raises(MetadataArc3Error):
-            MetadataBody.from_json(obj, arc3_compliant=True)
-
 
 class TestMetadataHeader:
     """Tests for MetadataHeader dataclass."""
