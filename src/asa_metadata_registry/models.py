@@ -1053,6 +1053,7 @@ class AssetMetadata:
         flags: MetadataFlags | None = None,
         deprecated_by: int = 0,
         arc3_compliant: bool = False,
+        derive_and_validate_flags: bool = False,
     ) -> AssetMetadata:
         body_raw_bytes = encode_metadata_json(json_obj)
         # Validate round-trip and schema constraints (object)
@@ -1061,11 +1062,14 @@ class AssetMetadata:
         if arc3_compliant:
             validate_arc3_schema(json_obj)
 
-        final_flags = cls._derive_and_validate_flags_from_json(
-            json_obj=json_obj,
-            flags=flags,
-            arc3_compliant=arc3_compliant,
-        )
+        if derive_and_validate_flags:
+            final_flags = cls._derive_and_validate_flags_from_json(
+                json_obj=json_obj,
+                flags=flags,
+                arc3_compliant=arc3_compliant,
+            )
+        else:
+            final_flags = flags or MetadataFlags.empty()
 
         return cls(
             asset_id=asset_id,
@@ -1084,6 +1088,7 @@ class AssetMetadata:
         deprecated_by: int = 0,
         validate_json_object: bool = True,
         arc3_compliant: bool = False,
+        derive_and_validate_flags: bool = False,
     ) -> AssetMetadata:
         """
         Create from raw metadata bytes.
@@ -1102,13 +1107,17 @@ class AssetMetadata:
         body = MetadataBody(metadata_bytes)
         body.validate_size()
 
-        final_flags: MetadataFlags
+        json_obj: Mapping[str, object] | None = None
         if validate_json_object:
             json_obj = decode_metadata_json(metadata_bytes)
-
             if arc3_compliant:
                 validate_arc3_schema(json_obj)
 
+        if derive_and_validate_flags:
+            if json_obj is None:
+                raise ValueError(
+                    "derive_and_validate_flags=True requires validate_json_object=True"
+                )
             final_flags = cls._derive_and_validate_flags_from_json(
                 json_obj=json_obj,
                 flags=flags,
