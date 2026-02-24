@@ -79,7 +79,7 @@ class TestValidateArc3Schema:
         validate_arc3_schema({"name": "x", "unknown": {"nested": True}})
 
     def test_decimals_must_be_int_not_bool(self) -> None:
-        with pytest.raises(MetadataArc3Error, match="decimals.*integer"):
+        with pytest.raises(MetadataArc3Error, match=r"decimals.*integer"):
             validate_arc3_schema({"decimals": True})
 
     def test_decimals_must_be_non_negative(self) -> None:
@@ -87,11 +87,11 @@ class TestValidateArc3Schema:
             validate_arc3_schema({"decimals": -1})
 
     def test_string_fields_must_be_string(self) -> None:
-        with pytest.raises(MetadataArc3Error, match="name.*string"):
+        with pytest.raises(MetadataArc3Error, match=r"name.*string"):
             validate_arc3_schema({"name": 123})
 
     def test_properties_must_be_object(self) -> None:
-        with pytest.raises(MetadataArc3Error, match="properties.*object"):
+        with pytest.raises(MetadataArc3Error, match=r"properties.*object"):
             validate_arc3_schema({"properties": []})
 
     def test_localization_requires_fields(self) -> None:
@@ -105,7 +105,7 @@ class TestValidateArc3Schema:
             validate_arc3_schema({"localization": {"uri": "u", "default": "en"}})
 
     def test_localization_type_checks(self) -> None:
-        with pytest.raises(MetadataArc3Error, match="locales.*array"):
+        with pytest.raises(MetadataArc3Error, match=r"locales.*array"):
             validate_arc3_schema(
                 {"localization": {"uri": "u", "default": "en", "locales": "en"}}
             )
