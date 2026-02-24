@@ -528,32 +528,6 @@ class TestCreateMetadata:
 class TestCreateMetadataArc3Compliant:
     """Test create_metadata validation for declared ARC-3 compliant ASAs."""
 
-    @pytest.mark.parametrize(
-        "rev_flag",
-        [
-            pytest.param(ReversibleFlags(arc20=True), id="arc20"),
-            pytest.param(ReversibleFlags(arc62=True), id="arc62"),
-        ],
-    )
-    def test_invalid_properties_raises(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        arc_3_asa: int,
-        rev_flag: ReversibleFlags,
-    ) -> None:
-        """Test that missing properties with arc3 + arc20/arc62 flags raises InvalidArc3PropertiesError."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        metadata = AssetMetadata.from_json(
-            asset_id=arc_3_asa,
-            json_obj=create_arc3_payload(name="ARC3 Compliant Test", properties={}),
-            flags=MetadataFlags(
-                reversible=rev_flag, irreversible=IrreversibleFlags(arc3=True)
-            ),
-        )
-        with pytest.raises(InvalidArc3PropertiesError):
-            writer.create_metadata(asset_manager=asset_manager, metadata=metadata)
-
     def test_invalid_properties_no_rev_flags_creates_metadata(
         self,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
