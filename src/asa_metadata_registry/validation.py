@@ -163,26 +163,34 @@ ARC3_PROPERTIES_FLAG_TO_KEY: dict[int, Arc3PropertiesKey] = {
 }
 
 
+def validate_arc20_arc62_require_arc3(*, rev_arc20: bool, rev_arc62: bool, irr_arc3: bool) -> None:
+    """
+    Enforce: if metadata is declared ARC-20 and/or ARC-62, then it must be ARC-3.
+    """
+    if (rev_arc20 or rev_arc62) and not irr_arc3:
+        raise MetadataArc3Error("ARC-20 and ARC-62 require ARC-3 metadata")
+
+
 def validate_arc3_properties(
-    body: dict[str, object], arc_key: Arc3PropertiesKey
+    obj: Mapping[str, object], arc_key: Arc3PropertiesKey
 ) -> None:
     """
-    Validate that ARC-3 metadata `body` has a valid `arc_key` in properties.
+    Validate that ARC-3 metadata JSON object has a valid `arc_key` in properties.
 
-    Per ARC-20 and ARC-62, the value must be a dict with an "application-id" key
+    Per ARC-20 and ARC-62, the value must be a mapping with an "application-id" key
     whose value is a valid app ID (positive uint64).
 
     Raises `InvalidArc3PropertiesError` if validation fails.
     """
 
-    properties = body.get("properties")
-    if not isinstance(properties, dict):
+    properties = obj.get("properties")
+    if not isinstance(properties, Mapping):
         raise InvalidArc3PropertiesError(
             f"{arc_key.upper()} metadata must have a valid 'properties' field"
         )
 
     arc_value = properties.get(arc_key)
-    if not isinstance(arc_value, dict):
+    if not isinstance(arc_value, Mapping):
         raise InvalidArc3PropertiesError(f"properties['{arc_key}'] must be an object")
 
     if not is_positive_uint64(arc_value.get("application-id")):
