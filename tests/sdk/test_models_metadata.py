@@ -527,6 +527,7 @@ class TestAssetMetadata:
             asset_id=111,
             json_obj=obj,
             arc3_compliant=True,
+            derive_and_validate_flags=True,
         )
 
         assert decode_metadata_json(metadata.body.raw_bytes) == obj
