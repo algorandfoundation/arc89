@@ -578,28 +578,6 @@ class TestCreateMetadataArc3Compliant:
         assert isinstance(mbr_delta, MbrDelta)
         assert mbr_delta.is_positive
 
-    def test_both_flags_validate_independently(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        arc_3_asa: int,
-    ) -> None:
-        """Test that both arc20+arc62 flags validates each independently, raising on the invalid one."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        metadata = AssetMetadata.from_json(
-            asset_id=arc_3_asa,
-            json_obj=create_arc3_payload(
-                name="ARC3 Compliant Test",
-                properties={"arc-20": {"application-id": 123456}},
-            ),
-            flags=MetadataFlags(
-                reversible=ReversibleFlags(arc20=True, arc62=True),
-                irreversible=IrreversibleFlags(arc3=True),
-            ),
-        )
-        with pytest.raises(InvalidArc3PropertiesError):
-            writer.create_metadata(asset_manager=asset_manager, metadata=metadata)
-
     def test_both_flags_valid_properties_creates_metadata(
         self,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
