@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from algosdk.v2client.algod import AlgodClient
 
@@ -62,10 +62,12 @@ class AsaMetadataRegistry:
             # - missing attribute => None
             # - 0 / falsy => None
             client_app_id_raw = getattr(app_client, "app_id", None)
-            client_app_id = (
-                int(client_app_id_raw) if client_app_id_raw not in (None, "") else 0
-            )
-            client_app_id = client_app_id or None
+
+            client_app_id: int | None
+            if client_app_id_raw in (None, ""):
+                client_app_id = None
+            else:
+                client_app_id = int(cast(Any, client_app_id_raw)) or None
 
             # Guard against accidental mismatches when callers construct the registry directly
             # with a pinned app_id. If callers want to retarget the registry (e.g.
