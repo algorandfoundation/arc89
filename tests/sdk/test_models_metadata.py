@@ -25,8 +25,8 @@ from asa_metadata_registry import (
     get_default_registry_params,
 )
 from asa_metadata_registry import compute_metadata_hash as hash_fn
-from smart_contracts import constants as const
 from asa_metadata_registry.errors import InvalidArc3PropertiesError
+from smart_contracts import constants as const
 
 
 class TestMetadataBody:
@@ -737,7 +737,9 @@ class TestAssetMetadataDeriveAndValidateFlagsFromJson:
         )
         assert flags == MetadataFlags.empty()
 
-    def test_flags_none_arc3_true_sets_arc3_and_no_reversible_when_no_properties(self) -> None:
+    def test_flags_none_arc3_true_sets_arc3_and_no_reversible_when_no_properties(
+        self,
+    ) -> None:
         obj = {"name": "T", "decimals": 0}
         flags = AssetMetadata._derive_and_validate_flags_from_json(
             json_obj=obj,
@@ -748,7 +750,9 @@ class TestAssetMetadataDeriveAndValidateFlagsFromJson:
         assert flags.reversible.arc20 is False
         assert flags.reversible.arc62 is False
 
-    def test_flags_none_arc3_true_autodetects_arc20_and_arc62_from_properties(self) -> None:
+    def test_flags_none_arc3_true_autodetects_arc20_and_arc62_from_properties(
+        self,
+    ) -> None:
         obj = {
             "name": "T",
             "decimals": 0,
@@ -794,7 +798,9 @@ class TestAssetMetadataDeriveAndValidateFlagsFromJson:
                 arc3_compliant=False,
             )
 
-    def test_flags_provided_arc3_true_arc20_true_invalid_properties_raises(self) -> None:
+    def test_flags_provided_arc3_true_arc20_true_invalid_properties_raises(
+        self,
+    ) -> None:
         # Invalid ARC-20 properties should be rejected when the flag is set.
         obj = {
             "name": "T",

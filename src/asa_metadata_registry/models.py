@@ -6,7 +6,12 @@ from dataclasses import dataclass
 
 from . import bitmasks, enums
 from . import constants as const
-from .errors import BoxParseError, InvalidPageIndexError, MetadataHashMismatchError, MetadataArc3Error
+from .errors import (
+    BoxParseError,
+    InvalidPageIndexError,
+    MetadataArc3Error,
+    MetadataHashMismatchError,
+)
 from .hashing import (
     MAX_UINT8,
     compute_header_hash,
@@ -16,9 +21,9 @@ from .hashing import (
 from .validation import (
     decode_metadata_json,
     encode_metadata_json,
-    validate_arc3_schema,
     validate_arc3_properties,
-    validate_arc20_arc62_require_arc3
+    validate_arc3_schema,
+    validate_arc20_arc62_require_arc3,
 )
 
 # Type aliases for ABI tuple values
@@ -1033,7 +1038,7 @@ class AssetMetadata:
             validate_arc20_arc62_require_arc3(
                 rev_arc20=final_flags.reversible.arc20,
                 rev_arc62=final_flags.reversible.arc62,
-                irr_arc3=final_flags.irreversible.arc3
+                irr_arc3=final_flags.irreversible.arc3,
             )
             if arc3_compliant and not final_flags.irreversible.arc3:
                 raise MetadataArc3Error("ARC3 metadata flag is not set")

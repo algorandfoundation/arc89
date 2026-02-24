@@ -10,10 +10,10 @@ from asa_metadata_registry.validation import (
     encode_metadata_json,
     is_arc3_metadata,
     is_positive_uint64,
-    validate_arc20_arc62_require_arc3,
     validate_arc3_properties,
     validate_arc3_schema,
     validate_arc3_values,
+    validate_arc20_arc62_require_arc3,
 )
 
 
@@ -144,17 +144,27 @@ class TestIsArc3Metadata:
 
 class TestValidateArc20Arc62RequireArc3:
     def test_allows_when_no_arc20_no_arc62(self) -> None:
-        validate_arc20_arc62_require_arc3(rev_arc20=False, rev_arc62=False, irr_arc3=False)
+        validate_arc20_arc62_require_arc3(
+            rev_arc20=False, rev_arc62=False, irr_arc3=False
+        )
 
     def test_allows_when_arc3_true(self) -> None:
-        validate_arc20_arc62_require_arc3(rev_arc20=True, rev_arc62=False, irr_arc3=True)
-        validate_arc20_arc62_require_arc3(rev_arc20=False, rev_arc62=True, irr_arc3=True)
+        validate_arc20_arc62_require_arc3(
+            rev_arc20=True, rev_arc62=False, irr_arc3=True
+        )
+        validate_arc20_arc62_require_arc3(
+            rev_arc20=False, rev_arc62=True, irr_arc3=True
+        )
 
     def test_rejects_when_arc20_or_arc62_without_arc3(self) -> None:
         with pytest.raises(MetadataArc3Error, match="require ARC-3"):
-            validate_arc20_arc62_require_arc3(rev_arc20=True, rev_arc62=False, irr_arc3=False)
+            validate_arc20_arc62_require_arc3(
+                rev_arc20=True, rev_arc62=False, irr_arc3=False
+            )
         with pytest.raises(MetadataArc3Error, match="require ARC-3"):
-            validate_arc20_arc62_require_arc3(rev_arc20=False, rev_arc62=True, irr_arc3=False)
+            validate_arc20_arc62_require_arc3(
+                rev_arc20=False, rev_arc62=True, irr_arc3=False
+            )
 
 
 class TestValidateArc3Properties:

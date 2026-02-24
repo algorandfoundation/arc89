@@ -144,9 +144,13 @@ def validate_arc3_values(obj: Mapping[str, object], *, asa_decimals: int) -> Non
     if dec is None:
         return  # ARC-3 allows omission; only enforce when present
     if not isinstance(dec, int):
-        raise MetadataArc3Error(f"ARC-3 field 'decimals' must be an integer, got {type(dec).__name__}")
+        raise MetadataArc3Error(
+            f"ARC-3 field 'decimals' must be an integer, got {type(dec).__name__}"
+        )
     if dec != asa_decimals:
-        raise MetadataArc3Error(f"ARC-3 field 'decimals' must match ASA decimals ({asa_decimals}), got {dec}")
+        raise MetadataArc3Error(
+            f"ARC-3 field 'decimals' must match ASA decimals ({asa_decimals}), got {dec}"
+        )
 
 
 def is_arc3_metadata(obj: Mapping[str, object]) -> bool:
@@ -176,7 +180,9 @@ ARC3_PROPERTIES_FLAG_TO_KEY: dict[int, Arc3PropertiesKey] = {
 }
 
 
-def validate_arc20_arc62_require_arc3(*, rev_arc20: bool, rev_arc62: bool, irr_arc3: bool) -> None:
+def validate_arc20_arc62_require_arc3(
+    *, rev_arc20: bool, rev_arc62: bool, irr_arc3: bool
+) -> None:
     """
     Enforce: if metadata is declared ARC-20 and/or ARC-62, then it must be ARC-3.
     """
