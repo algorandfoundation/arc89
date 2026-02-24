@@ -228,7 +228,7 @@ def test_arc54_burnable(
         metadata_bytes=b"",
         flags=flags_arc54_burnable,
     )
-    # TODO: assert metadata.is_burnable once implemented in SDK
+    assert metadata.is_arc54_burnable
 
     create_metadata(
         asset_manager=asset_manager,
