@@ -23,7 +23,7 @@ from ..generated.asa_metadata_registry_client import (
 )
 from ..models import AssetMetadata, AssetMetadataBox, MbrDelta, RegistryParameters
 from ..read.avm import AsaMetadataRegistryAvmRead, SimulateOptions
-from ..validation import ARC3_PROPERTIES_FLAG_TO_KEY, validate_arc3_properties
+from ..validation import ARC3_PROPERTIES_FLAG_TO_KEY, validate_arc3_properties, validate_arc3_values
 
 
 def _chunks_for_create(metadata: AssetMetadata) -> list[bytes]:
@@ -485,14 +485,13 @@ class AsaMetadataRegistryWrite:
         metadata: AssetMetadata,
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
+        validate_arc3: bool = True,
     ) -> MbrDelta:
 
-        if metadata.flags.irreversible.arc3:
-            rev = metadata.flags.reversible
-            if rev.arc20:
-                validate_arc3_properties(metadata.body.json, "arc-20")
-            if rev.arc62:
-                validate_arc3_properties(metadata.body.json, "arc-62")
+        if validate_arc3:
+            asa_params = self.client.algorand.asset.get_by_id(metadata.asset_id)
+            asa_decimals = asa_params.decimals
+            validate_arc3_values(metadata.body.json, asa_decimals=asa_decimals)
 
         composer = self.build_create_metadata_group(
             asset_manager=asset_manager, metadata=metadata, options=options
@@ -514,7 +513,14 @@ class AsaMetadataRegistryWrite:
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
         assume_current_size: int | None = None,
+        validate_arc3: bool = True,
     ) -> MbrDelta:
+
+        if validate_arc3:
+            asa_params = self.client.algorand.asset.get_by_id(metadata.asset_id)
+            asa_decimals = asa_params.decimals
+            validate_arc3_values(metadata.body.json, asa_decimals=asa_decimals)
+
         composer = self.build_replace_metadata_group(
             asset_manager=asset_manager,
             metadata=metadata,
