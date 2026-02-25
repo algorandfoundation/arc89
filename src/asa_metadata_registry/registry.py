@@ -93,7 +93,11 @@ class AsaMetadataRegistry:
                 self._generated_client_factory(int(app_id))  # type: ignore[misc]
             )
 
-            self._write = AsaMetadataRegistryWrite(app_client)
+            write_client = app_client
+            if client_app_id is None and config.app_id is not None:
+                write_client = self._generated_client_factory(config.app_id)
+
+            self._write = AsaMetadataRegistryWrite(write_client)
 
         self.read = AsaMetadataRegistryRead(
             app_id=config.app_id,
