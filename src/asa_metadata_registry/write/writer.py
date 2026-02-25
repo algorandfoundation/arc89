@@ -492,7 +492,7 @@ class AsaMetadataRegistryWrite:
         validate_arc3: bool = False,
     ) -> MbrDelta:
 
-        if validate_arc3 and metadata.body.json.get("decimals"):
+        if validate_arc3 and "decimals" in metadata.body.json:
             asa_params = self.client.algorand.asset.get_by_id(metadata.asset_id)
             asa_decimals = asa_params.decimals
             validate_arc3_values(metadata.body.json, asa_decimals=asa_decimals)
@@ -520,7 +520,7 @@ class AsaMetadataRegistryWrite:
         validate_arc3: bool = False,
     ) -> MbrDelta:
 
-        if validate_arc3 and metadata.body.json.get("decimals"):
+        if validate_arc3 and "decimals" in metadata.body.json:
             asa_params = self.client.algorand.asset.get_by_id(metadata.asset_id)
             asa_decimals = asa_params.decimals
             validate_arc3_values(metadata.body.json, asa_decimals=asa_decimals)
