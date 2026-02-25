@@ -133,6 +133,7 @@ class TestValidateArc3Values:
             validate_arc3_values({"decimals": True}, asa_decimals=6)
         with pytest.raises(MetadataArc3Error, match="must be an integer"):
             validate_arc3_values({"decimals": False}, asa_decimals=6)
+
     def test_decimals_matches(self) -> None:
         validate_arc3_values({"decimals": 6}, asa_decimals=6)
 
