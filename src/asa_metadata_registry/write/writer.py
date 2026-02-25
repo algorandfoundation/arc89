@@ -509,10 +509,12 @@ class AsaMetadataRegistryWrite:
         validate_arc3: bool = False,
     ) -> MbrDelta:
 
-        if validate_arc3 and "decimals" in metadata.body.json:
-            asa_params = _get_asa_params(self.client, metadata.asset_id)
-            asa_decimals = asa_params.decimals
-            validate_arc3_values(metadata.body.json, asa_decimals=asa_decimals)
+        if validate_arc3:
+            body_json = metadata.body.json
+            if "decimals" in body_json:
+                asa_params = _get_asa_params(self.client, metadata.asset_id)
+                asa_decimals = asa_params.decimals
+                validate_arc3_values(body_json, asa_decimals=asa_decimals)
 
         composer = self.build_create_metadata_group(
             asset_manager=asset_manager, metadata=metadata, options=options
@@ -537,10 +539,12 @@ class AsaMetadataRegistryWrite:
         validate_arc3: bool = False,
     ) -> MbrDelta:
 
-        if validate_arc3 and "decimals" in metadata.body.json:
-            asa_params = _get_asa_params(self.client, metadata.asset_id)
-            asa_decimals = asa_params.decimals
-            validate_arc3_values(metadata.body.json, asa_decimals=asa_decimals)
+        if validate_arc3:
+            body_json = metadata.body.json
+            if "decimals" in body_json:
+                asa_params = _get_asa_params(self.client, metadata.asset_id)
+                asa_decimals = asa_params.decimals
+                validate_arc3_values(body_json, asa_decimals=asa_decimals)
 
         composer = self.build_replace_metadata_group(
             asset_manager=asset_manager,
