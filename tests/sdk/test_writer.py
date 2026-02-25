@@ -547,7 +547,9 @@ class TestCreateMetadataArc3Compliant:
         monkeypatch.setattr(writer_module, "validate_arc3_values", validate_mock)
 
         # If decimals validation were attempted, this on-chain API would be called.
-        get_by_id_mock = Mock(side_effect=AssertionError("asset.get_by_id should not be called"))
+        get_by_id_mock = Mock(
+            side_effect=AssertionError("asset.get_by_id should not be called")
+        )
         monkeypatch.setattr(
             asa_metadata_registry_client.algorand.asset,
             "get_by_id",
@@ -558,7 +560,10 @@ class TestCreateMetadataArc3Compliant:
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
         metadata = AssetMetadata.from_json(
             asset_id=arc_89_asa,
-            json_obj={"name": "No Decimals", "description": "Should skip decimals validation"},
+            json_obj={
+                "name": "No Decimals",
+                "description": "Should skip decimals validation",
+            },
         )
 
         mbr_delta = writer.create_metadata(
