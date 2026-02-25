@@ -644,7 +644,7 @@ class AsaMetadataRegistryWrite:
         if not flags.IRR_FLG_ARC54 <= flag_index <= flags.IRR_FLG_RESERVED_6:
             raise InvalidFlagIndexError(
                 f"Invalid irreversible flag index: {flag_index}, must be in [2, 6]."
-                f"Flags 0, 1 are creation only. Flag 7 is reserved to set_immutable."
+                f" Flags 0, 1 are creation only. Flag 7 is reserved to set_immutable."
             )
 
         opt = options or WriteOptions()
