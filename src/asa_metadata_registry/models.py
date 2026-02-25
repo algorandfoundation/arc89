@@ -1109,8 +1109,8 @@ class AssetMetadata:
         if arc3_compliant and not validate_json_object:
             raise ValueError("arc3_compliant=True requires validate_json_object=True")
 
-        if not isinstance(metadata_bytes, bytes):
-            raise TypeError("metadata_bytes must be bytes")
+        if not isinstance(metadata_bytes, (bytes, bytearray)):
+            raise TypeError("metadata_bytes must be bytes or bytearray")
 
         body = MetadataBody(metadata_bytes)
         body.validate_size()
