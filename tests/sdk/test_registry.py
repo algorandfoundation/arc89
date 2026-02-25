@@ -207,6 +207,50 @@ class TestAsaMetadataRegistryInit:
                 default_signer=None,
             )
 
+    def test_app_id_mismatch(self, mock_app_client: Mock) -> None:
+        """Test initialization raises if config.app_id doesn't match app_client.app_id."""
+        # mock_app_client.app_id is set by fixture to 12345
+        config = RegistryConfig(app_id=99999)
+
+        with pytest.raises(
+            ValueError, match=r"App ID mismatch:.*app_id 12345.*config specifies 99999"
+        ):
+            AsaMetadataRegistry(config=config, app_client=mock_app_client)
+
+    def test_write_client_bound_to_config_app_id(self, mock_algorand: Mock) -> None:
+        """
+        If the provided app_client is unbound (app_id 0/None) but config.app_id is
+        pinned, registry.write should use a generated client bound to config.app_id.
+        """
+        # Base client looks like a generated client but is unbound.
+        base_client = Mock()
+        base_client.algorand = mock_algorand
+        base_client.app_id = 0
+
+        config = RegistryConfig(app_id=12345)
+
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
+            mock_module = Mock()
+            generated_client_class = Mock()
+            mock_module.AsaMetadataRegistryClient = generated_client_class
+            mock_import.return_value = mock_module
+
+            bound_client = Mock()
+            generated_client_class.return_value = bound_client
+
+            registry = AsaMetadataRegistry(config=config, app_client=base_client)
+
+            assert registry.write.client is bound_client
+
+            # Only assert the important invariant: the bound client targets config.app_id.
+            # (default_sender/default_signer may be extracted from base_client.app_client
+            # depending on the base client shape.)
+            _, kwargs = generated_client_class.call_args
+            assert kwargs["algorand"] is mock_algorand
+            assert kwargs["app_id"] == 12345
+
 
 # ================================================================
 # AsaMetadataRegistry.write Property Tests
@@ -311,7 +355,7 @@ class TestAsaMetadataRegistryFromAppClient:
     def test_from_app_client_with_explicit_app_id(
         self, mock_app_client: Mock, mock_algorand: Mock
     ) -> None:
-        """Test from_app_client with explicit app_id overrides client's app_id."""
+        """Test from_app_client with explicit app_id when client is already bound."""
         mock_app_client.algorand = mock_algorand
         mock_app_client.app_id = 12345
 
@@ -322,11 +366,11 @@ class TestAsaMetadataRegistryFromAppClient:
             mock_module.AsaMetadataRegistryClient = Mock
             mock_import.return_value = mock_module
 
-            registry = AsaMetadataRegistry.from_app_client(
-                mock_app_client, app_id=67890
-            )
-
-            assert registry.config.app_id == 67890
+            with pytest.raises(
+                ValueError,
+                match=r"App ID mismatch:.*app_id 12345.*config specifies 67890",
+            ):
+                AsaMetadataRegistry.from_app_client(mock_app_client, app_id=67890)
 
     def test_from_app_client_with_netauth(
         self, mock_app_client: Mock, mock_algorand: Mock

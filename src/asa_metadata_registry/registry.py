@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from algosdk.v2client.algod import AlgodClient
 
@@ -58,6 +58,31 @@ class AsaMetadataRegistry:
         self._write: AsaMetadataRegistryWrite | None = None
 
         if app_client is not None:
+            # Normalize app_id from the provided generated client.
+            # - missing attribute => None
+            # - 0 / falsy => None
+            client_app_id_raw = getattr(app_client, "app_id", None)
+
+            client_app_id: int | None
+            if client_app_id_raw in (None, ""):
+                client_app_id = None
+            else:
+                client_app_id = int(cast(Any, client_app_id_raw)) or None
+
+            # Guard against accidental mismatches when callers construct the registry directly
+            # with a pinned app_id. If callers want to retarget the registry (e.g.
+            # `from_app_client(..., app_id=...)`), they can pass an unbound client (app_id 0/None)
+            # or rely on the higher-level constructor.
+            if (
+                config.app_id is not None
+                and client_app_id is not None
+                and client_app_id != config.app_id
+            ):
+                raise ValueError(
+                    "App ID mismatch: provided app_client has app_id "
+                    f"{client_app_id_raw}, but config specifies {config.app_id}"
+                )
+
             # Build a factory that can create a generated client for arbitrary registry app_id,
             # using the same AlgoKit Algorand client instance.
             self._generated_client_factory = self._make_generated_client_factory(
@@ -68,7 +93,11 @@ class AsaMetadataRegistry:
                 self._generated_client_factory(int(app_id))  # type: ignore[misc]
             )
 
-            self._write = AsaMetadataRegistryWrite(app_client)
+            write_client = app_client
+            if client_app_id is None and config.app_id is not None:
+                write_client = self._generated_client_factory(config.app_id)
+
+            self._write = AsaMetadataRegistryWrite(write_client)
 
         self.read = AsaMetadataRegistryRead(
             app_id=config.app_id,
