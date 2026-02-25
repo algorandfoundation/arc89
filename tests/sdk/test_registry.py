@@ -217,6 +217,40 @@ class TestAsaMetadataRegistryInit:
         ):
             AsaMetadataRegistry(config=config, app_client=mock_app_client)
 
+    def test_write_client_bound_to_config_app_id(self, mock_algorand: Mock) -> None:
+        """
+        If the provided app_client is unbound (app_id 0/None) but config.app_id is
+        pinned, registry.write should use a generated client bound to config.app_id.
+        """
+        # Base client looks like a generated client but is unbound.
+        base_client = Mock()
+        base_client.algorand = mock_algorand
+        base_client.app_id = 0
+
+        config = RegistryConfig(app_id=12345)
+
+        with patch(
+            "asa_metadata_registry.registry.import_generated_client"
+        ) as mock_import:
+            mock_module = Mock()
+            generated_client_class = Mock()
+            mock_module.AsaMetadataRegistryClient = generated_client_class
+            mock_import.return_value = mock_module
+
+            bound_client = Mock()
+            generated_client_class.return_value = bound_client
+
+            registry = AsaMetadataRegistry(config=config, app_client=base_client)
+
+            assert registry.write.client is bound_client
+
+            # Only assert the important invariant: the bound client targets config.app_id.
+            # (default_sender/default_signer may be extracted from base_client.app_client
+            # depending on the base client shape.)
+            _, kwargs = generated_client_class.call_args
+            assert kwargs["algorand"] is mock_algorand
+            assert kwargs["app_id"] == 12345
+
 
 # ================================================================
 # AsaMetadataRegistry.write Property Tests
