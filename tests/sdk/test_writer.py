@@ -576,6 +576,53 @@ class TestCreateMetadataArc3Compliant:
         validate_mock.assert_not_called()
         get_by_id_mock.assert_not_called()
 
+    def test_arc3_decimals_zero_triggers_decimals_validation(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        arc_89_asa: int,
+    ) -> None:
+        """
+        When 'decimals' is explicitly set to 0, writer must fetch ASA params and
+        run decimals validation under validate_arc3=True.
+        """
+
+        # Patch validate_arc3_values where it's imported/used (writer module).
+        from asa_metadata_registry.write import writer as writer_module
+
+        validate_mock = Mock()
+        monkeypatch.setattr(writer_module, "validate_arc3_values", validate_mock)
+
+        # Decimals validation should fetch on-chain ASA params even when decimals == 0.
+        get_by_id_mock = Mock(return_value={"params": {"decimals": 0}})
+        monkeypatch.setattr(
+            asa_metadata_registry_client.algorand.asset,
+            "get_by_id",
+            get_by_id_mock,
+            raising=True,
+        )
+
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        metadata = AssetMetadata.from_json(
+            asset_id=arc_89_asa,
+            json_obj={
+                "name": "Zero Decimals",
+                "description": "Should trigger decimals validation",
+                "decimals": 0,
+            },
+        )
+
+        mbr_delta = writer.create_metadata(
+            asset_manager=asset_manager,
+            metadata=metadata,
+            validate_arc3=True,
+        )
+
+        assert isinstance(mbr_delta, MbrDelta)
+        # Writer must fetch ASA params and invoke ARC-3 validation.
+        get_by_id_mock.assert_called_once()
+        validate_mock.assert_called_once()
     def test_invalid_properties_no_rev_flags_creates_metadata(
         self,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
