@@ -501,6 +501,7 @@ class AsaMetadataRegistryWrite:
                 existing = self.client.state.box.asset_metadata.get_value(
                     metadata.asset_id
                 )
+            # TODO: Use less general exception when/if AlgoKit Utils exposes Algod's errors.
             except Exception as ex:
                 msg = str(ex).lower()
                 # Box doesn't exist yet -> metadata doesn't exist.
@@ -522,6 +523,7 @@ class AsaMetadataRegistryWrite:
         if needs_asa_params:
             try:
                 asa_params = self.client.algorand.asset.get_by_id(metadata.asset_id)
+            # TODO: Use less general exception when/if AlgoKit Utils exposes Algod's errors.
             except Exception as ex:
                 msg = str(ex).lower()
                 if "not exist" in msg:
