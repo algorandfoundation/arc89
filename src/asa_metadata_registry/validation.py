@@ -143,7 +143,7 @@ def validate_arc3_values(obj: Mapping[str, object], *, asa_decimals: int) -> Non
     dec = obj.get("decimals")
     if dec is None:
         return  # ARC-3 allows omission; only enforce when present
-    if not isinstance(dec, int):
+    if not isinstance(dec, int) or isinstance(dec, bool):
         raise MetadataArc3Error(
             f"ARC-3 field 'decimals' must be an integer, got {type(dec).__name__}"
         )
