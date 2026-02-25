@@ -28,10 +28,12 @@ from .errors import (
     MetadataArc3Error,
     MetadataDriftError,
     MetadataEncodingError,
+    MetadataExistsError,
     MetadataHashMismatchError,
     MetadataNotFoundError,
     MissingAppClientError,
     RegistryResolutionError,
+    RequiresImmutableMetadataError,
 )
 from .hashing import (
     compute_arc3_metadata_hash,
@@ -95,10 +97,12 @@ __all__ = [
     "MetadataArc3Error",
     "MetadataDriftError",
     "MetadataEncodingError",
+    "MetadataExistsError",
     "MetadataHashMismatchError",
     "MetadataNotFoundError",
     "MissingAppClientError",
     "RegistryResolutionError",
+    "RequiresImmutableMetadataError",
     # Models
     "AssetMetadata",
     "AssetMetadataBox",
