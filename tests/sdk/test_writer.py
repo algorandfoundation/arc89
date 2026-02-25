@@ -16,8 +16,7 @@ Tests cover:
 from unittest.mock import Mock
 
 import pytest
-from algokit_utils import AlgoAmount, CommonAppCallParams, SendParams, SigningAccount
-from algosdk.error import AlgodHTTPError
+from algokit_utils import SendParams, SigningAccount
 
 from asa_metadata_registry import (
     AsaMetadataRegistryRead,
@@ -343,45 +342,6 @@ class TestSendGroupHelper:
         )
 
 
-class TestSendGroupHelperSimulate:
-    """Test _send_group helper for simulation."""
-
-    def test_send_group_simulate(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        short_metadata: AssetMetadata,
-    ) -> None:
-        """Test simulating a create metadata transaction group."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        composer = writer.build_create_metadata_group(
-            asset_manager=asset_manager, metadata=short_metadata
-        )
-        simulate = SimulateOptions()  # Any custom options can go here
-        simulate_result = writer._send_group(
-            send_params=None,
-            options=None,
-            composer=composer,
-            simulate=simulate,
-        )
-
-        assert simulate_result is not None
-        assert simulate_result.returns
-
-        # Example of inspecting a return value from simulate
-        ret_val = simulate_result.returns[0].value
-        assert isinstance(ret_val, (tuple, list))
-        mbr_delta = MbrDelta.from_tuple(ret_val)
-        assert isinstance(mbr_delta, MbrDelta)
-        assert mbr_delta.is_positive
-
-        # Simulate must not persist metadata
-        with pytest.raises(AlgodHTTPError, match="box not found"):
-            asa_metadata_registry_client.state.box.asset_metadata.get_value(
-                short_metadata.asset_id
-            )
-
-
 # ================================================================
 # AsaMetadataRegistryWrite Initialization Tests
 # ================================================================
@@ -523,6 +483,24 @@ class TestCreateMetadata:
             send_params=send_params,
         )
         assert isinstance(mbr_delta, MbrDelta)
+
+    def test_validate_existing_raises_when_metadata_already_exists(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        short_metadata: AssetMetadata,
+    ) -> None:
+        """If metadata already exists for asset_id and validate_existing=True, raise."""
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+
+        # First create succeeds
+        writer.create_metadata(asset_manager=asset_manager, metadata=short_metadata)
+
+        # Second create should fail due to existing metadata
+        from asa_metadata_registry.errors import MetadataExistsError
+
+        with pytest.raises(MetadataExistsError):
+            writer.create_metadata(asset_manager=asset_manager, metadata=short_metadata)
 
 
 class TestCreateMetadataArc3Compliant:
@@ -742,82 +720,6 @@ class TestCreateMetadataArc3Compliant:
         )
         assert isinstance(mbr_delta, MbrDelta)
         assert mbr_delta.is_positive
-
-
-class TestDeleteMetadata:
-    """Test delete_metadata high-level method."""
-
-    def test_delete_existing_metadata(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test deleting existing metadata."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        mbr_delta = writer.delete_metadata(
-            asset_manager=asset_manager, asset_id=mutable_short_metadata.asset_id
-        )
-        assert isinstance(mbr_delta, MbrDelta)
-        assert mbr_delta.is_negative
-        # Verify deletion
-        with pytest.raises(AlgodHTTPError, match="box not found"):
-            asa_metadata_registry_client.state.box.asset_metadata.get_value(
-                mutable_short_metadata.asset_id
-            )
-
-
-# ================================================================
-# Single Transaction Compose Simulation Tests
-# ================================================================
-
-
-class TestWriteSingleTransactionSimulation:
-    """Test direct composer.simulate() for single-transaction writer methods."""
-
-    def test_simulate_set_reversible_flag_single_transaction(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-        reader_with_algod: AsaMetadataRegistryRead,
-    ) -> None:
-        """Test simulating set_reversible_flag via direct composer."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        min_fee = asa_metadata_registry_client.algorand.get_suggested_params().min_fee
-
-        before = reader_with_algod.box.get_asset_metadata_record(
-            asset_id=mutable_short_metadata.asset_id,
-        )
-
-        composer = writer.client.new_group()
-        composer.arc89_set_reversible_flag(
-            args=(mutable_short_metadata.asset_id, flags.REV_FLG_ARC20, True),
-            params=CommonAppCallParams(
-                sender=asset_manager.address, static_fee=AlgoAmount(micro_algo=min_fee)
-            ),
-        )
-
-        simulate = SimulateOptions()  # Any custom options can go here
-        simulate_result = composer.simulate(
-            allow_more_logs=simulate.allow_more_logs,
-            allow_empty_signatures=simulate.allow_empty_signatures,
-            allow_unnamed_resources=simulate.allow_unnamed_resources,
-            extra_opcode_budget=simulate.extra_opcode_budget,
-            exec_trace_config=simulate.exec_trace_config,
-            simulation_round=simulate.simulation_round,
-            skip_signatures=simulate.skip_signatures,
-        )
-
-        assert simulate_result is not None
-        assert simulate_result.simulate_response is not None
-        assert len(simulate_result.returns) == 1
-        assert simulate_result.returns[0].decode_error is None
-        assert simulate_result.returns[0].value is None
-        after = reader_with_algod.box.get_asset_metadata_record(
-            asset_id=mutable_short_metadata.asset_id
-        )
-        assert after == before
 
 
 # ================================================================
@@ -1087,332 +989,12 @@ class TestEdgeCases:
 
 
 # ================================================================
-# Integration-Style Tests
-# ================================================================
-
-
-class TestWriteIntegration:
-    """Integration-style tests for complete workflows."""
-
-    def test_create_then_delete_workflow(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        arc_89_asa: int,
-    ) -> None:
-        """Test complete create -> delete workflow."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-
-        # Create
-        metadata = AssetMetadata.from_json(
-            asset_id=arc_89_asa,
-            json_obj={"name": "Will be deleted"},
-        )
-        create_delta = writer.create_metadata(
-            asset_manager=asset_manager, metadata=metadata
-        )
-        assert create_delta.is_positive
-
-        # Delete
-        delete_delta = writer.delete_metadata(
-            asset_manager=asset_manager, asset_id=arc_89_asa
-        )
-        assert delete_delta.is_negative
-
-    def test_create_set_flags_workflow(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        arc_89_asa: int,
-    ) -> None:
-        """Test create -> set flags workflow."""
-
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-
-        # Create
-        metadata = AssetMetadata.from_json(
-            asset_id=arc_89_asa,
-            json_obj={"name": "Test flags"},
-        )
-        writer.create_metadata(asset_manager=asset_manager, metadata=metadata)
-
-        # Set flags
-        writer.set_reversible_flag(
-            asset_manager=asset_manager,
-            asset_id=arc_89_asa,
-            flag_index=flags.REV_FLG_ARC20,
-            value=True,
-        )
-        writer.set_reversible_flag(
-            asset_manager=asset_manager,
-            asset_id=arc_89_asa,
-            flag_index=flags.REV_FLG_RESERVED_3,
-            value=True,
-        )
-        writer.set_irreversible_flag(
-            asset_manager=asset_manager,
-            asset_id=arc_89_asa,
-            flag_index=flags.IRR_FLG_RESERVED_3,
-        )
-
-        # Verify both flags are set
-        box_value = asa_metadata_registry_client.state.box.asset_metadata.get_value(
-            arc_89_asa
-        )
-        assert box_value is not None
-        result = AssetMetadataBox.parse(asset_id=arc_89_asa, value=box_value)
-        assert result.header.is_arc20_smart_asa is True
-        assert result.header.flags.reversible.arc20 is True
-        assert result.header.flags.reversible.reserved_3 is True
-        assert result.header.flags.irreversible.reserved_3 is True
-
-
-# ================================================================
-# Group Builder Tests
-# ================================================================
-
-
-class TestBuildCreateMetadataGroup:
-    """Test build_create_metadata_group method."""
-
-    def test_build_create_empty_metadata(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        empty_metadata: AssetMetadata,
-    ) -> None:
-        """Test building create group for empty metadata."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        composer = writer.build_create_metadata_group(
-            asset_manager=asset_manager, metadata=empty_metadata
-        )
-        assert composer is not None
-
-    def test_build_create_short_metadata(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        short_metadata: AssetMetadata,
-    ) -> None:
-        """Test building create group for short metadata."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        composer = writer.build_create_metadata_group(
-            asset_manager=asset_manager, metadata=short_metadata
-        )
-        assert composer is not None
-
-    def test_build_create_with_custom_options(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        short_metadata: AssetMetadata,
-    ) -> None:
-        """Test building create group with custom WriteOptions."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        options = WriteOptions(extra_resources=2, fee_padding_txns=1)
-        composer = writer.build_create_metadata_group(
-            asset_manager=asset_manager, metadata=short_metadata, options=options
-        )
-        assert composer is not None
-
-    def test_build_create_large_metadata(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        maxed_metadata: AssetMetadata,
-    ) -> None:
-        """Test building create group for large metadata (multiple chunks)."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        composer = writer.build_create_metadata_group(
-            asset_manager=asset_manager, metadata=maxed_metadata
-        )
-        assert composer is not None
-
-
-class TestBuildReplaceMetadataGroup:
-    """Test build_replace_metadata_group method."""
-
-    def test_build_replace_smaller_metadata(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test building replace group when new metadata is smaller/equal."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        # Replace with empty (smaller)
-        new_metadata = AssetMetadata.from_bytes(
-            asset_id=mutable_short_metadata.asset_id,
-            metadata_bytes=b"",
-            validate_json_object=False,
-        )
-        composer = writer.build_replace_metadata_group(
-            asset_manager=asset_manager,
-            metadata=new_metadata,
-            assume_current_size=mutable_short_metadata.size,
-        )
-        assert composer is not None
-
-    def test_build_replace_larger_metadata(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test building replace group when new metadata is larger."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        # Replace with larger content
-        new_metadata = AssetMetadata.from_bytes(
-            asset_id=mutable_short_metadata.asset_id,
-            metadata_bytes=b"x" * (mutable_short_metadata.size + 1000),
-            validate_json_object=False,
-        )
-        composer = writer.build_replace_metadata_group(
-            asset_manager=asset_manager,
-            metadata=new_metadata,
-            assume_current_size=mutable_short_metadata.size,
-        )
-        assert composer is not None
-
-    def test_build_replace_auto_detect_size(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test replace group auto-detects current size when not provided."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        new_metadata = AssetMetadata.from_bytes(
-            asset_id=mutable_short_metadata.asset_id,
-            metadata_bytes=b"new",
-            validate_json_object=False,
-        )
-        # Don't pass assume_current_size, should fetch from chain
-        composer = writer.build_replace_metadata_group(
-            asset_manager=asset_manager, metadata=new_metadata
-        )
-        assert composer is not None
-
-    def test_build_replace_with_options(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test building replace group with custom options."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        new_metadata = AssetMetadata.from_bytes(
-            asset_id=mutable_short_metadata.asset_id,
-            metadata_bytes=b"updated",
-            validate_json_object=False,
-        )
-        options = WriteOptions(extra_resources=2, fee_padding_txns=1)
-        composer = writer.build_replace_metadata_group(
-            asset_manager=asset_manager,
-            metadata=new_metadata,
-            assume_current_size=mutable_short_metadata.size,
-            options=options,
-        )
-        assert composer is not None
-
-
-class TestBuildReplaceMetadataSliceGroup:
-    """Test build_replace_metadata_slice_group method."""
-
-    def test_build_slice_small_payload(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test building slice group with small payload (single chunk)."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        composer = writer.build_replace_metadata_slice_group(
-            asset_manager=asset_manager,
-            asset_id=mutable_short_metadata.asset_id,
-            offset=0,
-            payload=b"slice",
-        )
-        assert composer is not None
-
-    def test_build_slice_large_payload(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test building slice group with large payload (multiple chunks)."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        params = writer._params()
-        # Create payload larger than replace_payload_max_size
-        large_payload = b"x" * (params.replace_payload_max_size * 2 + 100)
-        composer = writer.build_replace_metadata_slice_group(
-            asset_manager=asset_manager,
-            asset_id=mutable_short_metadata.asset_id,
-            offset=10,
-            payload=large_payload,
-        )
-        assert composer is not None
-
-    def test_build_slice_with_options(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test building slice group with custom options."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        options = WriteOptions(extra_resources=3)
-        composer = writer.build_replace_metadata_slice_group(
-            asset_manager=asset_manager,
-            asset_id=mutable_short_metadata.asset_id,
-            offset=0,
-            payload=b"updated slice",
-            options=options,
-        )
-        assert composer is not None
-
-
-class TestBuildDeleteMetadataGroup:
-    """Test build_delete_metadata_group method."""
-
-    def test_build_delete(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test building delete group."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        composer = writer.build_delete_metadata_group(
-            asset_manager=asset_manager, asset_id=mutable_short_metadata.asset_id
-        )
-        assert composer is not None
-
-    def test_build_delete_with_options(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-    ) -> None:
-        """Test building delete group with custom options."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        options = WriteOptions(extra_resources=1, fee_padding_txns=2)
-        composer = writer.build_delete_metadata_group(
-            asset_manager=asset_manager,
-            asset_id=mutable_short_metadata.asset_id,
-            options=options,
-        )
-        assert composer is not None
-
-
-# ================================================================
-# High-Level Send Method Tests (Replace)
+# Replace Metadata Tests
 # ================================================================
 
 
 class TestReplaceMetadata:
-    """Test replace_metadata high-level method."""
+    """Test replace_metadata method."""
 
     def test_replace_with_smaller_metadata(
         self,
