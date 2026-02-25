@@ -595,7 +595,10 @@ class TestCreateMetadataArc3Compliant:
         monkeypatch.setattr(writer_module, "validate_arc3_values", validate_mock)
 
         # Decimals validation should fetch on-chain ASA params even when decimals == 0.
-        get_by_id_mock = Mock(return_value={"params": {"decimals": 0}})
+        class _AsaParams:  # local minimal stub
+            decimals = 0
+
+        get_by_id_mock = Mock(return_value=_AsaParams())
         monkeypatch.setattr(
             asa_metadata_registry_client.algorand.asset,
             "get_by_id",
@@ -703,10 +706,10 @@ class TestCreateMetadataArc3Compliant:
         assert mbr_delta.is_positive
 
     @pytest.mark.parametrize(
-        "rev_flag,prop_key",
+        "flag_index",
         [
-            pytest.param(ReversibleFlags(arc20=True), "arc-20", id="arc20"),
-            pytest.param(ReversibleFlags(arc62=True), "arc-62", id="arc62"),
+            pytest.param(flags.REV_FLG_ARC20, id="arc20"),
+            pytest.param(flags.REV_FLG_ARC62, id="arc62"),
         ],
     )
     def test_valid_properties_creates_metadata(
@@ -714,19 +717,24 @@ class TestCreateMetadataArc3Compliant:
         asa_metadata_registry_client: AsaMetadataRegistryClient,
         asset_manager: SigningAccount,
         arc_3_asa: int,
-        rev_flag: ReversibleFlags,
-        prop_key: str,
+        flag_index: int,
     ) -> None:
         """Test that valid properties with arc3 + arc20/arc62 flags creates metadata successfully."""
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+
+        arc_key = "arc-20" if flag_index == flags.REV_FLG_ARC20 else "arc-62"
         metadata = AssetMetadata.from_json(
             asset_id=arc_3_asa,
             json_obj=create_arc3_payload(
                 name="ARC3 Compliant Test",
-                properties={prop_key: {"application-id": 123456}},
+                properties={arc_key: {"application-id": 123456}},
             ),
             flags=MetadataFlags(
-                reversible=rev_flag, irreversible=IrreversibleFlags(arc3=True)
+                reversible=ReversibleFlags(
+                    arc20=flag_index == flags.REV_FLG_ARC20,
+                    arc62=flag_index == flags.REV_FLG_ARC62,
+                ),
+                irreversible=IrreversibleFlags(arc3=True),
             ),
         )
         mbr_delta = writer.create_metadata(
@@ -1467,9 +1475,47 @@ class TestReplaceMetadata:
         )
         assert isinstance(mbr_delta, MbrDelta)
 
+    def test_arc3_decimals_zero_triggers_decimals_validation(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        mutable_short_metadata: AssetMetadata,
+    ) -> None:
+        """When 'decimals' is explicitly 0, replace_metadata must still validate under validate_arc3=True."""
 
-class TestReplaceMetadataSlice:
-    """Test replace_metadata_slice high-level method."""
+        from asa_metadata_registry.write import writer as writer_module
+
+        validate_mock = Mock()
+        monkeypatch.setattr(writer_module, "validate_arc3_values", validate_mock)
+
+        class _AsaParams:  # local minimal stub
+            decimals = 0
+
+        get_by_id_mock = Mock(return_value=_AsaParams())
+        monkeypatch.setattr(
+            asa_metadata_registry_client.algorand.asset,
+            "get_by_id",
+            get_by_id_mock,
+            raising=True,
+        )
+
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        metadata = AssetMetadata.from_json(
+            asset_id=mutable_short_metadata.asset_id,
+            json_obj={"name": "Zero Decimals", "decimals": 0},
+        )
+
+        mbr_delta = writer.replace_metadata(
+            asset_manager=asset_manager,
+            metadata=metadata,
+            assume_current_size=mutable_short_metadata.size,
+            validate_arc3=True,
+        )
+
+        assert isinstance(mbr_delta, MbrDelta)
+        get_by_id_mock.assert_called_once()
+        validate_mock.assert_called_once()
 
     def test_replace_slice(
         self,
