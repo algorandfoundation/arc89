@@ -68,17 +68,6 @@ class MetadataHashMismatchError(AsaMetadataRegistryError, ValueError):
     """
 
 
-class MetadataExistsError(AsaMetadataRegistryError, ValueError):
-    """Raised on ASA metadata creation when the ASA metadata already exists."""
-
-
-class RequiresImmutableMetadataError(AsaMetadataRegistryError, ValueError):
-    """
-    Raised on ASA metadata creation when an ASA has an existing metadata hash but
-    is not flagged as immutable.
-    """
-
-
 class InvalidArc3PropertiesError(AsaMetadataRegistryError, ValueError):
     """
     Raised when metadata is declared as ARC-3 and ARC-20 or ARC-62 compliant but
