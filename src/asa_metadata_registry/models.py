@@ -1001,50 +1001,46 @@ class AssetMetadata:
         )
 
     @staticmethod
-    def _derive_and_validate_flags_from_json(
+    def _derive_and_validate_flags_from_arc3_json(
         *,
         json_obj: Mapping[str, object],
         flags: MetadataFlags | None,
-        arc3_compliant: bool,
     ) -> MetadataFlags:
         """
-        - If `flags is None` and `arc3_compliant=True`, auto-set irreversible ARC-3
-          and auto-detect reversible ARC-20/ARC-62 based on `properties`.
-        - If `flags` provided and `arc3_compliant=True`, enforce flag consistency and
-          validate the declared ARC-20/62 properties structure.
+        - If `flags is None`, auto-set irreversible ARC-3 and auto-detect reversible
+        ARC-20/ARC-62 based on `properties`.
+        - If `flags` provided, enforce flag consistency and validate the declared
+        ARC-20/62 properties structure.
         """
 
         final_flags = flags
         if final_flags is None:
-            if arc3_compliant:
-                irr = IrreversibleFlags(arc3=True)
+            irr = IrreversibleFlags(arc3=True)
 
-                rev_arc20 = False
-                rev_arc62 = False
-                props = json_obj.get("properties")
-                if isinstance(props, Mapping):
-                    if const.ARC3_PROPERTIES_KEY_ARC20 in props:
-                        validate_arc3_properties(json_obj, "arc-20")
-                        rev_arc20 = True
-                    if const.ARC3_PROPERTIES_KEY_ARC62 in props:
-                        validate_arc3_properties(json_obj, "arc-62")
-                        rev_arc62 = True
+            rev_arc20 = False
+            rev_arc62 = False
+            props = json_obj.get("properties")
+            if isinstance(props, Mapping):
+                if const.ARC3_PROPERTIES_KEY_ARC20 in props:
+                    validate_arc3_properties(json_obj, "arc-20")
+                    rev_arc20 = True
+                if const.ARC3_PROPERTIES_KEY_ARC62 in props:
+                    validate_arc3_properties(json_obj, "arc-62")
+                    rev_arc62 = True
 
-                rev = ReversibleFlags(arc20=rev_arc20, arc62=rev_arc62)
-                final_flags = MetadataFlags(reversible=rev, irreversible=irr)
-            else:
-                final_flags = MetadataFlags.empty()
+            rev = ReversibleFlags(arc20=rev_arc20, arc62=rev_arc62)
+            final_flags = MetadataFlags(reversible=rev, irreversible=irr)
         else:
             validate_arc20_arc62_require_arc3(
                 rev_arc20=final_flags.reversible.arc20,
                 rev_arc62=final_flags.reversible.arc62,
                 irr_arc3=final_flags.irreversible.arc3,
             )
-            if arc3_compliant and not final_flags.irreversible.arc3:
+            if not final_flags.irreversible.arc3:
                 raise MetadataArc3Error("ARC3 metadata flag is not set")
-            if arc3_compliant and final_flags.reversible.arc20:
+            if final_flags.reversible.arc20:
                 validate_arc3_properties(json_obj, "arc-20")
-            if arc3_compliant and final_flags.reversible.arc62:
+            if final_flags.reversible.arc62:
                 validate_arc3_properties(json_obj, "arc-62")
 
         return final_flags
@@ -1058,20 +1054,22 @@ class AssetMetadata:
         flags: MetadataFlags | None = None,
         deprecated_by: int = 0,
         arc3_compliant: bool = False,
-        derive_and_validate_flags: bool = False,
     ) -> AssetMetadata:
+        """
+        Create a new AssetMetadata object from a JSON object.
+
+        ARC-3 compliance validation (arc3_compliant=True) validates ARC-3 JSON schema
+        and flags (if provided) or derives them (if not provided).
+        """
         body_raw_bytes = encode_metadata_json(json_obj)
         # Validate round-trip and schema constraints (object)
         decode_metadata_json(body_raw_bytes)
 
         if arc3_compliant:
             validate_arc3_schema(json_obj)
-
-        if derive_and_validate_flags:
-            final_flags = cls._derive_and_validate_flags_from_json(
+            final_flags = cls._derive_and_validate_flags_from_arc3_json(
                 json_obj=json_obj,
                 flags=flags,
-                arc3_compliant=arc3_compliant,
             )
         else:
             final_flags = flags or MetadataFlags.empty()
@@ -1093,14 +1091,19 @@ class AssetMetadata:
         deprecated_by: int = 0,
         validate_json_object: bool = True,
         arc3_compliant: bool = False,
-        derive_and_validate_flags: bool = False,
     ) -> AssetMetadata:
         """
-        Create from raw metadata bytes.
+        Create a new AssetMetadata object from raw metadata bytes.
 
         If validate_json_object=True (default), bytes must decode to a JSON object per ARC-89
-        (empty bytes are allowed and treated as `{}`). ARC-3 compliance validation (arc3_compliant=True)
-        requires JSON object validation.
+        (empty bytes are allowed and treated as `{}`).
+
+        ARC-3 compliance validation (arc3_compliant=True) requires JSON object validation,
+        it validates ARC-3 JSON schema and flags (if provided) or derives them (if not provided).
+
+        Important:
+        - Empty metadata bytes (b"") decode to an empty object ({}). This is valid for ARC-89,
+          but it is not valid ARC-3; arc3_compliant=True will raise during ARC-3 schema validation.
         """
 
         if arc3_compliant and not validate_json_object:
@@ -1112,22 +1115,15 @@ class AssetMetadata:
         body = MetadataBody(metadata_bytes)
         body.validate_size()
 
-        json_obj: Mapping[str, object] | None = None
         if validate_json_object:
             json_obj = decode_metadata_json(metadata_bytes)
+            final_flags = flags or MetadataFlags.empty()
             if arc3_compliant:
                 validate_arc3_schema(json_obj)
-
-        if derive_and_validate_flags:
-            if json_obj is None:
-                raise ValueError(
-                    "derive_and_validate_flags=True requires validate_json_object=True"
+                final_flags = cls._derive_and_validate_flags_from_arc3_json(
+                    json_obj=json_obj,
+                    flags=flags,
                 )
-            final_flags = cls._derive_and_validate_flags_from_json(
-                json_obj=json_obj,
-                flags=flags,
-                arc3_compliant=arc3_compliant,
-            )
         else:
             final_flags = flags or MetadataFlags.empty()
 
