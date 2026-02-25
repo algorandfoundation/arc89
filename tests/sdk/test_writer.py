@@ -16,7 +16,7 @@ Tests cover:
 from unittest.mock import Mock
 
 import pytest
-from algokit_utils import SendParams, SigningAccount
+from algokit_utils import AssetDestroyParams, SendParams, SigningAccount
 
 from asa_metadata_registry import (
     AsaMetadataRegistryRead,
@@ -484,23 +484,37 @@ class TestCreateMetadata:
         )
         assert isinstance(mbr_delta, MbrDelta)
 
-    def test_validate_existing_raises_when_metadata_already_exists(
+    def test_create_validate_arc3_raises_asa_not_found(
         self,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
         asset_manager: SigningAccount,
-        short_metadata: AssetMetadata,
+        arc_89_asa: int,
     ) -> None:
-        """If metadata already exists for asset_id and validate_existing=True, raise."""
+        """create_metadata should raise AsaNotFoundError when validate_arc3=True and the ASA doesn't exist."""
+
+        from asa_metadata_registry import AsaNotFoundError
+
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
 
-        # First create succeeds
-        writer.create_metadata(asset_manager=asset_manager, metadata=short_metadata)
+        # Destroy the ASA so on-chain lookup fails during ARC-3 validation.
+        asa_metadata_registry_client.algorand.send.asset_destroy(
+            AssetDestroyParams(sender=asset_manager.address, asset_id=arc_89_asa)
+        )
 
-        # Second create should fail due to existing metadata
-        from asa_metadata_registry.errors import MetadataExistsError
+        metadata = AssetMetadata.from_json(
+            asset_id=arc_89_asa,
+            json_obj={"name": "Missing ASA", "decimals": 0},
+        )
 
-        with pytest.raises(MetadataExistsError):
-            writer.create_metadata(asset_manager=asset_manager, metadata=short_metadata)
+        with pytest.raises(
+            AsaNotFoundError,
+            match=f"Asset {arc_89_asa} does not exist",
+        ):
+            writer.create_metadata(
+                asset_manager=asset_manager,
+                metadata=metadata,
+                validate_arc3=True,
+            )
 
 
 class TestCreateMetadataArc3Compliant:
@@ -1120,3 +1134,37 @@ class TestReplaceMetadata:
         assert record is not None
         body = record.body.raw_bytes
         assert body[:5].decode("utf-8") == "patch"
+
+    def test_replace_validate_arc3_raises_asa_not_found(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        mutable_short_metadata: AssetMetadata,
+    ) -> None:
+        """replace_metadata should raise AsaNotFoundError when validate_arc3=True and the ASA doesn't exist."""
+
+        from asa_metadata_registry import AsaNotFoundError
+
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        metadata = AssetMetadata.from_json(
+            asset_id=mutable_short_metadata.asset_id,
+            json_obj={"name": "Missing ASA", "decimals": 0},
+        )
+
+        asa_metadata_registry_client.algorand.send.asset_destroy(
+            AssetDestroyParams(
+                sender=asset_manager.address, asset_id=mutable_short_metadata.asset_id
+            )
+        )
+
+        with pytest.raises(
+            AsaNotFoundError,
+            match=f"Asset {mutable_short_metadata.asset_id} does not exist",
+        ):
+            writer.replace_metadata(
+                asset_manager=asset_manager,
+                metadata=metadata,
+                assume_current_size=mutable_short_metadata.size,
+                validate_arc3=True,
+            )
