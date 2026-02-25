@@ -12,9 +12,11 @@ from algokit_utils import (
     SigningAccount,
 )
 
-from .. import flags
+from .. import RequiresImmutableMetadataError, flags
 from ..errors import (
+    AsaNotFoundError,
     InvalidFlagIndexError,
+    MetadataExistsError,
     MissingAppClientError,
 )
 from ..generated.asa_metadata_registry_client import (
@@ -489,13 +491,58 @@ class AsaMetadataRegistryWrite:
         metadata: AssetMetadata,
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
+        validate_existing: bool = True,
         validate_arc3: bool = False,
+        validate_immutable: bool = False,
     ) -> MbrDelta:
 
+        if validate_existing:
+            try:
+                existing = self.client.state.box.asset_metadata.get_value(
+                    metadata.asset_id
+                )
+            except Exception as ex:
+                msg = str(ex).lower()
+                # Box doesn't exist yet -> metadata doesn't exist.
+                if "box not found" in msg:
+                    existing = None
+                else:
+                    raise
+
+            if existing is not None:
+                raise MetadataExistsError(
+                    f"Metadata for asset {metadata.asset_id} already exists."
+                )
+
+        # Fetch ASA params at most once; used by ARC-3 decimals validation and/or immutable validation.
+        asa_params = None
+        needs_asa_params = (
+            validate_arc3 and "decimals" in metadata.body.json
+        ) or validate_immutable
+        if needs_asa_params:
+            try:
+                asa_params = self.client.algorand.asset.get_by_id(metadata.asset_id)
+            except Exception as ex:
+                msg = str(ex).lower()
+                if "not exist" in msg:
+                    raise AsaNotFoundError(
+                        f"Asset {metadata.asset_id} does not exist."
+                    ) from ex
+                raise
+
         if validate_arc3 and "decimals" in metadata.body.json:
-            asa_params = self.client.algorand.asset.get_by_id(metadata.asset_id)
+            assert asa_params is not None
             asa_decimals = asa_params.decimals
             validate_arc3_values(metadata.body.json, asa_decimals=asa_decimals)
+
+        if validate_immutable:
+            assert asa_params is not None
+            asa_metadata_hash = asa_params.metadata_hash
+            if asa_metadata_hash is not None and not metadata.is_immutable:
+                raise RequiresImmutableMetadataError(
+                    f"Asset {metadata.asset_id} already has metadata hash {asa_metadata_hash!r},"
+                    f" metadata must be flagged as immutable."
+                )
 
         composer = self.build_create_metadata_group(
             asset_manager=asset_manager, metadata=metadata, options=options
