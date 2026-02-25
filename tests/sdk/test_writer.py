@@ -528,6 +528,49 @@ class TestCreateMetadata:
 class TestCreateMetadataArc3Compliant:
     """Test create_metadata validation for declared ARC-3 compliant ASAs."""
 
+    def test_arc3_decimals_validation_skipped_when_decimals_missing(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        arc_89_asa: int,
+    ) -> None:
+        """
+        If 'decimals' isn't present in JSON, writer must not fetch ASA params or
+        validate decimals.
+        """
+
+        # Patch validate_arc3_values where it's imported/used (writer module).
+        from asa_metadata_registry.write import writer as writer_module
+
+        validate_mock = Mock()
+        monkeypatch.setattr(writer_module, "validate_arc3_values", validate_mock)
+
+        # If decimals validation were attempted, this on-chain API would be called.
+        get_by_id_mock = Mock(side_effect=AssertionError("asset.get_by_id should not be called"))
+        monkeypatch.setattr(
+            asa_metadata_registry_client.algorand.asset,
+            "get_by_id",
+            get_by_id_mock,
+            raising=True,
+        )
+
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        metadata = AssetMetadata.from_json(
+            asset_id=arc_89_asa,
+            json_obj={"name": "No Decimals", "description": "Should skip decimals validation"},
+        )
+
+        mbr_delta = writer.create_metadata(
+            asset_manager=asset_manager,
+            metadata=metadata,
+            validate_arc3=True,
+        )
+
+        assert isinstance(mbr_delta, MbrDelta)
+        validate_mock.assert_not_called()
+        get_by_id_mock.assert_not_called()
+
     def test_invalid_properties_no_rev_flags_creates_metadata(
         self,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
