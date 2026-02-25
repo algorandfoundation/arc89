@@ -623,6 +623,7 @@ class TestCreateMetadataArc3Compliant:
         # Writer must fetch ASA params and invoke ARC-3 validation.
         get_by_id_mock.assert_called_once()
         validate_mock.assert_called_once()
+
     def test_invalid_properties_no_rev_flags_creates_metadata(
         self,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
