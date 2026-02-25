@@ -1450,7 +1450,7 @@ class TestBuildDeleteMetadataGroup:
 
 
 class TestReplaceMetadata:
-    """Test replace_metadata method."""
+    """Test replace_metadata high-level method."""
 
     def test_replace_with_smaller_metadata(
         self,
@@ -1555,28 +1555,6 @@ class TestReplaceMetadata:
         get_by_id_mock.assert_called_once()
         validate_mock.assert_called_once()
 
-    def test_replace_slice(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        mutable_short_metadata: AssetMetadata,
-        reader_with_algod: AsaMetadataRegistryRead,
-    ) -> None:
-        """Test replacing a slice of metadata."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        writer.replace_metadata_slice(
-            asset_manager=asset_manager,
-            asset_id=mutable_short_metadata.asset_id,
-            offset=0,
-            payload=b"patch",
-        )
-        record = reader_with_algod.box.get_asset_metadata_record(
-            asset_id=mutable_short_metadata.asset_id,
-        )
-        assert record is not None
-        body = record.body.raw_bytes
-        assert body[:5].decode("utf-8") == "patch"
-
     def test_replace_validate_arc3_raises_asa_not_found(
         self,
         monkeypatch: pytest.MonkeyPatch,
@@ -1610,3 +1588,29 @@ class TestReplaceMetadata:
                 assume_current_size=mutable_short_metadata.size,
                 validate_arc3=True,
             )
+
+
+class TestReplaceMetadataSlice:
+    """Test replace_metadata_slice high-level method."""
+
+    def test_replace_slice(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        mutable_short_metadata: AssetMetadata,
+        reader_with_algod: AsaMetadataRegistryRead,
+    ) -> None:
+        """Test replacing a slice of metadata."""
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        writer.replace_metadata_slice(
+            asset_manager=asset_manager,
+            asset_id=mutable_short_metadata.asset_id,
+            offset=0,
+            payload=b"patch",
+        )
+        record = reader_with_algod.box.get_asset_metadata_record(
+            asset_id=mutable_short_metadata.asset_id,
+        )
+        assert record is not None
+        body = record.body.raw_bytes
+        assert body[:5].decode("utf-8") == "patch"
