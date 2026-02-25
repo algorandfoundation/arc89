@@ -140,13 +140,15 @@ def validate_arc3_values(obj: Mapping[str, object], *, asa_decimals: int) -> Non
     """
     Validate that ARC-3 metadata JSON object has valid values for ARC-3 fields.
     """
-    dec = obj.get("decimals")
-    if dec is None:
+    if "decimals" not in obj:
         return  # ARC-3 allows omission; only enforce when present
+
+    dec = obj.get("decimals")
     if not isinstance(dec, int) or isinstance(dec, bool):
         raise MetadataArc3Error(
             f"ARC-3 field 'decimals' must be an integer, got {type(dec).__name__}"
         )
+
     if dec != asa_decimals:
         raise MetadataArc3Error(
             f"ARC-3 field 'decimals' must match ASA decimals ({asa_decimals}), got {dec}"
