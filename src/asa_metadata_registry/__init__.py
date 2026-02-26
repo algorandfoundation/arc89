@@ -39,6 +39,10 @@ from .hashing import (
     compute_metadata_hash,
     compute_page_hash,
 )
+from .migrate import (
+    build_arc2_migration_message_txn,
+    migrate_legacy_metadata_to_registry,
+)
 from .models import (
     AssetMetadata,
     AssetMetadataBox,
@@ -133,4 +137,7 @@ __all__ = [
     "decode_metadata_json",
     "is_arc3_metadata",
     "validate_arc3_schema",
+    # Migrate
+    "build_arc2_migration_message_txn",
+    "migrate_legacy_metadata_to_registry",
 ]
