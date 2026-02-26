@@ -20,8 +20,8 @@ def _encode_arc2_migration_message(*, uri: str) -> bytes:
     """
     Encode an ARC-2 message advertising the metadata URI for ARC-89 migration.
 
-    This SDK encodes JSON only (j:) payload (recommended by ARC-89 specs):
-      b"arc89:j:<payload>"
+    This SDK encodes JSON only (j) payload (recommended by ARC-89 specs):
+      b"arc89:j<payload>"
 
     where payload is UTF-8 JSON of: {"uri": <asset_metadata_uri>}.
 
