@@ -25,6 +25,29 @@ APP_CALL_OP_BUDGET: Final[int] = 700
 
 
 # ---------------------------------------------------------------------------
+# ARC-2 constants
+# ---------------------------------------------------------------------------
+
+ARC2_ARC_NUMBER: Final[bytes] = b"arc89"
+ARC2_DATA_FORMAT_JSON: Final[bytes] = b":j"
+
+# ---------------------------------------------------------------------------
+# ARC-3 constants
+# ---------------------------------------------------------------------------
+ARC3_NAME: Final[bytes] = b"arc3"
+ARC3_NAME_SUFFIX: Final[bytes] = b"@arc3"
+ARC3_URL_SUFFIX: Final[bytes] = b"#arc3"
+ARC3_HASH_AM_PREFIX: Final[bytes] = b"arc0003/am"
+ARC3_HASH_AMJ_PREFIX: Final[bytes] = b"arc0003/amj"
+ARC3_PROPERTIES_KEY_ARC20: Final[str] = "arc-20"
+ARC3_PROPERTIES_KEY_ARC62: Final[str] = "arc-62"
+ARC3_PROPERTIES_KEYS: Final[tuple[str, str]] = (
+    ARC3_PROPERTIES_KEY_ARC20,
+    ARC3_PROPERTIES_KEY_ARC62,
+)  # SDK only
+
+
+# ---------------------------------------------------------------------------
 # ARC-4 constants
 # ---------------------------------------------------------------------------
 # ABI Types Byte Sizes
@@ -43,22 +66,6 @@ ARC4_METHOD_SELECTOR_ARG: Final[int] = 0
 ARC4_METHOD_SELECTOR_SIZE: Final[int] = 4
 ARC4_RETURN_PREFIX_SIZE: Final[int] = 4
 ARC4_DYNAMIC_LENGTH_SIZE: Final[int] = 2
-
-
-# ---------------------------------------------------------------------------
-# ARC-3 constants
-# ---------------------------------------------------------------------------
-ARC3_NAME: Final[bytes] = b"arc3"
-ARC3_NAME_SUFFIX: Final[bytes] = b"@arc3"
-ARC3_URL_SUFFIX: Final[bytes] = b"#arc3"
-ARC3_HASH_AM_PREFIX: Final[bytes] = b"arc0003/am"
-ARC3_HASH_AMJ_PREFIX: Final[bytes] = b"arc0003/amj"
-ARC3_PROPERTIES_KEY_ARC20: Final[str] = "arc-20"
-ARC3_PROPERTIES_KEY_ARC62: Final[str] = "arc-62"
-ARC3_PROPERTIES_KEYS: Final[tuple[str, str]] = (
-    ARC3_PROPERTIES_KEY_ARC20,
-    ARC3_PROPERTIES_KEY_ARC62,
-)  # SDK only
 
 
 # ---------------------------------------------------------------------------
