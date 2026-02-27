@@ -166,5 +166,12 @@ def migrate_legacy_metadata_to_registry(
     migrate_group = registry.write.build_create_metadata_group(
         asset_manager=asset_manager, metadata=asset_md
     )
-    migrate_group.add_transaction(txn)
-    migrate_group.send()
+
+    if migrate_group.composer().count() < const.MAX_GROUP_SIZE:
+        # We migrate and emit the ARC-2 message atomically.
+        migrate_group.add_transaction(txn)
+        migrate_group.send()
+    else:
+        # We migrate first, then emit the ARC-2 message.
+        migrate_group.send()
+        registry.write.client.algorand.new_group().add_transaction(txn).send()
