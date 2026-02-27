@@ -413,6 +413,7 @@ class TestMigrateLegacyMetadata:
             asset_manager=asset_manager,
             asset_id=legacy_arc69_asa,
             metadata=minimal_metadata,
+            arc3_compliant=False,
         )
 
         # Verify metadata was created in registry
@@ -511,6 +512,7 @@ class TestMigrateLegacyMetadata:
             asset_manager=asset_manager,
             asset_id=asset_id,
             metadata=original_arc69_metadata,
+            arc3_compliant=False,
         )
 
         # Verify metadata exists in registry
@@ -562,6 +564,7 @@ class TestMigrateLegacyMetadata:
             asset_manager=asset_manager,
             asset_id=legacy_arc69_asa,
             metadata=minimal_metadata,
+            arc3_compliant=False,
             flags=flags,
         )
 
@@ -592,6 +595,7 @@ class TestMigrateLegacyMetadata:
                 asset_manager=asset_manager,
                 asset_id=legacy_arc69_asa,
                 metadata=minimal_metadata,
+                arc3_compliant=False,
                 flags=flags,
             )
 
@@ -609,6 +613,7 @@ class TestMigrateLegacyMetadata:
             asset_manager=asset_manager,
             asset_id=legacy_arc69_asa,
             metadata=minimal_metadata,
+            arc3_compliant=False,
         )
 
         # Second migration should fail
@@ -618,6 +623,7 @@ class TestMigrateLegacyMetadata:
                 asset_manager=asset_manager,
                 asset_id=legacy_arc69_asa,
                 metadata=minimal_metadata,
+                arc3_compliant=False,
             )
 
     def test_migrate_oversized_metadata_error(
@@ -640,6 +646,7 @@ class TestMigrateLegacyMetadata:
                 asset_manager=asset_manager,
                 asset_id=legacy_arc69_asa,
                 metadata=oversized_metadata,
+                arc3_compliant=False,
             )
 
     def test_migrate_max_size_metadata(
@@ -662,6 +669,7 @@ class TestMigrateLegacyMetadata:
             asset_manager=asset_manager,
             asset_id=legacy_arc69_asa,
             metadata=max_size_metadata,
+            arc3_compliant=False,
         )
 
         # Verify metadata was created
@@ -697,6 +705,7 @@ class TestRbacPreservation:
             asset_manager=asset_manager,
             asset_id=legacy_arc69_asa,
             metadata=minimal_metadata,
+            arc3_compliant=False,
         )
 
         # Get updated asset info
@@ -748,6 +757,7 @@ class TestRbacPreservation:
             asset_manager=asset_manager,
             asset_id=asa_id,
             metadata=minimal_metadata,
+            arc3_compliant=False,
         )
 
         # Get updated info
@@ -791,6 +801,7 @@ class TestRbacPreservation:
             asset_manager=asset_manager,
             asset_id=asa_id,
             metadata=minimal_metadata,
+            arc3_compliant=False,
         )
 
         # Get updated info
@@ -824,6 +835,7 @@ class TestMigrationErrorHandling:
             asset_manager=asset_manager,
             asset_id=legacy_arc69_asa,
             metadata={},
+            arc3_compliant=False,
         )
 
         # Should succeed - empty metadata is valid
@@ -846,6 +858,7 @@ class TestMigrationErrorHandling:
                 asset_manager=untrusted_account,
                 asset_id=legacy_arc69_asa,
                 metadata=minimal_metadata,
+                arc3_compliant=False,
             )
 
 
@@ -926,6 +939,7 @@ class TestMigrationIntegration:
             asset_manager=asset_manager,
             asset_id=legacy_arc69_asa,
             metadata=minimal_metadata,
+            arc3_compliant=False,
         )
 
         # 2. Update the metadata
@@ -963,6 +977,7 @@ class TestMigrationIntegration:
             asset_manager=asset_manager,
             asset_id=legacy_arc69_asa,
             metadata=short_meta,
+            arc3_compliant=False,
         )
 
         pagination = registry_with_write.read.arc89_get_metadata_pagination(

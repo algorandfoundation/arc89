@@ -118,8 +118,8 @@ def migrate_legacy_metadata_to_registry(
     asset_manager: SigningAccount,
     asset_id: int,
     metadata: Mapping[str, object],
+    arc3_compliant: bool,
     flags: MetadataFlags | None = None,
-    arc3_compliant: bool = False,
 ) -> None:
     """
     Migrate a legacy ASA (e.g., ARC-3 / ARC-19 / ARC-69) metadata by replicating it
