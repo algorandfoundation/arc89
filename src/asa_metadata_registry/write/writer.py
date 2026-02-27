@@ -506,7 +506,7 @@ class AsaMetadataRegistryWrite:
         metadata: AssetMetadata,
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
-        validate_arc3: bool = False,
+        validate_arc3: bool = True,
     ) -> MbrDelta:
 
         if validate_arc3:
@@ -536,7 +536,7 @@ class AsaMetadataRegistryWrite:
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
         assume_current_size: int | None = None,
-        validate_arc3: bool = False,
+        validate_arc3: bool = True,
     ) -> MbrDelta:
 
         if validate_arc3:
