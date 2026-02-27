@@ -418,7 +418,7 @@ class TestCreateMetadata:
         """Test creating large metadata."""
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
         mbr_delta = writer.create_metadata(
-            asset_manager=asset_manager, metadata=maxed_metadata
+            asset_manager=asset_manager, metadata=maxed_metadata, validate_arc3=False
         )
         assert isinstance(mbr_delta, MbrDelta)
         assert mbr_delta.is_positive
@@ -1406,6 +1406,7 @@ class TestReplaceMetadata:
             asset_manager=asset_manager,
             metadata=new_metadata,
             assume_current_size=mutable_short_metadata.size,
+            validate_arc3=False,
         )
         assert isinstance(mbr_delta, MbrDelta)
         # Should be negative or zero since smaller
@@ -1428,6 +1429,7 @@ class TestReplaceMetadata:
             asset_manager=asset_manager,
             metadata=new_metadata,
             assume_current_size=0,
+            validate_arc3=False,
         )
         assert isinstance(mbr_delta, MbrDelta)
         assert mbr_delta.is_positive
@@ -1446,7 +1448,7 @@ class TestReplaceMetadata:
             validate_json_object=False,
         )
         mbr_delta = writer.replace_metadata(
-            asset_manager=asset_manager, metadata=new_metadata
+            asset_manager=asset_manager, metadata=new_metadata, validate_arc3=False
         )
         assert isinstance(mbr_delta, MbrDelta)
 
