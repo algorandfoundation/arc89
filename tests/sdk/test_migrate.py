@@ -956,7 +956,6 @@ class TestMigrationIntegration:
         stored_metadata = registry_with_write.read.get_asset_metadata(
             asset_id=legacy_arc69_asa
         )
-        import json
 
         stored_json = json.loads(stored_metadata.body.raw_bytes.decode("utf-8"))
         assert stored_json["name"] == "Updated Asset"
