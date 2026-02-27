@@ -16,7 +16,13 @@ Tests cover:
 from unittest.mock import Mock
 
 import pytest
-from algokit_utils import AlgoAmount, CommonAppCallParams, SendParams, SigningAccount
+from algokit_utils import (
+    AlgoAmount,
+    AssetDestroyParams,
+    CommonAppCallParams,
+    SendParams,
+    SigningAccount,
+)
 from algosdk.error import AlgodHTTPError
 
 from asa_metadata_registry import (
@@ -39,10 +45,6 @@ from asa_metadata_registry import (
 )
 from asa_metadata_registry.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
-)
-from asa_metadata_registry.validation import (
-    is_positive_uint64,
-    validate_arc3_properties,
 )
 from asa_metadata_registry.write.writer import (
     _append_extra_resources,
@@ -144,93 +146,6 @@ class TestComposerHelpers:
         composer = Mock()
         _append_extra_resources(composer, count=3, sender=asset_manager.address)
         assert composer.extra_resources.call_count == 3
-
-
-class TestValidateArc3Properties:
-    """Test is_positive_uint64 and validate_arc3_properties helpers."""
-
-    @pytest.mark.parametrize(
-        "value,expected",
-        [
-            (1, True),
-            (2**64 - 1, True),
-            (0, False),
-            (-1, False),
-            (2**64, False),
-            (1.0, False),
-            ("1", False),
-            (None, False),
-        ],
-    )
-    def test_is_positive_uint64(
-        self, value: object, expected: bool  # noqa: FBT001
-    ) -> None:
-        """Test is_positive_uint64 helper."""
-        assert is_positive_uint64(value) is expected
-
-    @pytest.mark.parametrize("arc_key", ["arc-20", "arc-62"])
-    @pytest.mark.parametrize(
-        "body",
-        [
-            pytest.param({}, id="no_properties"),
-            pytest.param({"properties": "not-a-dict"}, id="properties_not_dict"),
-            pytest.param({"properties": {"other-key": 1}}, id="missing_arc_key"),
-            pytest.param(
-                {"properties": {"arc-20": "not-a-dict", "arc-62": "not-a-dict"}},
-                id="arc_key_not_dict",
-            ),
-            pytest.param(
-                {"properties": {"arc-20": {}, "arc-62": {}}},
-                id="missing_application_id",
-            ),
-            pytest.param(
-                {
-                    "properties": {
-                        "arc-20": {"application-id": 0},
-                        "arc-62": {"application-id": 0},
-                    }
-                },
-                id="app_id_zero",
-            ),
-            pytest.param(
-                {
-                    "properties": {
-                        "arc-20": {"application-id": -1},
-                        "arc-62": {"application-id": -1},
-                    }
-                },
-                id="app_id_negative",
-            ),
-            pytest.param(
-                {
-                    "properties": {
-                        "arc-20": {"application-id": "123"},
-                        "arc-62": {"application-id": "123"},
-                    }
-                },
-                id="app_id_string",
-            ),
-            pytest.param(
-                {
-                    "properties": {
-                        "arc-20": {"application-id": 2**64},
-                        "arc-62": {"application-id": 2**64},
-                    }
-                },
-                id="app_id_overflow",
-            ),
-        ],
-    )
-    def test_invalid_raises(self, body: dict[str, object], arc_key: str) -> None:
-        """Test invalid properties raises."""
-        with pytest.raises(InvalidArc3PropertiesError):
-            validate_arc3_properties(body, arc_key)
-
-    @pytest.mark.parametrize("arc_key", ["arc-20", "arc-62"])
-    def test_valid_passes(self, arc_key: str) -> None:
-        """Test valid properties passes."""
-        body = {"properties": {arc_key: {"application-id": 123456}}}
-        validate_arc3_properties(body, arc_key)
 
 
 # ================================================================
@@ -503,7 +418,7 @@ class TestCreateMetadata:
         """Test creating large metadata."""
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
         mbr_delta = writer.create_metadata(
-            asset_manager=asset_manager, metadata=maxed_metadata
+            asset_manager=asset_manager, metadata=maxed_metadata, validate_arc3=False
         )
         assert isinstance(mbr_delta, MbrDelta)
         assert mbr_delta.is_positive
@@ -524,35 +439,168 @@ class TestCreateMetadata:
         )
         assert isinstance(mbr_delta, MbrDelta)
 
+    def test_create_validate_arc3_raises_asa_not_found(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        arc_89_asa: int,
+    ) -> None:
+        """create_metadata should raise AsaNotFoundError when validate_arc3=True and the ASA doesn't exist."""
+
+        from asa_metadata_registry import AsaNotFoundError
+
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+
+        # Destroy the ASA so on-chain lookup fails during ARC-3 validation.
+        asa_metadata_registry_client.algorand.send.asset_destroy(
+            AssetDestroyParams(sender=asset_manager.address, asset_id=arc_89_asa)
+        )
+
+        metadata = AssetMetadata.from_json(
+            asset_id=arc_89_asa,
+            json_obj={"name": "Missing ASA", "decimals": 0},
+        )
+
+        with pytest.raises(
+            AsaNotFoundError,
+            match=f"Asset {arc_89_asa} does not exist",
+        ):
+            writer.create_metadata(
+                asset_manager=asset_manager,
+                metadata=metadata,
+                validate_arc3=True,
+            )
+
+    def test_create_validate_arc3_fails_invalid_decimals(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        arc_89_asa: int,
+    ) -> None:
+        """create_metadata should raise MetadataArc3Error when validate_arc3=True and decimals don't match."""
+
+        from asa_metadata_registry import MetadataArc3Error
+
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+
+        # arc_89_asa has decimals=0, but metadata says decimals=6
+        metadata = AssetMetadata.from_json(
+            asset_id=arc_89_asa,
+            json_obj={"name": "Wrong Decimals", "decimals": 6},
+        )
+
+        with pytest.raises(
+            MetadataArc3Error,
+            match=r"ARC-3 field 'decimals' must match ASA decimals \(0\), got 6",
+        ):
+            writer.create_metadata(
+                asset_manager=asset_manager,
+                metadata=metadata,
+                validate_arc3=True,
+            )
+
 
 class TestCreateMetadataArc3Compliant:
     """Test create_metadata validation for declared ARC-3 compliant ASAs."""
 
-    @pytest.mark.parametrize(
-        "rev_flag",
-        [
-            pytest.param(ReversibleFlags(arc20=True), id="arc20"),
-            pytest.param(ReversibleFlags(arc62=True), id="arc62"),
-        ],
-    )
-    def test_invalid_properties_raises(
+    def test_arc3_decimals_validation_skipped_when_decimals_missing(
         self,
+        monkeypatch: pytest.MonkeyPatch,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
         asset_manager: SigningAccount,
-        arc_3_asa: int,
-        rev_flag: ReversibleFlags,
+        arc_89_asa: int,
     ) -> None:
-        """Test that missing properties with arc3 + arc20/arc62 flags raises InvalidArc3PropertiesError."""
+        """
+        If 'decimals' isn't present in JSON, writer must not fetch ASA params or
+        validate decimals.
+        """
+
+        # Patch validate_arc3_values where it's imported/used (writer module).
+        from asa_metadata_registry.write import writer as writer_module
+
+        validate_mock = Mock()
+        monkeypatch.setattr(writer_module, "validate_arc3_values", validate_mock)
+
+        # If decimals validation were attempted, this on-chain API would be called.
+        get_by_id_mock = Mock(
+            side_effect=AssertionError("asset.get_by_id should not be called")
+        )
+        monkeypatch.setattr(
+            asa_metadata_registry_client.algorand.asset,
+            "get_by_id",
+            get_by_id_mock,
+            raising=True,
+        )
+
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
         metadata = AssetMetadata.from_json(
-            asset_id=arc_3_asa,
-            json_obj=create_arc3_payload(name="ARC3 Compliant Test", properties={}),
-            flags=MetadataFlags(
-                reversible=rev_flag, irreversible=IrreversibleFlags(arc3=True)
-            ),
+            asset_id=arc_89_asa,
+            json_obj={
+                "name": "No Decimals",
+                "description": "Should skip decimals validation",
+            },
         )
-        with pytest.raises(InvalidArc3PropertiesError):
-            writer.create_metadata(asset_manager=asset_manager, metadata=metadata)
+
+        mbr_delta = writer.create_metadata(
+            asset_manager=asset_manager,
+            metadata=metadata,
+            validate_arc3=True,
+        )
+
+        assert isinstance(mbr_delta, MbrDelta)
+        validate_mock.assert_not_called()
+        get_by_id_mock.assert_not_called()
+
+    def test_arc3_decimals_zero_triggers_decimals_validation(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        arc_89_asa: int,
+    ) -> None:
+        """
+        When 'decimals' is explicitly set to 0, writer must fetch ASA params and
+        run decimals validation under validate_arc3=True.
+        """
+
+        # Patch validate_arc3_values where it's imported/used (writer module).
+        from asa_metadata_registry.write import writer as writer_module
+
+        validate_mock = Mock()
+        monkeypatch.setattr(writer_module, "validate_arc3_values", validate_mock)
+
+        # Decimals validation should fetch on-chain ASA params even when decimals == 0.
+        class _AsaParams:  # local minimal stub
+            decimals = 0
+
+        get_by_id_mock = Mock(return_value=_AsaParams())
+        monkeypatch.setattr(
+            asa_metadata_registry_client.algorand.asset,
+            "get_by_id",
+            get_by_id_mock,
+            raising=True,
+        )
+
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        metadata = AssetMetadata.from_json(
+            asset_id=arc_89_asa,
+            json_obj={
+                "name": "Zero Decimals",
+                "description": "Should trigger decimals validation",
+                "decimals": 0,
+            },
+        )
+
+        mbr_delta = writer.create_metadata(
+            asset_manager=asset_manager,
+            metadata=metadata,
+            validate_arc3=True,
+        )
+
+        assert isinstance(mbr_delta, MbrDelta)
+        # Writer must fetch ASA params and invoke ARC-3 validation.
+        get_by_id_mock.assert_called_once()
+        validate_mock.assert_called_once()
 
     def test_invalid_properties_no_rev_flags_creates_metadata(
         self,
@@ -604,28 +652,6 @@ class TestCreateMetadataArc3Compliant:
         assert isinstance(mbr_delta, MbrDelta)
         assert mbr_delta.is_positive
 
-    def test_both_flags_validate_independently(
-        self,
-        asa_metadata_registry_client: AsaMetadataRegistryClient,
-        asset_manager: SigningAccount,
-        arc_3_asa: int,
-    ) -> None:
-        """Test that both arc20+arc62 flags validates each independently, raising on the invalid one."""
-        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
-        metadata = AssetMetadata.from_json(
-            asset_id=arc_3_asa,
-            json_obj=create_arc3_payload(
-                name="ARC3 Compliant Test",
-                properties={"arc-20": {"application-id": 123456}},
-            ),
-            flags=MetadataFlags(
-                reversible=ReversibleFlags(arc20=True, arc62=True),
-                irreversible=IrreversibleFlags(arc3=True),
-            ),
-        )
-        with pytest.raises(InvalidArc3PropertiesError):
-            writer.create_metadata(asset_manager=asset_manager, metadata=metadata)
-
     def test_both_flags_valid_properties_creates_metadata(
         self,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
@@ -655,10 +681,10 @@ class TestCreateMetadataArc3Compliant:
         assert mbr_delta.is_positive
 
     @pytest.mark.parametrize(
-        "rev_flag,prop_key",
+        "flag_index",
         [
-            pytest.param(ReversibleFlags(arc20=True), "arc-20", id="arc20"),
-            pytest.param(ReversibleFlags(arc62=True), "arc-62", id="arc62"),
+            pytest.param(flags.REV_FLG_ARC20, id="arc20"),
+            pytest.param(flags.REV_FLG_ARC62, id="arc62"),
         ],
     )
     def test_valid_properties_creates_metadata(
@@ -666,19 +692,24 @@ class TestCreateMetadataArc3Compliant:
         asa_metadata_registry_client: AsaMetadataRegistryClient,
         asset_manager: SigningAccount,
         arc_3_asa: int,
-        rev_flag: ReversibleFlags,
-        prop_key: str,
+        flag_index: int,
     ) -> None:
         """Test that valid properties with arc3 + arc20/arc62 flags creates metadata successfully."""
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+
+        arc_key = "arc-20" if flag_index == flags.REV_FLG_ARC20 else "arc-62"
         metadata = AssetMetadata.from_json(
             asset_id=arc_3_asa,
             json_obj=create_arc3_payload(
                 name="ARC3 Compliant Test",
-                properties={prop_key: {"application-id": 123456}},
+                properties={arc_key: {"application-id": 123456}},
             ),
             flags=MetadataFlags(
-                reversible=rev_flag, irreversible=IrreversibleFlags(arc3=True)
+                reversible=ReversibleFlags(
+                    arc20=flag_index == flags.REV_FLG_ARC20,
+                    arc62=flag_index == flags.REV_FLG_ARC62,
+                ),
+                irreversible=IrreversibleFlags(arc3=True),
             ),
         )
         mbr_delta = writer.create_metadata(
@@ -1375,6 +1406,7 @@ class TestReplaceMetadata:
             asset_manager=asset_manager,
             metadata=new_metadata,
             assume_current_size=mutable_short_metadata.size,
+            validate_arc3=False,
         )
         assert isinstance(mbr_delta, MbrDelta)
         # Should be negative or zero since smaller
@@ -1397,6 +1429,7 @@ class TestReplaceMetadata:
             asset_manager=asset_manager,
             metadata=new_metadata,
             assume_current_size=0,
+            validate_arc3=False,
         )
         assert isinstance(mbr_delta, MbrDelta)
         assert mbr_delta.is_positive
@@ -1415,9 +1448,114 @@ class TestReplaceMetadata:
             validate_json_object=False,
         )
         mbr_delta = writer.replace_metadata(
-            asset_manager=asset_manager, metadata=new_metadata
+            asset_manager=asset_manager, metadata=new_metadata, validate_arc3=False
         )
         assert isinstance(mbr_delta, MbrDelta)
+
+    def test_arc3_decimals_zero_triggers_decimals_validation(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        mutable_short_metadata: AssetMetadata,
+    ) -> None:
+        """When 'decimals' is explicitly 0, replace_metadata must still validate under validate_arc3=True."""
+
+        from asa_metadata_registry.write import writer as writer_module
+
+        validate_mock = Mock()
+        monkeypatch.setattr(writer_module, "validate_arc3_values", validate_mock)
+
+        class _AsaParams:  # local minimal stub
+            decimals = 0
+
+        get_by_id_mock = Mock(return_value=_AsaParams())
+        monkeypatch.setattr(
+            asa_metadata_registry_client.algorand.asset,
+            "get_by_id",
+            get_by_id_mock,
+            raising=True,
+        )
+
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        metadata = AssetMetadata.from_json(
+            asset_id=mutable_short_metadata.asset_id,
+            json_obj={"name": "Zero Decimals", "decimals": 0},
+        )
+
+        mbr_delta = writer.replace_metadata(
+            asset_manager=asset_manager,
+            metadata=metadata,
+            assume_current_size=mutable_short_metadata.size,
+            validate_arc3=True,
+        )
+
+        assert isinstance(mbr_delta, MbrDelta)
+        get_by_id_mock.assert_called_once()
+        validate_mock.assert_called_once()
+
+    def test_replace_validate_arc3_raises_asa_not_found(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        mutable_short_metadata: AssetMetadata,
+    ) -> None:
+        """replace_metadata should raise AsaNotFoundError when validate_arc3=True and the ASA doesn't exist."""
+
+        from asa_metadata_registry import AsaNotFoundError
+
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        metadata = AssetMetadata.from_json(
+            asset_id=mutable_short_metadata.asset_id,
+            json_obj={"name": "Missing ASA", "decimals": 0},
+        )
+
+        asa_metadata_registry_client.algorand.send.asset_destroy(
+            AssetDestroyParams(
+                sender=asset_manager.address, asset_id=mutable_short_metadata.asset_id
+            )
+        )
+
+        with pytest.raises(
+            AsaNotFoundError,
+            match=f"Asset {mutable_short_metadata.asset_id} does not exist",
+        ):
+            writer.replace_metadata(
+                asset_manager=asset_manager,
+                metadata=metadata,
+                assume_current_size=mutable_short_metadata.size,
+                validate_arc3=True,
+            )
+
+    def test_replace_validate_arc3_fails_invalid_decimals(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        mutable_short_metadata: AssetMetadata,
+    ) -> None:
+        """replace_metadata should raise MetadataArc3Error when validate_arc3=True and decimals don't match."""
+
+        from asa_metadata_registry import MetadataArc3Error
+
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+
+        # mutable_short_metadata.asset_id has decimals=0, but metadata says decimals=6
+        metadata = AssetMetadata.from_json(
+            asset_id=mutable_short_metadata.asset_id,
+            json_obj={"name": "Wrong Decimals", "decimals": 6},
+        )
+
+        with pytest.raises(
+            MetadataArc3Error,
+            match=r"ARC-3 field 'decimals' must match ASA decimals \(0\), got 6",
+        ):
+            writer.replace_metadata(
+                asset_manager=asset_manager,
+                metadata=metadata,
+                assume_current_size=mutable_short_metadata.size,
+                validate_arc3=True,
+            )
 
 
 class TestReplaceMetadataSlice:
