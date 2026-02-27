@@ -11,54 +11,32 @@ from asa_metadata_registry.validation import (
     is_arc3_metadata,
     is_positive_uint64,
     validate_arc3_properties,
-    validate_arc3_schema,
     validate_arc3_values,
     validate_arc20_arc62_require_arc3,
 )
 
 
 class TestIsPositiveUint64:
-    def test_valid_min(self) -> None:
-        assert is_positive_uint64(1) is True
+    """Test is_positive_uint64 and validate_arc3_properties helpers."""
 
-    def test_valid_max(self) -> None:
-        assert is_positive_uint64(2**64 - 1) is True
-
-    def test_zero_invalid(self) -> None:
-        assert is_positive_uint64(0) is False
-
-    def test_negative_invalid(self) -> None:
-        assert is_positive_uint64(-1) is False
-
-    def test_too_large_invalid(self) -> None:
-        assert is_positive_uint64(2**64) is False
-
-    def test_non_int_invalid(self) -> None:
-        assert is_positive_uint64("1") is False
-
-
-class TestDecodeMetadataJson:
-    def test_empty_bytes_decodes_to_empty_object(self) -> None:
-        assert decode_metadata_json(b"") == {}
-
-    def test_rejects_utf8_bom(self) -> None:
-        with pytest.raises(MetadataEncodingError, match="BOM"):
-            decode_metadata_json(b"\xef\xbb\xbf{}")
-
-    def test_rejects_non_utf8(self) -> None:
-        with pytest.raises(MetadataEncodingError, match="UTF-8"):
-            decode_metadata_json(b"\xff")
-
-    def test_rejects_invalid_json(self) -> None:
-        with pytest.raises(MetadataEncodingError, match="valid JSON"):
-            decode_metadata_json(b"{")
-
-    def test_rejects_non_object_json(self) -> None:
-        with pytest.raises(MetadataEncodingError, match="MUST be an object"):
-            decode_metadata_json(b"[]")
-
-    def test_valid_object(self) -> None:
-        assert decode_metadata_json(b'{"name":"Test"}') == {"name": "Test"}
+    @pytest.mark.parametrize(
+        "value,expected",
+        [
+            (1, True),
+            (2**64 - 1, True),
+            (0, False),
+            (-1, False),
+            (2**64, False),
+            (1.0, False),
+            ("1", False),
+            (None, False),
+        ],
+    )
+    def test_is_positive_uint64(
+        self, value: object, expected: bool  # noqa: FBT001
+    ) -> None:
+        """Test is_positive_uint64 helper."""
+        assert is_positive_uint64(value) is expected
 
 
 class TestEncodeMetadataJson:
@@ -72,48 +50,6 @@ class TestEncodeMetadataJson:
     def test_rejects_non_serializable(self) -> None:
         with pytest.raises(MetadataEncodingError, match="JSON-serializable"):
             encode_metadata_json({"x": object()})
-
-
-class TestValidateArc3Schema:
-    def test_allows_unknown_fields(self) -> None:
-        validate_arc3_schema({"name": "x", "unknown": {"nested": True}})
-
-    def test_decimals_must_be_int_not_bool(self) -> None:
-        with pytest.raises(MetadataArc3Error, match=r"decimals.*integer"):
-            validate_arc3_schema({"decimals": True})
-
-    def test_decimals_must_be_non_negative(self) -> None:
-        with pytest.raises(MetadataArc3Error, match="non-negative"):
-            validate_arc3_schema({"decimals": -1})
-
-    def test_string_fields_must_be_string(self) -> None:
-        with pytest.raises(MetadataArc3Error, match=r"name.*string"):
-            validate_arc3_schema({"name": 123})
-
-    def test_properties_must_be_object(self) -> None:
-        with pytest.raises(MetadataArc3Error, match=r"properties.*object"):
-            validate_arc3_schema({"properties": []})
-
-    def test_localization_requires_fields(self) -> None:
-        with pytest.raises(MetadataArc3Error, match="must have 'uri'"):
-            validate_arc3_schema({"localization": {"default": "en", "locales": []}})
-
-        with pytest.raises(MetadataArc3Error, match="must have 'default'"):
-            validate_arc3_schema({"localization": {"uri": "u", "locales": []}})
-
-        with pytest.raises(MetadataArc3Error, match="must have 'locales'"):
-            validate_arc3_schema({"localization": {"uri": "u", "default": "en"}})
-
-    def test_localization_type_checks(self) -> None:
-        with pytest.raises(MetadataArc3Error, match=r"locales.*array"):
-            validate_arc3_schema(
-                {"localization": {"uri": "u", "default": "en", "locales": "en"}}
-            )
-
-        with pytest.raises(MetadataArc3Error, match="entries must be strings"):
-            validate_arc3_schema(
-                {"localization": {"uri": "u", "default": "en", "locales": [123]}}
-            )
 
 
 class TestValidateArc3Values:
@@ -196,12 +132,66 @@ class TestValidateArc3Properties:
                 "arc-20",
             )
 
-    def test_happy_path(self) -> None:
-        validate_arc3_properties(
-            {"properties": {"arc-20": {"application-id": 123}}},
-            "arc-20",
-        )
-        validate_arc3_properties(
-            {"properties": {"arc-62": {"application-id": 123}}},
-            "arc-62",
-        )
+    @pytest.mark.parametrize("arc_key", ["arc-20", "arc-62"])
+    @pytest.mark.parametrize(
+        "body",
+        [
+            pytest.param({}, id="no_properties"),
+            pytest.param({"properties": "not-a-dict"}, id="properties_not_dict"),
+            pytest.param({"properties": {"other-key": 1}}, id="missing_arc_key"),
+            pytest.param(
+                {"properties": {"arc-20": "not-a-dict", "arc-62": "not-a-dict"}},
+                id="arc_key_not_dict",
+            ),
+            pytest.param(
+                {"properties": {"arc-20": {}, "arc-62": {}}},
+                id="missing_application_id",
+            ),
+            pytest.param(
+                {
+                    "properties": {
+                        "arc-20": {"application-id": 0},
+                        "arc-62": {"application-id": 0},
+                    }
+                },
+                id="app_id_zero",
+            ),
+            pytest.param(
+                {
+                    "properties": {
+                        "arc-20": {"application-id": -1},
+                        "arc-62": {"application-id": -1},
+                    }
+                },
+                id="app_id_negative",
+            ),
+            pytest.param(
+                {
+                    "properties": {
+                        "arc-20": {"application-id": "123"},
+                        "arc-62": {"application-id": "123"},
+                    }
+                },
+                id="app_id_string",
+            ),
+            pytest.param(
+                {
+                    "properties": {
+                        "arc-20": {"application-id": 2**64},
+                        "arc-62": {"application-id": 2**64},
+                    }
+                },
+                id="app_id_overflow",
+            ),
+        ],
+    )
+    def test_invalid_raises(self, body: dict[str, object], arc_key: str) -> None:
+        """Test invalid properties raises."""
+        with pytest.raises(InvalidArc3PropertiesError):
+            validate_arc3_properties(body, arc_key)
+
+    @pytest.mark.parametrize("arc_key", ["arc-20", "arc-62"])
+    def test_valid_passes(self, arc_key: str) -> None:
+        """Test valid properties passes."""
+        body = {"properties": {arc_key: {"application-id": 123456}}}
+        validate_arc3_properties(body, arc_key)

@@ -46,10 +46,6 @@ from asa_metadata_registry import (
 from asa_metadata_registry.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
-from asa_metadata_registry.validation import (
-    is_positive_uint64,
-    validate_arc3_properties,
-)
 from asa_metadata_registry.write.writer import (
     _append_extra_resources,
     _chunks_for_slice,
@@ -150,93 +146,6 @@ class TestComposerHelpers:
         composer = Mock()
         _append_extra_resources(composer, count=3, sender=asset_manager.address)
         assert composer.extra_resources.call_count == 3
-
-
-class TestValidateArc3Properties:
-    """Test is_positive_uint64 and validate_arc3_properties helpers."""
-
-    @pytest.mark.parametrize(
-        "value,expected",
-        [
-            (1, True),
-            (2**64 - 1, True),
-            (0, False),
-            (-1, False),
-            (2**64, False),
-            (1.0, False),
-            ("1", False),
-            (None, False),
-        ],
-    )
-    def test_is_positive_uint64(
-        self, value: object, expected: bool  # noqa: FBT001
-    ) -> None:
-        """Test is_positive_uint64 helper."""
-        assert is_positive_uint64(value) is expected
-
-    @pytest.mark.parametrize("arc_key", ["arc-20", "arc-62"])
-    @pytest.mark.parametrize(
-        "body",
-        [
-            pytest.param({}, id="no_properties"),
-            pytest.param({"properties": "not-a-dict"}, id="properties_not_dict"),
-            pytest.param({"properties": {"other-key": 1}}, id="missing_arc_key"),
-            pytest.param(
-                {"properties": {"arc-20": "not-a-dict", "arc-62": "not-a-dict"}},
-                id="arc_key_not_dict",
-            ),
-            pytest.param(
-                {"properties": {"arc-20": {}, "arc-62": {}}},
-                id="missing_application_id",
-            ),
-            pytest.param(
-                {
-                    "properties": {
-                        "arc-20": {"application-id": 0},
-                        "arc-62": {"application-id": 0},
-                    }
-                },
-                id="app_id_zero",
-            ),
-            pytest.param(
-                {
-                    "properties": {
-                        "arc-20": {"application-id": -1},
-                        "arc-62": {"application-id": -1},
-                    }
-                },
-                id="app_id_negative",
-            ),
-            pytest.param(
-                {
-                    "properties": {
-                        "arc-20": {"application-id": "123"},
-                        "arc-62": {"application-id": "123"},
-                    }
-                },
-                id="app_id_string",
-            ),
-            pytest.param(
-                {
-                    "properties": {
-                        "arc-20": {"application-id": 2**64},
-                        "arc-62": {"application-id": 2**64},
-                    }
-                },
-                id="app_id_overflow",
-            ),
-        ],
-    )
-    def test_invalid_raises(self, body: dict[str, object], arc_key: str) -> None:
-        """Test invalid properties raises."""
-        with pytest.raises(InvalidArc3PropertiesError):
-            validate_arc3_properties(body, arc_key)
-
-    @pytest.mark.parametrize("arc_key", ["arc-20", "arc-62"])
-    def test_valid_passes(self, arc_key: str) -> None:
-        """Test valid properties passes."""
-        body = {"properties": {arc_key: {"application-id": 123456}}}
-        validate_arc3_properties(body, arc_key)
 
 
 # ================================================================
@@ -555,6 +464,34 @@ class TestCreateMetadata:
         with pytest.raises(
             AsaNotFoundError,
             match=f"Asset {arc_89_asa} does not exist",
+        ):
+            writer.create_metadata(
+                asset_manager=asset_manager,
+                metadata=metadata,
+                validate_arc3=True,
+            )
+
+    def test_create_validate_arc3_fails_invalid_decimals(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        arc_89_asa: int,
+    ) -> None:
+        """create_metadata should raise MetadataArc3Error when validate_arc3=True and decimals don't match."""
+
+        from asa_metadata_registry import MetadataArc3Error
+
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+
+        # arc_89_asa has decimals=0, but metadata says decimals=6
+        metadata = AssetMetadata.from_json(
+            asset_id=arc_89_asa,
+            json_obj={"name": "Wrong Decimals", "decimals": 6},
+        )
+
+        with pytest.raises(
+            MetadataArc3Error,
+            match=r"ARC-3 field 'decimals' must match ASA decimals \(0\), got 6",
         ):
             writer.create_metadata(
                 asset_manager=asset_manager,
@@ -1581,6 +1518,35 @@ class TestReplaceMetadata:
         with pytest.raises(
             AsaNotFoundError,
             match=f"Asset {mutable_short_metadata.asset_id} does not exist",
+        ):
+            writer.replace_metadata(
+                asset_manager=asset_manager,
+                metadata=metadata,
+                assume_current_size=mutable_short_metadata.size,
+                validate_arc3=True,
+            )
+
+    def test_replace_validate_arc3_fails_invalid_decimals(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        mutable_short_metadata: AssetMetadata,
+    ) -> None:
+        """replace_metadata should raise MetadataArc3Error when validate_arc3=True and decimals don't match."""
+
+        from asa_metadata_registry import MetadataArc3Error
+
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+
+        # mutable_short_metadata.asset_id has decimals=0, but metadata says decimals=6
+        metadata = AssetMetadata.from_json(
+            asset_id=mutable_short_metadata.asset_id,
+            json_obj={"name": "Wrong Decimals", "decimals": 6},
+        )
+
+        with pytest.raises(
+            MetadataArc3Error,
+            match=r"ARC-3 field 'decimals' must match ASA decimals \(0\), got 6",
         ):
             writer.replace_metadata(
                 asset_manager=asset_manager,
