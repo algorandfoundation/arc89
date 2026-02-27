@@ -12,6 +12,8 @@ TESTNET_GH_B64: Final[str] = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI="
 # ---------------------------------------------------------------------------
 # AVM constants
 # ---------------------------------------------------------------------------
+MAX_GROUP_SIZE: Final[int] = 16
+
 MAX_BOX_SIZE: Final[int] = 32768
 MAX_STK_SIZE: Final[int] = 4096
 MAX_ARG_SIZE: Final[int] = 2048
