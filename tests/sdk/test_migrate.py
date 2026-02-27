@@ -657,29 +657,18 @@ class TestMigrateLegacyMetadata:
             "data": "x" * content_size,
         }
 
-        # Verify size is within bounds
-        metadata = AssetMetadata.from_json(
+        migrate_legacy_metadata_to_registry(
+            registry=registry_with_write,
+            asset_manager=asset_manager,
             asset_id=legacy_arc69_asa,
-            json_obj=max_size_metadata,
+            metadata=max_size_metadata,
         )
 
-        # Skip test if it would require too many transactions (max group size is 16)
-        if metadata.body.total_pages() > 12:  # Leave room for other txns in group
-            pytest.skip("Metadata too large for atomic transaction group")
-
-        if metadata.size <= const.MAX_METADATA_SIZE:
-            migrate_legacy_metadata_to_registry(
-                registry=registry_with_write,
-                asset_manager=asset_manager,
-                asset_id=legacy_arc69_asa,
-                metadata=max_size_metadata,
-            )
-
-            # Verify metadata was created
-            existence = registry_with_write.read.arc89_check_metadata_exists(
-                asset_id=legacy_arc69_asa
-            )
-            assert existence.metadata_exists
+        # Verify metadata was created
+        existence = registry_with_write.read.arc89_check_metadata_exists(
+            asset_id=legacy_arc69_asa
+        )
+        assert existence.metadata_exists
 
 
 # ================================================================
