@@ -1065,6 +1065,9 @@ class AssetMetadata:
         # Validate round-trip and schema constraints (object)
         decode_metadata_json(body_raw_bytes)
 
+        body = MetadataBody(raw_bytes=body_raw_bytes)
+        body.validate_size()
+
         if arc3_compliant:
             validate_arc3_schema(json_obj)
             final_flags = cls._derive_and_validate_flags_from_arc3_json(
@@ -1076,7 +1079,7 @@ class AssetMetadata:
 
         return cls(
             asset_id=asset_id,
-            body=MetadataBody(body_raw_bytes),
+            body=body,
             flags=final_flags,
             deprecated_by=deprecated_by,
         )
