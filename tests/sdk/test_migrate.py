@@ -43,6 +43,7 @@ from asa_metadata_registry.migrate import (
     migrate_legacy_metadata_to_registry,
 )
 from smart_contracts.template_vars import ARC90_NETAUTH
+from tests.helpers.factories import create_arc3_payload
 
 # ================================================================
 # Fixtures
@@ -109,11 +110,12 @@ def minimal_metadata() -> dict[str, object]:
 @pytest.fixture
 def arc3_metadata() -> dict[str, object]:
     """ARC-3 compliant metadata with standard properties."""
-    return {
-        "name": "ARC-3 NFT",
-        "description": "An ARC-3 compliant NFT",
-        "image": "ipfs://QmExample",
-        "properties": {
+    return create_arc3_payload(
+        name="ARC-3 Token",
+        description="ARC-3 compliant token",
+        image="https://example.com/image.png",
+        external_url="https://example.com",
+        properties={
             "simple_property": "example value",
             "rich_property": {
                 "name": "Name",
@@ -125,7 +127,7 @@ def arc3_metadata() -> dict[str, object]:
                 "value": [1, 2, 3, 4],
             },
         },
-    }
+    )
 
 
 @pytest.fixture
