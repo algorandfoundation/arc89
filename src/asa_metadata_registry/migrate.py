@@ -138,18 +138,19 @@ def migrate_legacy_metadata_to_registry(
         raise ValueError("Cannot flag migrated metadata as ARC-89 native")
 
     # Build AssetMetadata and enforce size bounds.
-    asset_md = AssetMetadata.from_json(
-        asset_id=asset_id,
-        json_obj=metadata,
-        flags=flags,
-        arc3_compliant=arc3_compliant,
-    )
-    if asset_md.size > const.MAX_METADATA_SIZE:
-        raise ValueError(
-            "Legacy metadata is too large to migrate into ARC-89 registry: "
-            f"size={asset_md.size} bytes, MAX_METADATA_SIZE={const.MAX_METADATA_SIZE}. "
-            "Consider hosting a smaller JSON document or storing a pointer in short metadata."
+    try:
+        asset_md = AssetMetadata.from_json(
+            asset_id=asset_id,
+            json_obj=metadata,
+            flags=flags,
+            arc3_compliant=arc3_compliant,
         )
+    except ValueError as e:
+        raise ValueError(
+            "Legacy metadata is too large to migrate into ARC-89 registry, "
+            f"MAX_METADATA_SIZE={const.MAX_METADATA_SIZE}. Consider hosting a smaller "
+            f"JSON document or storing a pointer in short metadata."
+        ) from e
 
     migration_uri = _derive_migration_uri(
         registry=registry,
