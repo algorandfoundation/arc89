@@ -213,7 +213,7 @@ def build(
                 )
 
             # Apply naming convention: {contract_name}_avm_client.py
-            contract_name = file_name.replace(".arc56.json", "")
+            contract_name = file_name.removesuffix(".arc56.json")
             generated_file = target_dir / f"client_{contract_name}.py"
 
             # Convert PascalCase to snake_case
@@ -222,10 +222,16 @@ def build(
             snake_case_name = re.sub(r"(?<!^)(?=[A-Z])", "_", contract_name).lower()
             desired_file = target_dir / f"{snake_case_name}_avm_client.py"
 
-            if generated_file.exists():
-                generated_file.rename(desired_file)
-                logger.info(f"Renamed AVM client to {desired_file.name}")
+            if not generated_file.exists():
+                raise FileNotFoundError(
+                    f"Expected generated AVM client '{generated_file.name}' was not created by puyapy-clientgen"
+                )
 
+            if desired_file.exists():
+                desired_file.unlink()
+
+            generated_file.rename(desired_file)
+            logger.info(f"Renamed AVM client to {desired_file.name}")
     if client_file:
         return output_dir / client_file
     return output_dir
