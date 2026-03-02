@@ -1,6 +1,7 @@
 import dataclasses
 import importlib
 import logging
+import re
 import subprocess
 import sys
 from collections.abc import Callable
@@ -217,8 +218,6 @@ def build(
             generated_file = target_dir / f"client_{contract_name}.py"
 
             # Convert PascalCase to snake_case
-            import re
-
             snake_case_name = re.sub(r"(?<!^)(?=[A-Z])", "_", contract_name).lower()
             desired_file = target_dir / f"{snake_case_name}_avm_client.py"
 
