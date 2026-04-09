@@ -162,9 +162,9 @@ def migrate_legacy_metadata_to_registry(
             arc3_compliant=arc3_compliant,
         )
     except ValueError as e:
-        if "exceeds max" in str(e):
+        if type(e) is ValueError:
             raise ValueError(
-                "Legacy metadata is too large to migrate into ARC-89 registry: "
+                "Legacy metadata is too large to migrate into ARC-89 registry, "
                 f"MAX_METADATA_SIZE={const.MAX_METADATA_SIZE}. Consider hosting a smaller "
                 "JSON document or storing a pointer in short metadata."
             ) from e
