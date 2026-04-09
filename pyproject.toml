@@ -21,7 +21,7 @@ repository = "https://github.com/algorandfoundation/arc89"
 [tool.poetry.group.contracts.dependencies]
 algokit-client-generator = "^2.2.0"
 algorand-python = { version = "==3.4.0", python = ">=3.12,<4" }
-black = "^26.1.0"
+black = "^26.3.1"
 ipykernel = "^7.2.0"
 ruff = "^0.15.0"
 mypy = "^1.19.1"
@@ -33,6 +33,12 @@ pip-audit = "^2.10.0"
 pre-commit = "^4.5.1"
 puyapy = { version = "==5.7.1", python = ">=3.12,<4" }
 urllib3 = "^2.6.3"
+# Security overrides for transitive vulnerabilities with no upstream fix yet.
+# Remove each line once algokit-utils ships a version that pulls in the patched dep.
+# pygments: CVE-2026-4539, requests: CVE-2026-25645, tornado: GHSA-78cv-mqj4-43f7 / CVE-2026-31958 / CVE-2026-35536
+pygments = ">=2.20.0"
+requests = ">=2.33.0"
+tornado = ">=6.5.5"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
