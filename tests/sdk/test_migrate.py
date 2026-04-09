@@ -232,7 +232,9 @@ class TestMigrationUriDerivation:
         assert parsed.compliance == Arc90Compliance(())
 
     def test_derive_uri_with_arc3_flag(
-        self, registry_with_write: AsaMetadataRegistry, make_legacy_arc3_asa: Callable[..., int]
+        self,
+        registry_with_write: AsaMetadataRegistry,
+        make_legacy_arc3_asa: Callable[..., int],
     ) -> None:
         """Test deriving URI with ARC-3 compliance flag."""
         asset_id = make_legacy_arc3_asa()
@@ -474,9 +476,7 @@ class TestMigrateLegacyMetadata:
         assert existence.metadata_exists
 
         # Verify ARC-3 flag is set
-        header = registry_with_write.read.arc89_get_metadata_header(
-            asset_id=asset_id
-        )
+        header = registry_with_write.read.arc89_get_metadata_header(asset_id=asset_id)
         assert header.flags.irreversible.arc3
 
     def test_migrate_arc3_asa_with_metadata_hash_auto_sets_immutable(
@@ -496,9 +496,7 @@ class TestMigrateLegacyMetadata:
             arc3_compliant=True,
         )
 
-        header = registry_with_write.read.arc89_get_metadata_header(
-            asset_id=asset_id
-        )
+        header = registry_with_write.read.arc89_get_metadata_header(asset_id=asset_id)
         assert header.flags.irreversible.immutable
         assert header.flags.irreversible.arc3
 
@@ -547,9 +545,7 @@ class TestMigrateLegacyMetadata:
             arc3_compliant=True,
         )
 
-        header = registry_with_write.read.arc89_get_metadata_header(
-            asset_id=asset_id
-        )
+        header = registry_with_write.read.arc89_get_metadata_header(asset_id=asset_id)
         assert header.flags.irreversible.immutable
         assert header.flags.irreversible.arc3
         assert header.flags.reversible.arc20
@@ -1000,17 +996,13 @@ class TestMigrationIntegration:
         assert existence_after.metadata_exists
 
         # 4. Verify metadata content
-        stored_metadata = registry_with_write.read.get_asset_metadata(
-            asset_id=asset_id
-        )
+        stored_metadata = registry_with_write.read.get_asset_metadata(asset_id=asset_id)
 
         stored_json = json.loads(stored_metadata.body.raw_bytes.decode("utf-8"))
         assert stored_json == arc3_metadata
 
         # 5. Verify ARC-3 flag
-        header = registry_with_write.read.arc89_get_metadata_header(
-            asset_id=asset_id
-        )
+        header = registry_with_write.read.arc89_get_metadata_header(asset_id=asset_id)
         assert header.flags.irreversible.arc3
 
         # 6. Verify RBAC unchanged

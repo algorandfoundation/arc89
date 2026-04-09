@@ -7,7 +7,8 @@ from collections.abc import Mapping
 from algokit_utils import AssetConfigParams, SigningAccount
 from algosdk.transaction import Transaction
 
-from . import bitmasks, constants as const
+from . import bitmasks
+from . import constants as const
 from .codec import Arc90Compliance, Arc90Uri
 from .errors import MissingAppClientError
 from .models import AssetMetadata, MetadataFlags
