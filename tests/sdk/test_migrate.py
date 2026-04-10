@@ -12,6 +12,7 @@ Tests cover:
 
 import json
 import os
+from collections.abc import Callable
 
 import pytest
 from algokit_utils import (
@@ -38,7 +39,7 @@ from asa_metadata_registry.generated.asa_metadata_registry_client import (
 from asa_metadata_registry.migrate import (
     _derive_migration_uri,
     _encode_arc2_migration_message,
-    _ensure_not_already_migrated,
+    _ensure_exists_and_not_already_migrated,
     build_arc2_migration_message_txn,
     migrate_legacy_metadata_to_registry,
 )
@@ -51,25 +52,30 @@ from tests.helpers.factories import create_arc3_payload
 
 
 @pytest.fixture
-def legacy_arc3_asa(
+def make_legacy_arc3_asa(
     asset_manager: SigningAccount,
     algorand_client: AlgorandClient,
-) -> int:
-    """Create a legacy ARC-3 ASA (without ARC-89 registry URL)."""
-    return algorand_client.send.asset_create(
-        params=AssetCreateParams(
-            sender=asset_manager.address,
-            total=1000,
-            asset_name="Legacy NFT" + const.ARC3_NAME_SUFFIX.decode(),
-            unit_name="LNFT",
-            url="ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
-            decimals=0,
-            manager=asset_manager.address,
-            reserve=asset_manager.address,
-            freeze=asset_manager.address,
-            clawback=asset_manager.address,
-        )
-    ).asset_id
+) -> Callable[..., int]:
+    """Factory for legacy ARC-3 ASAs. Pass with_metadata_hash=True to include a non-zero metadata hash."""
+
+    def _factory(*, with_metadata_hash: bool = False) -> int:
+        return algorand_client.send.asset_create(
+            params=AssetCreateParams(
+                sender=asset_manager.address,
+                total=1000,
+                asset_name="Legacy NFT" + const.ARC3_NAME_SUFFIX.decode(),
+                unit_name="LNFT",
+                url="ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
+                decimals=0,
+                manager=asset_manager.address,
+                reserve=asset_manager.address,
+                freeze=asset_manager.address,
+                clawback=asset_manager.address,
+                metadata_hash=bytes(32 * [0xAB]) if with_metadata_hash else None,
+            )
+        ).asset_id
+
+    return _factory
 
 
 @pytest.fixture
@@ -226,12 +232,15 @@ class TestMigrationUriDerivation:
         assert parsed.compliance == Arc90Compliance(())
 
     def test_derive_uri_with_arc3_flag(
-        self, registry_with_write: AsaMetadataRegistry, legacy_arc3_asa: int
+        self,
+        registry_with_write: AsaMetadataRegistry,
+        make_legacy_arc3_asa: Callable[..., int],
     ) -> None:
         """Test deriving URI with ARC-3 compliance flag."""
+        asset_id = make_legacy_arc3_asa()
         uri = _derive_migration_uri(
             registry=registry_with_write,
-            asset_id=legacy_arc3_asa,
+            asset_id=asset_id,
             arc3=True,
         )
 
@@ -352,8 +361,20 @@ class TestBuildArc2MigrationMessageTxn:
 # ================================================================
 
 
-class TestEnsureNotAlreadyMigrated:
-    """Tests for _ensure_not_already_migrated validation."""
+class TestEnsureExistsAndNotAlreadyMigrated:
+    """Tests for _ensure_exists_and_not_already_migrated validation."""
+
+    def test_not_exists_raises(
+        self,
+        registry_with_write: AsaMetadataRegistry,
+    ) -> None:
+        """Test that validation fails for assets that do not exist."""
+        # Should raise
+        with pytest.raises(ValueError, match="does not exist"):
+            _ensure_exists_and_not_already_migrated(
+                registry=registry_with_write,
+                asset_id=9999,
+            )
 
     def test_not_migrated_passes(
         self,
@@ -362,7 +383,7 @@ class TestEnsureNotAlreadyMigrated:
     ) -> None:
         """Test that validation passes for assets without metadata."""
         # Should not raise
-        _ensure_not_already_migrated(
+        _ensure_exists_and_not_already_migrated(
             registry=registry_with_write,
             asset_id=legacy_arc69_asa,
         )
@@ -387,7 +408,7 @@ class TestEnsureNotAlreadyMigrated:
 
         # Now validation should fail
         with pytest.raises(ValueError, match="already has metadata"):
-            _ensure_not_already_migrated(
+            _ensure_exists_and_not_already_migrated(
                 registry=registry_with_write,
                 asset_id=legacy_arc69_asa,
             )
@@ -435,29 +456,99 @@ class TestMigrateLegacyMetadata:
         self,
         registry_with_write: AsaMetadataRegistry,
         asset_manager: SigningAccount,
-        legacy_arc3_asa: int,
+        make_legacy_arc3_asa: Callable[..., int],
         arc3_metadata: dict[str, object],
     ) -> None:
         """Test migrating ARC-3 compliant metadata."""
+        asset_id = make_legacy_arc3_asa()
         migrate_legacy_metadata_to_registry(
             registry=registry_with_write,
             asset_manager=asset_manager,
-            asset_id=legacy_arc3_asa,
+            asset_id=asset_id,
             metadata=arc3_metadata,
             arc3_compliant=True,
         )
 
         # Verify metadata exists
         existence = registry_with_write.read.arc89_check_metadata_exists(
-            asset_id=legacy_arc3_asa
+            asset_id=asset_id
         )
         assert existence.metadata_exists
 
         # Verify ARC-3 flag is set
-        header = registry_with_write.read.arc89_get_metadata_header(
-            asset_id=legacy_arc3_asa
-        )
+        header = registry_with_write.read.arc89_get_metadata_header(asset_id=asset_id)
         assert header.flags.irreversible.arc3
+
+    def test_migrate_arc3_asa_with_metadata_hash_auto_sets_immutable(
+        self,
+        registry_with_write: AsaMetadataRegistry,
+        asset_manager: SigningAccount,
+        make_legacy_arc3_asa: Callable[..., int],
+        arc3_metadata: dict[str, object],
+    ) -> None:
+        """No flags provided — SDK should auto-set immutable and arc3."""
+        asset_id = make_legacy_arc3_asa(with_metadata_hash=True)
+        migrate_legacy_metadata_to_registry(
+            registry=registry_with_write,
+            asset_manager=asset_manager,
+            asset_id=asset_id,
+            metadata=arc3_metadata,
+            arc3_compliant=True,
+        )
+
+        header = registry_with_write.read.arc89_get_metadata_header(asset_id=asset_id)
+        assert header.flags.irreversible.immutable
+        assert header.flags.irreversible.arc3
+
+    def test_migrate_arc3_asa_with_metadata_hash_and_immutable_false_raises(
+        self,
+        registry_with_write: AsaMetadataRegistry,
+        asset_manager: SigningAccount,
+        make_legacy_arc3_asa: Callable[..., int],
+        arc3_metadata: dict[str, object],
+    ) -> None:
+        """Explicit immutable=False with a non-zero am should raise a readable SDK error."""
+        asset_id = make_legacy_arc3_asa(with_metadata_hash=True)
+        flags = MetadataFlags(
+            reversible=ReversibleFlags.empty(),
+            irreversible=IrreversibleFlags(immutable=False),
+        )
+
+        with pytest.raises(ValueError, match="IMMUTABLE flag"):
+            migrate_legacy_metadata_to_registry(
+                registry=registry_with_write,
+                asset_manager=asset_manager,
+                asset_id=asset_id,
+                metadata=arc3_metadata,
+                arc3_compliant=True,
+                flags=flags,
+            )
+
+    def test_migrate_arc3_asa_with_metadata_hash_and_arc20_properties_preserves_arc20_flag(
+        self,
+        registry_with_write: AsaMetadataRegistry,
+        asset_manager: SigningAccount,
+        make_legacy_arc3_asa: Callable[..., int],
+    ) -> None:
+        """ARC-20 properties in ARC-3 metadata with non-zero am: immutable patched in after derivation."""
+        asset_id = make_legacy_arc3_asa(with_metadata_hash=True)
+        arc3_with_arc20 = {
+            "name": "ARC-20 Token",
+            "properties": {"arc-20": {"application-id": 999}},
+        }
+
+        migrate_legacy_metadata_to_registry(
+            registry=registry_with_write,
+            asset_manager=asset_manager,
+            asset_id=asset_id,
+            metadata=arc3_with_arc20,
+            arc3_compliant=True,
+        )
+
+        header = registry_with_write.read.arc89_get_metadata_header(asset_id=asset_id)
+        assert header.flags.irreversible.immutable
+        assert header.flags.irreversible.arc3
+        assert header.flags.reversible.arc20
 
     def test_migrate_arc69_preserves_exact_metadata(
         self,
@@ -876,14 +967,16 @@ class TestMigrationIntegration:
         self,
         registry_with_write: AsaMetadataRegistry,
         asset_manager: SigningAccount,
-        legacy_arc3_asa: int,
+        make_legacy_arc3_asa: Callable[..., int],
         arc3_metadata: dict[str, object],
         algorand_client: AlgorandClient,
     ) -> None:
         """Test complete migration workflow from legacy to ARC-89."""
+        asset_id = make_legacy_arc3_asa()
+
         # 1. Verify asset has no metadata initially
         existence_before = registry_with_write.read.arc89_check_metadata_exists(
-            asset_id=legacy_arc3_asa
+            asset_id=asset_id
         )
         assert not existence_before.metadata_exists
 
@@ -891,38 +984,34 @@ class TestMigrationIntegration:
         migrate_legacy_metadata_to_registry(
             registry=registry_with_write,
             asset_manager=asset_manager,
-            asset_id=legacy_arc3_asa,
+            asset_id=asset_id,
             metadata=arc3_metadata,
             arc3_compliant=True,
         )
 
         # 3. Verify metadata now exists
         existence_after = registry_with_write.read.arc89_check_metadata_exists(
-            asset_id=legacy_arc3_asa
+            asset_id=asset_id
         )
         assert existence_after.metadata_exists
 
         # 4. Verify metadata content
-        stored_metadata = registry_with_write.read.get_asset_metadata(
-            asset_id=legacy_arc3_asa
-        )
+        stored_metadata = registry_with_write.read.get_asset_metadata(asset_id=asset_id)
 
         stored_json = json.loads(stored_metadata.body.raw_bytes.decode("utf-8"))
         assert stored_json == arc3_metadata
 
         # 5. Verify ARC-3 flag
-        header = registry_with_write.read.arc89_get_metadata_header(
-            asset_id=legacy_arc3_asa
-        )
+        header = registry_with_write.read.arc89_get_metadata_header(asset_id=asset_id)
         assert header.flags.irreversible.arc3
 
         # 6. Verify RBAC unchanged
-        asset_info = algorand_client.asset.get_by_id(asset_id=legacy_arc3_asa)
+        asset_info = algorand_client.asset.get_by_id(asset_id=asset_id)
         assert asset_info.manager == asset_manager.address
 
         # 7. Verify we can read the metadata hash
         hash_result = registry_with_write.read.arc89_get_metadata_hash(
-            asset_id=legacy_arc3_asa
+            asset_id=asset_id
         )
         assert len(hash_result) == 32
 

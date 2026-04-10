@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import dataclasses
 import json
 from collections.abc import Mapping
 
 from algokit_utils import AssetConfigParams, SigningAccount
 from algosdk.transaction import Transaction
 
+from . import bitmasks
 from . import constants as const
 from .codec import Arc90Compliance, Arc90Uri
 from .errors import MissingAppClientError
@@ -80,10 +82,12 @@ def build_arc2_migration_message_txn(
 # ---------------------------------------------------------------------------
 
 
-def _ensure_not_already_migrated(
+def _ensure_exists_and_not_already_migrated(
     *, registry: AsaMetadataRegistry, asset_id: int
 ) -> None:
     existence = registry.read.arc89_check_metadata_exists(asset_id=asset_id)
+    if not existence.asa_exists:
+        raise ValueError(f"ASA {asset_id} does not exist")
     if existence.metadata_exists:
         raise ValueError(
             f"ASA {asset_id} already has metadata in this registry; migration is not allowed"
@@ -126,18 +130,31 @@ def migrate_legacy_metadata_to_registry(
     in the ASA Metadata Registry, then emitting an ARC-2 migration message.
 
     Flow:
-    1) Error if metadata already exists in the Registry for the given ASA.
+    1) Error if metadata already exists in the Registry for the given ASA; error if the ASA does not exist.
     2) Error if metadata is flagged as ARC-89 native.
-    3) Validate metadata size <= MAX_METADATA_SIZE (raw bytes after JSON encoding).
-    4) Create metadata on the registry and emit the ARC-2 migration message.
+    3) If the ASA has a non-zero on-chain am: auto-set immutable when no flags provided,
+       or error early if flags are provided without immutable=True.
+    4) Validate metadata size <= MAX_METADATA_SIZE (raw bytes after JSON encoding).
+    5) Create metadata on the registry and emit the ARC-2 migration message.
     """
 
-    _ensure_not_already_migrated(registry=registry, asset_id=asset_id)
+    _ensure_exists_and_not_already_migrated(registry=registry, asset_id=asset_id)
 
     if flags is not None and flags.irreversible.arc89_native:
         raise ValueError("Cannot flag migrated metadata as ARC-89 native")
 
-    # Build AssetMetadata and enforce size bounds.
+    # Pre-flight: fetch ASA info to check metadata hash and decide on flags
+    asset_info = registry.write.client.algorand.asset.get_by_id(asset_id=asset_id)
+    zero_hash = bytes(32)
+    has_on_chain_am = asset_info.metadata_hash not in (None, zero_hash)
+    if has_on_chain_am and flags is not None and not flags.irreversible.immutable:
+        raise ValueError(
+            f"ASA {asset_id} has a metadata hash (am) set on-chain, hence the registry requires "
+            "the IMMUTABLE flag for this migration. Either omit flags to set it automatically, "
+            "or pass flags with immutable=True."
+        )
+
+    # Build AssetMetadata, resolve flags if not provided and enforce size bounds.
     try:
         asset_md = AssetMetadata.from_json(
             asset_id=asset_id,
@@ -146,11 +163,22 @@ def migrate_legacy_metadata_to_registry(
             arc3_compliant=arc3_compliant,
         )
     except ValueError as e:
-        raise ValueError(
-            "Legacy metadata is too large to migrate into ARC-89 registry, "
-            f"MAX_METADATA_SIZE={const.MAX_METADATA_SIZE}. Consider hosting a smaller "
-            f"JSON document or storing a pointer in short metadata."
-        ) from e
+        if type(e) is ValueError:
+            raise ValueError(
+                "Legacy metadata is too large to migrate into ARC-89 registry, "
+                f"MAX_METADATA_SIZE={const.MAX_METADATA_SIZE}. Consider hosting a smaller "
+                "JSON document or storing a pointer in short metadata."
+            ) from e
+        raise
+    # Set immutable flag after derivation to preserve auto-detected reversible flags (e.g. ARC-20/ARC-62)
+    if has_on_chain_am and flags is None:
+        asset_md = dataclasses.replace(
+            asset_md,
+            flags=MetadataFlags.from_bytes(
+                asset_md.flags.reversible_byte,
+                asset_md.flags.irreversible_byte | bitmasks.MASK_IRR_IMMUTABLE,
+            ),
+        )
 
     migration_uri = _derive_migration_uri(
         registry=registry,
