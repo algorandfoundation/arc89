@@ -4140,7 +4140,7 @@ _compute_page_hash:
     // smart_contracts/asa_metadata_registry/contract.py:312-313
     // # ph[i] = SHA-512/256("arc0089/page" || Asset ID || Page Index || Page Size || Page Content)
     // ensure_budget(required_budget=const.PAGE_HASH_OP_BUDGET)
-    pushint 210
+    pushint 230
     intc_1 // 0
     callsub ensure_budget
     // smart_contracts/asa_metadata_registry/contract.py:315
