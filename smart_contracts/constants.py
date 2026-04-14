@@ -90,7 +90,7 @@ ARC90_URI_BOX_QUERY: Final[bytes] = b"?" + ARC90_URI_BOX_QUERY_NAME + b"="
 # ---------------------------------------------------------------------------
 # Opcode Budgets
 HEADER_HASH_OP_BUDGET: Final[int] = 110
-PAGE_HASH_OP_BUDGET: Final[int] = 210
+PAGE_HASH_OP_BUDGET: Final[int] = 230
 
 # Method Signatures Overhead
 ARC89_CREATE_METADATA_FIXED_SIZE: Final[int] = (
