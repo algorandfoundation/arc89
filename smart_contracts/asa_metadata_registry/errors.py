@@ -1,103 +1,91 @@
 from typing import LiteralString
 
 # ── Auth ─────────────────────────────────────────────────────────────────────
+# The deployer address is not trusted
 UNTRUSTED_DEPLOYER: LiteralString = "UntrustedDeployer"
-UNTRUSTED_DEPLOYER_DES = "The deployer address is not trusted"
 
+# Unauthorized, it must be the Asset Manager
 UNAUTHORIZED: LiteralString = "Unauthorized"
-UNAUTHORIZED_DES = "Unauthorized, must be the Asset Manager"
 
 # ── ASA ───────────────────────────────────────────────────────────────────────
+# The specified ASA does not exist
 ASA_NOT_EXIST: LiteralString = "AsaNotExist"
-ASA_NOT_EXIST_DES = "The specified ASA does not exist"
 
+# Invalid ARC-3 parameters (name or URL)
 ASA_NOT_ARC3_COMPLIANT: LiteralString = "AsaNotArc3Compliant"
-ASA_NOT_ARC3_COMPLIANT_DES = "Invalid ARC-3 parameters (name or URL)"
 
+# The ASA must not have a clawback address
 ASA_NOT_ARC54_COMPLIANT: LiteralString = "AsaNotArc54Compliant"
-ASA_NOT_ARC54_COMPLIANT_DES = "The ASA must not have a clawback address"
 
+# Invalid ARC-89 partial URI
 ASA_NOT_ARC89_COMPLIANT: LiteralString = "AsaNotArc89Compliant"
-ASA_NOT_ARC89_COMPLIANT_DES = "Invalid ARC-89 partial URI"
 
+# ASA Metadata Hash (am) does not match the computed hash
 ASA_METADATA_HASH_MISMATCH: LiteralString = "AsaMetadataHashMismatch"
-ASA_METADATA_HASH_MISMATCH_DES = (
-    "ASA Metadata Hash (am) does not match the computed hash"
-)
 
 # ── Metadata ──────────────────────────────────────────────────────────────────
+# Asset Metadata already exists for the specified ASA
 ASSET_METADATA_EXIST: LiteralString = "AssetMetadataExist"
-ASSET_METADATA_EXIST_DES = "Asset Metadata already exists for the specified ASA"
 
+# Asset Metadata does not exist for the specified ASA
 ASSET_METADATA_NOT_EXIST: LiteralString = "AssetMetadataNotExist"
-ASSET_METADATA_NOT_EXIST_DES = "Asset Metadata does not exist for the specified ASA"
 
+# Metadata is empty
 EMPTY_METADATA: LiteralString = "EmptyMetadata"
-EMPTY_METADATA_DES = "Metadata is empty"
 
+# Metadata size mismatch, it must be exactly equal to declared size
 METADATA_SIZE_MISMATCH: LiteralString = "MetadataSizeMismatch"
-METADATA_SIZE_MISMATCH_DES = (
-    "Metadata size mismatch, must be exactly equal to declared size"
-)
 
+# Metadata is not short
 METADATA_NOT_SHORT: LiteralString = "MetadataNotShort"
-METADATA_NOT_SHORT_DES = "Metadata is not short"
 
+# Must be flagged as immutable
 REQUIRES_IMMUTABLE: LiteralString = "RequiresImmutable"
-REQUIRES_IMMUTABLE_DES = "Must be flagged as immutable"
 
+# Metadata is immutable
 IMMUTABLE: LiteralString = "Immutable"
-IMMUTABLE_DES = "Metadata is immutable"
 
 # ── Metadata Size ─────────────────────────────────────────────────────────────
+# Invalid Metadata size, exceeds maximum allowed size
 EXCEEDS_MAX_METADATA_SIZE: LiteralString = "ExceedsMaxMetadataSize"
-EXCEEDS_MAX_METADATA_SIZE_DES = "Invalid Metadata size, exceeds maximum allowed size"
 
+# Slice exceeds metadata range
 EXCEEDS_METADATA_SIZE: LiteralString = "ExceedsMetadataSize"
-EXCEEDS_METADATA_SIZE_DES = "Slice exceeds metadata range"
 
+# Payload exceeds page size
 EXCEEDS_PAGE_SIZE: LiteralString = "ExceedsPageSize"
-EXCEEDS_PAGE_SIZE_DES = "Payload exceeds page size"
 
+# Invalid Metadata size, it must be smaller than or equal to the current size
 LARGER_METADATA_SIZE: LiteralString = "LargerMetadataSize"
-LARGER_METADATA_SIZE_DES = (
-    "Invalid Metadata size, must be smaller than or equal to the current size"
-)
 
+# Invalid Metadata size, it must be larger than the current size
 SMALLER_METADATA_SIZE: LiteralString = "SmallerMetadataSize"
-SMALLER_METADATA_SIZE_DES = (
-    "Invalid Metadata size, must be larger than the current size"
-)
 
 # ── Payload ───────────────────────────────────────────────────────────────────
+# No payload head call in Group
 NO_PAYLOAD_HEAD_CALL: LiteralString = "NoPayloadHeadCall"
-NO_PAYLOAD_HEAD_CALL_DES = "No payload head call in Group"
 
+# Payload exceeds metadata size
 PAYLOAD_OVERFLOW: LiteralString = "PayloadOverflow"
-PAYLOAD_OVERFLOW_DES = "Payload exceeds metadata size"
 
 # ── MBR ───────────────────────────────────────────────────────────────────────
+# Invalid MBR Delta receiver, it must be the ASA Metadata Registry
 MBR_DELTA_RECEIVER_INVALID: LiteralString = "MbrDeltaReceiverInvalid"
-MBR_DELTA_RECEIVER_INVALID_DES = (
-    "Invalid MBR Delta receiver, must be the ASA Metadata Registry"
-)
 
+# Invalid MBR Delta amount
 MBR_DELTA_AMOUNT_INVALID: LiteralString = "mbrDeltaAmountInvalid"
-MBR_DELTA_AMOUNT_INVALID_DES = "Invalid MBR Delta amount"
 
 # ── Indexes ───────────────────────────────────────────────────────────────────
+# Invalid flag index
 FLAG_IDX_INVALID: LiteralString = "FlagIdxInvalid"
-FLAG_IDX_INVALID_DES = "Invalid flag index"
 
+# Invalid page index
 PAGE_IDX_INVALID: LiteralString = "PageIdxInvalid"
-PAGE_IDX_INVALID_DES = "Invalid page index"
 
 # ── Encoding ──────────────────────────────────────────────────────────────────
+# Invalid base64 encoding, must be 0 (URL safe) or 1 (Std)
 B64_ENCODING_INVALID: LiteralString = "B64EncodingInvalid"
-B64_ENCODING_INVALID_DES = "Invalid base64 encoding, must be 0 (URL safe) or 1 (Std)"
 
 # ── Registry ──────────────────────────────────────────────────────────────────
+# Invalid new ASA Metadata Registry ID, it must be different from current
 NEW_REGISTRY_ID_INVALID: LiteralString = "NewRegistryIdInvalid"
-NEW_REGISTRY_ID_INVALID_DES = (
-    "Invalid new ASA Metadata Registry ID, must be different from current"
-)
