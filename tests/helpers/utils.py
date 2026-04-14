@@ -119,7 +119,6 @@ def _create_mbr_payment_txn(
 
 def _execute_flag_operation(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    asset_manager: SigningAccount,
     metadata: AssetMetadata,
     setup_composer: Callable[[AsaMetadataRegistryComposer, AlgoAmount], None],
 ) -> None:
@@ -127,7 +126,6 @@ def _execute_flag_operation(
 
     Args:
         asa_metadata_registry_client: The ASA Metadata Registry Client
-        asset_manager: The asset manager account
         metadata: The metadata being modified
         setup_composer: Function that sets up the specific operation on the composer
     """
@@ -529,9 +527,7 @@ def set_reversible_flag(
             ),
         )
 
-    _execute_flag_operation(
-        asa_metadata_registry_client, asset_manager, metadata, setup
-    )
+    _execute_flag_operation(asa_metadata_registry_client, metadata, setup)
 
 
 def set_irreversible_flag(
@@ -549,9 +545,7 @@ def set_irreversible_flag(
             ),
         )
 
-    _execute_flag_operation(
-        asa_metadata_registry_client, asset_manager, metadata, setup
-    )
+    _execute_flag_operation(asa_metadata_registry_client, metadata, setup)
 
 
 def set_immutable(
@@ -568,9 +562,7 @@ def set_immutable(
             ),
         )
 
-    _execute_flag_operation(
-        asa_metadata_registry_client, asset_manager, metadata, setup
-    )
+    _execute_flag_operation(asa_metadata_registry_client, metadata, setup)
 
 
 def create_metadata_with_page_count(
