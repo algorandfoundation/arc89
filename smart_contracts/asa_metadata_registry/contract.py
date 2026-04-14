@@ -15,6 +15,7 @@ from algopy import (
     gtxn,
     itxn,
     logged_assert,
+    logged_err,
     op,
     urange,
 )
@@ -1126,7 +1127,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         if total_pages > 0:
             logged_assert(page.as_uint64() < total_pages, err.PAGE_IDX_INVALID)
         else:
-            op.err(err.EMPTY_METADATA)
+            logged_err(err.EMPTY_METADATA)
 
         page_content = self._get_metadata_page(asset_id, page.as_uint64())
         page_hash = self._compute_page_hash(asset_id, page.as_uint64(), page_content)
