@@ -14,6 +14,8 @@ from algopy import (
     ensure_budget,
     gtxn,
     itxn,
+    logged_assert,
+    logged_err,
     op,
     urange,
 )
@@ -209,7 +211,9 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
         # Append provided payload
         self._append_payload(asa, payload)
-        assert self._get_metadata_size(asa) <= metadata_size, err.PAYLOAD_OVERFLOW
+        logged_assert(
+            self._get_metadata_size(asa) <= metadata_size, err.PAYLOAD_OVERFLOW
+        )
 
         # Append staged extra payload (in the same Group, if any)
         group_size = Global.group_size
@@ -218,14 +222,20 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             txn = gtxn.Transaction(idx)
             if self._is_extra_payload_call(asa, txn):
                 extra_payload = self._read_extra_payload(txn)
-                assert (
-                    self._get_metadata_size(asa) + extra_payload.length <= metadata_size
-                ), err.PAYLOAD_OVERFLOW
+                logged_assert(
+                    self._get_metadata_size(asa) + extra_payload.length
+                    <= metadata_size,
+                    err.PAYLOAD_OVERFLOW,
+                )
                 self._append_payload(asa, extra_payload)
-                assert (
-                    self._get_metadata_size(asa) <= metadata_size
-                ), err.PAYLOAD_OVERFLOW
-        assert self._get_metadata_size(asa) == metadata_size, err.METADATA_SIZE_MISMATCH
+                logged_assert(
+                    self._get_metadata_size(asa) <= metadata_size,
+                    err.PAYLOAD_OVERFLOW,
+                )
+        logged_assert(
+            self._get_metadata_size(asa) == metadata_size,
+            err.METADATA_SIZE_MISMATCH,
+        )
 
     def _get_total_pages(self, asa: Asset) -> UInt64:
         """
@@ -263,7 +273,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         )
 
     def _get_short_metadata(self, asa: Asset) -> Bytes:
-        assert self._is_short(asa), err.METADATA_NOT_SHORT
+        logged_assert(self._is_short(asa), err.METADATA_NOT_SHORT)
         return self._get_slice(asa, UInt64(0), self._get_metadata_size(asa))
 
     def _identify_metadata(self, asa: Asset) -> None:
@@ -325,25 +335,26 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         return op.sha512_256(domain + hh + concatenated_ph)
 
     def _check_base_preconditions(self, asa: Asset, metadata_size: UInt64) -> None:
-        assert self._asa_exists(asa), err.ASA_NOT_EXIST
-        assert self._is_asa_manager(asa), err.UNAUTHORIZED
-        assert self._is_valid_max_metadata_size(
-            metadata_size
-        ), err.EXCEEDS_MAX_METADATA_SIZE
+        logged_assert(self._asa_exists(asa), err.ASA_NOT_EXIST)
+        logged_assert(self._is_asa_manager(asa), err.UNAUTHORIZED)
+        logged_assert(
+            self._is_valid_max_metadata_size(metadata_size),
+            err.EXCEEDS_MAX_METADATA_SIZE,
+        )
 
     def _check_update_preconditions(self, asa: Asset, metadata_size: UInt64) -> None:
         self._check_base_preconditions(asa, metadata_size)
-        assert self._metadata_exists(asa), err.ASSET_METADATA_NOT_EXIST
-        assert not self._is_immutable(asa), err.IMMUTABLE
+        logged_assert(self._metadata_exists(asa), err.ASSET_METADATA_NOT_EXIST)
+        logged_assert(not self._is_immutable(asa), err.IMMUTABLE)
 
     def _check_existence_preconditions(self, asa: Asset) -> None:
-        assert self._asa_exists(asa), err.ASA_NOT_EXIST
-        assert self._metadata_exists(asa), err.ASSET_METADATA_NOT_EXIST
+        logged_assert(self._asa_exists(asa), err.ASA_NOT_EXIST)
+        logged_assert(self._metadata_exists(asa), err.ASSET_METADATA_NOT_EXIST)
 
     def _check_set_flag_preconditions(self, asa: Asset) -> None:
         self._check_existence_preconditions(asa)
-        assert self._is_asa_manager(asa), err.UNAUTHORIZED
-        assert not self._is_immutable(asa), err.IMMUTABLE
+        logged_assert(self._is_asa_manager(asa), err.UNAUTHORIZED)
+        logged_assert(not self._is_immutable(asa), err.IMMUTABLE)
 
     def _emit_updated_event(self, asa: Asset, metadata_hash: Bytes) -> None:
         arc4.emit(
@@ -374,9 +385,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         Deploy the ASA Metadata Registry Application, restricted to the Trusted Deployer.
         """
         # Preconditions
-        assert Txn.sender == TemplateVar[Account](
-            TRUSTED_DEPLOYER
-        ), err.UNTRUSTED_DEPLOYER
+        logged_assert(
+            Txn.sender == TemplateVar[Account](TRUSTED_DEPLOYER),
+            err.UNTRUSTED_DEPLOYER,
+        )
 
     @arc4.abimethod
     def arc89_create_metadata(
@@ -406,10 +418,11 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         """
         # Preconditions
         self._check_base_preconditions(asset_id, metadata_size.as_uint64())
-        assert not self._metadata_exists(asset_id), err.ASSET_METADATA_EXIST
-        assert (
-            mbr_delta_payment.receiver == Global.current_application_address
-        ), err.MBR_DELTA_RECEIVER_INVALID
+        logged_assert(not self._metadata_exists(asset_id), err.ASSET_METADATA_EXIST)
+        logged_assert(
+            mbr_delta_payment.receiver == Global.current_application_address,
+            err.MBR_DELTA_RECEIVER_INVALID,
+        )
 
         # Initialize empty Asset Metadata Box
         mbr_i = Global.current_application_address.min_balance
@@ -438,7 +451,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         asa_metadata_hash = asset_id.metadata_hash
         has_am = asa_metadata_hash != Bytes(const.BYTES32_SIZE * b"\x00")
         if has_am:
-            assert self._is_immutable(asset_id), err.REQUIRES_IMMUTABLE
+            logged_assert(self._is_immutable(asset_id), err.REQUIRES_IMMUTABLE)
             metadata_hash = asa_metadata_hash
         else:
             metadata_hash = self._compute_metadata_hash(asset_id)
@@ -448,22 +461,28 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
         # Postconditions
         if self._is_arc3_metadata(asset_id):
-            assert self._is_arc3_compliant(asset_id), err.ASA_NOT_ARC3_COMPLIANT
+            logged_assert(self._is_arc3_compliant(asset_id), err.ASA_NOT_ARC3_COMPLIANT)
         if self._is_arc54_burnable(asset_id):
-            assert self._is_arc54_compliant(asset_id), err.ASA_NOT_ARC54_COMPLIANT
+            logged_assert(
+                self._is_arc54_compliant(asset_id), err.ASA_NOT_ARC54_COMPLIANT
+            )
         if self._is_arc89_native(asset_id):
-            assert self._is_arc89_compliant(asset_id), err.ASA_NOT_ARC89_COMPLIANT
+            logged_assert(
+                self._is_arc89_compliant(asset_id), err.ASA_NOT_ARC89_COMPLIANT
+            )
             if has_am and not self._is_arc3_metadata(asset_id):
-                assert asa_metadata_hash == self._compute_metadata_hash(
-                    asset_id
-                ), err.ASA_METADATA_HASH_MISMATCH
+                logged_assert(
+                    asa_metadata_hash == self._compute_metadata_hash(asset_id),
+                    err.ASA_METADATA_HASH_MISMATCH,
+                )
 
         self._emit_updated_event(asset_id, metadata_hash)
 
         mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
-        assert (
-            mbr_delta_payment.amount >= mbr_delta_amount
-        ), err.MBR_DELTA_AMOUNT_INVALID
+        logged_assert(
+            mbr_delta_payment.amount >= mbr_delta_amount,
+            err.MBR_DELTA_AMOUNT_INVALID,
+        )
 
         return abi.MbrDelta(
             sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=mbr_delta_amount
@@ -492,9 +511,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         """
         # Preconditions
         self._check_update_preconditions(asset_id, metadata_size.as_uint64())
-        assert metadata_size.as_uint64() <= self._get_metadata_size(
-            asset_id
-        ), err.LARGER_METADATA_SIZE
+        logged_assert(
+            metadata_size.as_uint64() <= self._get_metadata_size(asset_id),
+            err.LARGER_METADATA_SIZE,
+        )
 
         # Update Metadata Body
         mbr_i = Global.current_application_address.min_balance
@@ -504,9 +524,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self._update_header_excluding_flags_and_emit(asset_id)
 
         # Postconditions
-        assert (
-            self._get_metadata_size(asset_id) == metadata_size.as_uint64()
-        ), err.METADATA_SIZE_MISMATCH
+        logged_assert(
+            self._get_metadata_size(asset_id) == metadata_size.as_uint64(),
+            err.METADATA_SIZE_MISMATCH,
+        )
 
         mbr_delta_amount = mbr_i - Global.current_application_address.min_balance
         if mbr_delta_amount == UInt64(0):
@@ -545,12 +566,14 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         """
         # Preconditions
         self._check_update_preconditions(asset_id, metadata_size.as_uint64())
-        assert metadata_size.as_uint64() > self._get_metadata_size(
-            asset_id
-        ), err.SMALLER_METADATA_SIZE
-        assert (
-            mbr_delta_payment.receiver == Global.current_application_address
-        ), err.MBR_DELTA_RECEIVER_INVALID
+        logged_assert(
+            metadata_size.as_uint64() > self._get_metadata_size(asset_id),
+            err.SMALLER_METADATA_SIZE,
+        )
+        logged_assert(
+            mbr_delta_payment.receiver == Global.current_application_address,
+            err.MBR_DELTA_RECEIVER_INVALID,
+        )
 
         # Update Metadata Body
         mbr_i = Global.current_application_address.min_balance
@@ -560,14 +583,16 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self._update_header_excluding_flags_and_emit(asset_id)
 
         # Postconditions
-        assert (
-            self._get_metadata_size(asset_id) == metadata_size.as_uint64()
-        ), err.METADATA_SIZE_MISMATCH
+        logged_assert(
+            self._get_metadata_size(asset_id) == metadata_size.as_uint64(),
+            err.METADATA_SIZE_MISMATCH,
+        )
 
         mbr_delta_amount = Global.current_application_address.min_balance - mbr_i
-        assert (
-            mbr_delta_payment.amount >= mbr_delta_amount
-        ), err.MBR_DELTA_AMOUNT_INVALID
+        logged_assert(
+            mbr_delta_payment.amount >= mbr_delta_amount,
+            err.MBR_DELTA_AMOUNT_INVALID,
+        )
 
         return abi.MbrDelta(
             sign=arc4.UInt8(enums.MBR_DELTA_POS), amount=mbr_delta_amount
@@ -592,9 +617,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         """
         # Preconditions
         self._check_update_preconditions(asset_id, self._get_metadata_size(asset_id))
-        assert offset.as_uint64() + payload.length <= self._get_metadata_size(
-            asset_id
-        ), err.EXCEEDS_METADATA_SIZE
+        logged_assert(
+            offset.as_uint64() + payload.length <= self._get_metadata_size(asset_id),
+            err.EXCEEDS_METADATA_SIZE,
+        )
 
         # Handle Not Idempotent
         existing_slice = self._get_slice(asset_id, offset.as_uint64(), payload.length)
@@ -625,9 +651,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         """
         # Preconditions
         self._check_set_flag_preconditions(asset_id)
-        assert (
-            new_registry_id != Global.current_application_id.id
-        ), err.NEW_REGISTRY_ID_INVALID
+        logged_assert(
+            new_registry_id != Global.current_application_id.id,
+            err.NEW_REGISTRY_ID_INVALID,
+        )
 
         # Update Deprecated By
         self._set_deprecated_by(asset_id, new_registry_id)
@@ -657,10 +684,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             MBR Delta: tuple of (sign enum, amount in microALGO)
         """
         # Preconditions
-        assert self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST
+        logged_assert(self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST)
         if self._asa_exists(asset_id):
-            assert not self._is_immutable(asset_id), err.IMMUTABLE
-            assert self._is_asa_manager(asset_id), err.UNAUTHORIZED
+            logged_assert(not self._is_immutable(asset_id), err.IMMUTABLE)
+            logged_assert(self._is_asa_manager(asset_id), err.UNAUTHORIZED)
 
         # Delete Metadata and refund MBR
         mbr_i = Global.current_application_address.min_balance
@@ -695,10 +722,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             payload: The Metadata extra payload to concatenate
         """
         # Preconditions
-        assert Global.group_size >= 2, err.NO_PAYLOAD_HEAD_CALL
-        assert self._asa_exists(asset_id), err.ASA_NOT_EXIST
-        assert self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST
-        assert self._is_asa_manager(asset_id), err.UNAUTHORIZED
+        logged_assert(Global.group_size >= 2, err.NO_PAYLOAD_HEAD_CALL)
+        logged_assert(self._asa_exists(asset_id), err.ASA_NOT_EXIST)
+        logged_assert(self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST)
+        logged_assert(self._is_asa_manager(asset_id), err.UNAUTHORIZED)
 
     @arc4.abimethod
     def arc89_set_reversible_flag(
@@ -718,7 +745,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         """
         # Preconditions
         self._check_set_flag_preconditions(asset_id)
-        assert flag.as_uint64() <= flg.REV_FLG_RESERVED_7, err.FLAG_IDX_INVALID
+        logged_assert(
+            flag.as_uint64() <= flg.REV_FLG_RESERVED_7,
+            err.FLAG_IDX_INVALID,
+        )
 
         # Handle Not Idempotent
         existing_value = self._get_reversible_flag_value(asset_id, flag.as_uint64())
@@ -745,9 +775,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         """
         # Preconditions
         self._check_set_flag_preconditions(asset_id)
-        assert (
-            flg.IRR_FLG_ARC54 <= flag.as_uint64() <= flg.IRR_FLG_RESERVED_6
-        ), err.FLAG_IDX_INVALID
+        logged_assert(
+            flg.IRR_FLG_ARC54 <= flag.as_uint64() <= flg.IRR_FLG_RESERVED_6,
+            err.FLAG_IDX_INVALID,
+        )
 
         # Handle Not Idempotent
         already_set = self._get_irreversible_flag_value(asset_id, flag.as_uint64())
@@ -760,7 +791,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
             # Postconditions
             if self._is_arc54_burnable(asset_id):
-                assert self._is_arc54_compliant(asset_id), err.ASA_NOT_ARC54_COMPLIANT
+                logged_assert(
+                    self._is_arc54_compliant(asset_id),
+                    err.ASA_NOT_ARC54_COMPLIANT,
+                )
 
     @arc4.abimethod
     def arc89_set_immutable(
@@ -837,9 +871,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             MBR Delta: tuple of (sign enum, amount in microALGO)
         """
         # Preconditions
-        assert (
-            new_metadata_size.as_uint64() <= const.MAX_METADATA_SIZE
-        ), err.EXCEEDS_MAX_METADATA_SIZE
+        logged_assert(
+            new_metadata_size.as_uint64() <= const.MAX_METADATA_SIZE,
+            err.EXCEEDS_MAX_METADATA_SIZE,
+        )
 
         if self._metadata_exists(asset_id):
             metadata_size = self._get_metadata_size(asset_id)
@@ -1003,11 +1038,11 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self._check_existence_preconditions(asset_id)
         total_pages = self._get_total_pages(asset_id)
         if total_pages > 0:
-            assert page.as_uint64() < total_pages, err.PAGE_IDX_INVALID
+            logged_assert(page.as_uint64() < total_pages, err.PAGE_IDX_INVALID)
             has_next_page = page.as_uint64() < total_pages - 1
             page_content = self._get_metadata_page(asset_id, page.as_uint64())
         else:
-            assert page.as_uint64() == 0, err.PAGE_IDX_INVALID
+            logged_assert(page.as_uint64() == 0, err.PAGE_IDX_INVALID)
             has_next_page = False
             page_content = Bytes()
 
@@ -1038,10 +1073,11 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
-        assert size.as_uint64() <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
-        assert offset.as_uint64() + size.as_uint64() <= self._get_metadata_size(
-            asset_id
-        ), err.EXCEEDS_METADATA_SIZE
+        logged_assert(size.as_uint64() <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE)
+        logged_assert(
+            offset.as_uint64() + size.as_uint64() <= self._get_metadata_size(asset_id),
+            err.EXCEEDS_METADATA_SIZE,
+        )
 
         metadata_slice = self.asset_metadata.box(asset_id).extract(
             start_index=const.IDX_METADATA + offset.as_uint64(), length=size.as_uint64()
@@ -1089,9 +1125,9 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self._check_existence_preconditions(asset_id)
         total_pages = self._get_total_pages(asset_id)
         if total_pages > 0:
-            assert page.as_uint64() < total_pages, err.PAGE_IDX_INVALID
+            logged_assert(page.as_uint64() < total_pages, err.PAGE_IDX_INVALID)
         else:
-            op.err(err.EMPTY_METADATA)
+            logged_err(err.EMPTY_METADATA)
 
         page_content = self._get_metadata_page(asset_id, page.as_uint64())
         page_hash = self._compute_page_hash(asset_id, page.as_uint64(), page_content)
@@ -1148,7 +1184,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         value = op.JsonRef.json_string(obj, key.bytes)
 
         # Postconditions
-        assert value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
+        logged_assert(value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE)
 
         return String.from_bytes(value)
 
@@ -1215,7 +1251,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         value = op.JsonRef.json_object(obj, key.bytes)
 
         # Postconditions
-        assert value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
+        logged_assert(value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE)
 
         return String.from_bytes(value)
 
@@ -1238,9 +1274,9 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
-        assert (
-            b64_encoding.as_uint64() <= enums.B64_STD_ENCODING
-        ), err.B64_ENCODING_INVALID
+        logged_assert(
+            b64_encoding.as_uint64() <= enums.B64_STD_ENCODING, err.B64_ENCODING_INVALID
+        )
 
         # Fetch key's value
         # ⚠️ WARNING: The following conditions cause AVM runtime error:
@@ -1260,7 +1296,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             decoded_value = op.base64_decode(op.Base64.StdEncoding, value)
 
         # Postconditions
-        assert decoded_value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE
+        logged_assert(decoded_value.length <= const.PAGE_SIZE, err.EXCEEDS_PAGE_SIZE)
 
         return decoded_value
 

@@ -119,7 +119,6 @@ def _create_mbr_payment_txn(
 
 def _execute_flag_operation(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
-    asset_manager: SigningAccount,
     metadata: AssetMetadata,
     setup_composer: Callable[[AsaMetadataRegistryComposer, AlgoAmount], None],
 ) -> None:
@@ -127,7 +126,6 @@ def _execute_flag_operation(
 
     Args:
         asa_metadata_registry_client: The ASA Metadata Registry Client
-        asset_manager: The asset manager account
         metadata: The metadata being modified
         setup_composer: Function that sets up the specific operation on the composer
     """
@@ -178,23 +176,25 @@ def pages_min_fee(algorand_client: AlgorandClient, metadata: AssetMetadata) -> i
     Estimate the total minimum fee in microAlgos for operations that scale with
     the number of metadata pages.
 
-    The Algorand protocol charges a minimum fee per transaction. When working
-    with ARC-89 metadata, updating or appending metadata may require multiple
-    transactions depending on how many pages of metadata need to be processed.
+    The `ensure_budget(PAGE_HASH_OP_BUDGET)` call inside the per-page hash
+    loop may issue inner app-call transactions (each consuming one `min_fee`
+    from the pooled fee) whenever the remaining opcode budget drops below the
+    requested threshold.
 
-    This helper approximates the total fee as:
+    With `PAGE_HASH_OP_BUDGET = 230` and real per-page cost of ~230 ops,
+    each 700-budget inner transaction covers roughly 3 page iterations after
+    accounting for the ensure_budget overhead itself (~29 ops when an inner
+    txn is issued). The fee must also cover the `ensure_budget` inner txn
+    for the header hash. The formula therefore is::
 
-        min_fee * (1 + (metadata.total_pages + 1) // 4)
+        min_fee * (1 + (total_pages + 1) // 3)
 
-    where `min_fee` is the current suggested minimum fee from the network, and
-    `total_pages` is the number of metadata pages. The `1 + ...` accounts for
-    a base transaction plus one additional minimum-fee "unit" for each group
-    of up to four pages, with `(total_pages + 1) // 4` performing an integer
-    division that effectively rounds up to the next group of four pages.
+    which allocates one extra fee unit for every ~3 pages, plus one unit for
+    the base transaction.
 
     Args:
         algorand_client: AlgorandClient to use for fetching the current params
-        metadata: AssetMetadata whose ``total_pages`` attribute determines how
+        metadata: AssetMetadata whose `total_pages` attribute determines how
             many minimum-fee units are required.
 
     Returns:
@@ -202,7 +202,7 @@ def pages_min_fee(algorand_client: AlgorandClient, metadata: AssetMetadata) -> i
     """
     min_fee: int = algorand_client.get_suggested_params().min_fee
     total_pages = metadata.body.total_pages()
-    return min_fee * (1 + (total_pages + 1) // 4)
+    return min_fee * (1 + (total_pages + 1) // 3)
 
 
 def total_extra_resources(
@@ -527,9 +527,7 @@ def set_reversible_flag(
             ),
         )
 
-    _execute_flag_operation(
-        asa_metadata_registry_client, asset_manager, metadata, setup
-    )
+    _execute_flag_operation(asa_metadata_registry_client, metadata, setup)
 
 
 def set_irreversible_flag(
@@ -547,9 +545,7 @@ def set_irreversible_flag(
             ),
         )
 
-    _execute_flag_operation(
-        asa_metadata_registry_client, asset_manager, metadata, setup
-    )
+    _execute_flag_operation(asa_metadata_registry_client, metadata, setup)
 
 
 def set_immutable(
@@ -566,9 +562,7 @@ def set_immutable(
             ),
         )
 
-    _execute_flag_operation(
-        asa_metadata_registry_client, asset_manager, metadata, setup
-    )
+    _execute_flag_operation(asa_metadata_registry_client, metadata, setup)
 
 
 def create_metadata_with_page_count(

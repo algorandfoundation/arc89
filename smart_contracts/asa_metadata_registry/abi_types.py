@@ -1,6 +1,6 @@
 from typing import Literal, TypeAlias
 
-from algopy import Bytes, FixedBytes, UInt64, arc4
+from algopy import Bytes, FixedBytes, Struct, UInt64, arc4
 
 # Type Aliases
 MicroAlgo: TypeAlias = UInt64
@@ -8,7 +8,7 @@ Timestamp: TypeAlias = UInt64
 Hash: TypeAlias = FixedBytes[Literal[32]]
 
 
-class MetadataHeader(arc4.Struct, kw_only=True):
+class MetadataHeader(Struct, kw_only=True):
     """Asset Metadata Header"""
 
     identifiers: arc4.Byte
@@ -19,7 +19,7 @@ class MetadataHeader(arc4.Struct, kw_only=True):
     deprecated_by: UInt64
 
 
-class MbrDelta(arc4.Struct, kw_only=True):
+class MbrDelta(Struct, kw_only=True):
     """
     The variation of the ASA Metadata Registry Application Account MBR due to the
     creation, update, or deletion of the Asset Metadata Box.
@@ -29,21 +29,21 @@ class MbrDelta(arc4.Struct, kw_only=True):
     amount: MicroAlgo  # MBR amount expressed in microALGO
 
 
-class MutableFlag(arc4.Struct, kw_only=True):
+class MutableFlag(Struct, kw_only=True):
     """Mutable Metadata Identifier or Flag"""
 
     flag: bool
     last_modified_round: UInt64
 
 
-class MetadataExistence(arc4.Struct, kw_only=True):
+class MetadataExistence(Struct, kw_only=True):
     """Metadata Existence"""
 
     asa_exists: bool
     metadata_exists: bool
 
 
-class Pagination(arc4.Struct, kw_only=True):
+class Pagination(Struct, kw_only=True):
     """Asset Metadata Pagination"""
 
     metadata_size: arc4.UInt16
@@ -51,7 +51,7 @@ class Pagination(arc4.Struct, kw_only=True):
     total_pages: arc4.UInt8
 
 
-class PaginatedMetadata(arc4.Struct, kw_only=True):
+class PaginatedMetadata(Struct, kw_only=True):
     """Paginated Asset Metadata"""
 
     has_next_page: bool
@@ -59,7 +59,7 @@ class PaginatedMetadata(arc4.Struct, kw_only=True):
     page_content: Bytes
 
 
-class RegistryParameters(arc4.Struct, kw_only=True):
+class RegistryParameters(Struct, kw_only=True):
     """ASA Metadata Registry Parameters"""
 
     key_size: arc4.UInt8
@@ -75,7 +75,7 @@ class RegistryParameters(arc4.Struct, kw_only=True):
 
 
 # ARC-28 Events
-class Arc89MetadataUpdated(arc4.Struct, kw_only=True):
+class Arc89MetadataUpdated(Struct, kw_only=True):
     """Event emitted when Asset Metadata is created or updated"""
 
     asset_id: UInt64
@@ -87,7 +87,7 @@ class Arc89MetadataUpdated(arc4.Struct, kw_only=True):
     hash: Hash
 
 
-class Arc89MetadataMigrated(arc4.Struct, kw_only=True):
+class Arc89MetadataMigrated(Struct, kw_only=True):
     """Event emitted when Asset Metadata has been migrated to a new ASA Metadata Registry version"""
 
     asset_id: UInt64
@@ -96,7 +96,7 @@ class Arc89MetadataMigrated(arc4.Struct, kw_only=True):
     timestamp: Timestamp
 
 
-class Arc89MetadataDeleted(arc4.Struct, kw_only=True):
+class Arc89MetadataDeleted(Struct, kw_only=True):
     """Event emitted when Asset Metadata is deleted"""
 
     asset_id: UInt64

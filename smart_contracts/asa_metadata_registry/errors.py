@@ -1,45 +1,91 @@
-UNTRUSTED_DEPLOYER = "The deployer address is not trusted"
-UNAUTHORIZED = "Unauthorized, must be the Asset Manager"
+from typing import LiteralString
 
-ASA_NOT_EXIST = "The specified ASA does not exist"
-ASA_NOT_ARC3_COMPLIANT = "Invalid ARC-3 parameters (name or URL)"
-ASA_NOT_ARC54_COMPLIANT = "The ASA must not have a clawback address"
-ASA_NOT_ARC89_COMPLIANT = "Invalid ARC-89 partial URI"
-ASA_METADATA_HASH_MISMATCH = "ASA Metadata Hash (am) does not match the computed hash"
+# ── Auth ─────────────────────────────────────────────────────────────────────
+# The deployer address is not trusted
+UNTRUSTED_DEPLOYER: LiteralString = "untrustedDeployer"
 
-ASSET_METADATA_EXIST = "Asset Metadata already exists for the specified ASA"
-ASSET_METADATA_NOT_EXIST = "Asset Metadata does not exist for the specified ASA"
+# Unauthorized, it must be the Asset Manager
+UNAUTHORIZED: LiteralString = "unauthorized"
 
-EMPTY_METADATA = "Metadata is empty"
-EXCEEDS_MAX_METADATA_SIZE = "Invalid Metadata size, exceeds maximum allowed size"
-EXCEEDS_METADATA_SIZE = "Slice exceeds metadata range"
-EXCEEDS_PAGE_SIZE = "Payload exceeds page size"
-LARGER_METADATA_SIZE = (
-    "Invalid Metadata size, must be smaller than or equal to the current size"
-)
-SMALLER_METADATA_SIZE = "Invalid Metadata size, must be larger than the current size"
+# ── ASA ───────────────────────────────────────────────────────────────────────
+# The specified ASA does not exist
+ASA_NOT_EXIST: LiteralString = "asaNotExist"
 
-NO_PAYLOAD_HEAD_CALL = "No payload head call in Group"
-PAYLOAD_OVERFLOW = "Payload overflow, exceeds metadata size"
+# Invalid ARC-3 parameters (name or URL)
+ASA_NOT_ARC3_COMPLIANT: LiteralString = "asaNotArc3Compliant"
 
-METADATA_SIZE_MISMATCH = (
-    "Metadata size mismatch, must be exactly equal to declared size"
-)
-METADATA_NOT_SHORT = "Metadata is not short"
+# The ASA must not have a clawback address
+ASA_NOT_ARC54_COMPLIANT: LiteralString = "asaNotArc54Compliant"
 
-MBR_DELTA_RECEIVER_INVALID = (
-    "Invalid MBR Delta receiver, must be the ASA Metadata Registry"
-)
-MBR_DELTA_AMOUNT_INVALID = "Invalid MBR Delta amount"
+# Invalid ARC-89 partial URI
+ASA_NOT_ARC89_COMPLIANT: LiteralString = "asaNotArc89Compliant"
 
-REQUIRES_IMMUTABLE = "Must be flagged as immutable"
-IMMUTABLE = "Metadata is immutable"
+# ASA Metadata Hash (am) does not match the computed hash
+ASA_METADATA_HASH_MISMATCH: LiteralString = "asaMetadataHashMismatch"
 
-FLAG_IDX_INVALID = "Invalid flag index"
-PAGE_IDX_INVALID = "Invalid page index"
+# ── Metadata ──────────────────────────────────────────────────────────────────
+# Asset Metadata already exists for the specified ASA
+ASSET_METADATA_EXIST: LiteralString = "assetMetadataExist"
 
-B64_ENCODING_INVALID = "Invalid base64 encoding, must be 0 (URL safe) or 1 (Std)"
+# Asset Metadata does not exist for the specified ASA
+ASSET_METADATA_NOT_EXIST: LiteralString = "assetMetadataNotExist"
 
-NEW_REGISTRY_ID_INVALID = (
-    "Invalid new ASA Metadata Registry ID, must be different from current"
-)
+# Metadata is empty
+EMPTY_METADATA: LiteralString = "emptyMetadata"
+
+# Metadata size mismatch, it must be exactly equal to declared size
+METADATA_SIZE_MISMATCH: LiteralString = "metadataSizeMismatch"
+
+# Metadata is not short
+METADATA_NOT_SHORT: LiteralString = "metadataNotShort"
+
+# Must be flagged as immutable
+REQUIRES_IMMUTABLE: LiteralString = "requiresImmutable"
+
+# Metadata is immutable
+IMMUTABLE: LiteralString = "immutable"
+
+# ── Metadata Size ─────────────────────────────────────────────────────────────
+# Invalid Metadata size, exceeds maximum allowed size
+EXCEEDS_MAX_METADATA_SIZE: LiteralString = "exceedsMaxMetadataSize"
+
+# Slice exceeds metadata range
+EXCEEDS_METADATA_SIZE: LiteralString = "exceedsMetadataSize"
+
+# Payload exceeds page size
+EXCEEDS_PAGE_SIZE: LiteralString = "exceedsPageSize"
+
+# Invalid Metadata size, it must be smaller than or equal to the current size
+LARGER_METADATA_SIZE: LiteralString = "largerMetadataSize"
+
+# Invalid Metadata size, it must be larger than the current size
+SMALLER_METADATA_SIZE: LiteralString = "smallerMetadataSize"
+
+# ── Payload ───────────────────────────────────────────────────────────────────
+# No payload head call in Group
+NO_PAYLOAD_HEAD_CALL: LiteralString = "noPayloadHeadCall"
+
+# Payload exceeds metadata size
+PAYLOAD_OVERFLOW: LiteralString = "payloadOverflow"
+
+# ── MBR ───────────────────────────────────────────────────────────────────────
+# Invalid MBR Delta receiver, it must be the ASA Metadata Registry
+MBR_DELTA_RECEIVER_INVALID: LiteralString = "mbrDeltaReceiverInvalid"
+
+# Invalid MBR Delta amount
+MBR_DELTA_AMOUNT_INVALID: LiteralString = "mbrDeltaAmountInvalid"
+
+# ── Indexes ───────────────────────────────────────────────────────────────────
+# Invalid flag index
+FLAG_IDX_INVALID: LiteralString = "flagIdxInvalid"
+
+# Invalid page index
+PAGE_IDX_INVALID: LiteralString = "pageIdxInvalid"
+
+# ── Encoding ──────────────────────────────────────────────────────────────────
+# Invalid base64 encoding, must be 0 (URL safe) or 1 (Std)
+B64_ENCODING_INVALID: LiteralString = "b64EncodingInvalid"
+
+# ── Registry ──────────────────────────────────────────────────────────────────
+# Invalid new ASA Metadata Registry ID, it must be different from current
+NEW_REGISTRY_ID_INVALID: LiteralString = "newRegistryIdInvalid"
