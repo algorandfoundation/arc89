@@ -37,7 +37,7 @@ from . import flags as flg
 from .arc89_interface import Arc89Interface
 
 
-class AsaMetadataRegistry(Arc89Interface, AsaValidation):
+class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
     """
     Singleton Application providing ASA metadata via Algod API and AVM
     """
