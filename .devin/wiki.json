@@ -10,7 +10,7 @@
       "purpose": "Introduce the ARC-89 ASA Metadata Registry, explaining its purpose, core features, and relationship to the Algorand blockchain and various ARC standards",
       "page_notes": [
         {
-          "content": "Pagination and size limits (table): MAX_METADATA_SIZE=30506, PAGE_SIZE=1007"
+          "content": "Pagination and size limits (table): MAX_METADATA_SIZE=32717, PAGE_SIZE=1007, MAX_PAGES=33, payload chunks=4094 bytes"
         }
       ]
     },

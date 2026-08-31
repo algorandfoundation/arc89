@@ -13,6 +13,7 @@ from algokit_utils import (
     SigningAccount,
 )
 
+from .. import constants as const
 from .. import flags
 from ..errors import (
     AsaNotFoundError,
@@ -31,6 +32,28 @@ from ..validation import (
     validate_arc3_values,
 )
 
+_APP_ARGS_FREE_SIZE = 2048
+_APP_ARG_BYTE_SURCHARGE_FACTOR = 100  # millionths of the min fee
+_FEE_FACTOR_SCALE = 1_000_000
+
+_ARC89_CREATE_METADATA_FIXED_SIZE = (
+    const.ARC4_METHOD_SELECTOR_SIZE
+    + const.UINT64_SIZE
+    + const.BYTE_SIZE
+    + const.BYTE_SIZE
+    + const.UINT16_SIZE
+    + const.ARC4_DYNAMIC_LENGTH_SIZE
+)
+_ARC89_EXTRA_PAYLOAD_FIXED_SIZE = (
+    const.ARC4_METHOD_SELECTOR_SIZE + const.UINT64_SIZE + const.ARC4_DYNAMIC_LENGTH_SIZE
+)
+_ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE = (
+    const.ARC4_METHOD_SELECTOR_SIZE
+    + const.UINT64_SIZE
+    + const.UINT16_SIZE
+    + const.ARC4_DYNAMIC_LENGTH_SIZE
+)
+
 
 def _chunks_for_create(metadata: AssetMetadata) -> list[bytes]:
     return metadata.body.chunked_payload()
@@ -46,6 +69,15 @@ def _chunks_for_slice(payload: bytes, max_size: int) -> list[bytes]:
     if payload == b"":
         return [b""]
     return [payload[i : i + max_size] for i in range(0, len(payload), max_size)]
+
+
+def _app_args_surcharge_fee(min_fee: int, app_args_total_sizes: Sequence[int]) -> int:
+    """Return the pooled protocol surcharge for app args above 2,048 bytes."""
+    excess_bytes = sum(
+        max(0, size - _APP_ARGS_FREE_SIZE) for size in app_args_total_sizes
+    )
+    numerator = min_fee * excess_bytes * _APP_ARG_BYTE_SURCHARGE_FACTOR
+    return (numerator + _FEE_FACTOR_SCALE - 1) // _FEE_FACTOR_SCALE
 
 
 def _append_extra_payload(
@@ -218,7 +250,13 @@ class AsaMetadataRegistryWrite:
             base_txn_count += 1
 
         # Calculate total fee pool including padding
-        fee_pool = (base_txn_count + opt.fee_padding_txns) * min_fee
+        app_args_sizes = [
+            _ARC89_CREATE_METADATA_FIXED_SIZE + len(chunks[0]),
+            *(_ARC89_EXTRA_PAYLOAD_FIXED_SIZE + len(chunk) for chunk in chunks[1:]),
+        ]
+        fee_pool = (
+            base_txn_count + opt.fee_padding_txns
+        ) * min_fee + _app_args_surcharge_fee(min_fee, app_args_sizes)
 
         composer = self.client.new_group()
         composer.arc89_create_metadata(
@@ -243,7 +281,9 @@ class AsaMetadataRegistryWrite:
             sender=asset_manager.address,
         )
         _append_extra_resources(
-            composer, count=opt.extra_resources, sender=asset_manager.address
+            composer,
+            count=opt.extra_resources + int(not metadata.is_empty),
+            sender=asset_manager.address,
         )
         return composer
 
@@ -262,7 +302,6 @@ class AsaMetadataRegistryWrite:
         an extra simulate read.
         """
         opt = options or WriteOptions()
-
         avm = AsaMetadataRegistryAvmRead(self.client)
 
         current_size = assume_current_size
@@ -296,6 +335,8 @@ class AsaMetadataRegistryWrite:
             1  # main app call (arc89_replace_metadata)
             + (len(chunks) - 1)  # extra payload calls
             + options.extra_resources  # optional extra resources
+            + int(not metadata.is_empty)  # extra_resources call
+            + int(not metadata.is_empty)  # hash-budget inner transaction
         )
 
         # MBR refund inner payment transaction (only when size is smaller, not equal)
@@ -303,7 +344,13 @@ class AsaMetadataRegistryWrite:
             base_txn_count += 1
 
         # Calculate total fee pool including padding
-        fee_pool = (base_txn_count + options.fee_padding_txns) * min_fee
+        app_args_sizes = [
+            _ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE + len(chunks[0]),
+            *(_ARC89_EXTRA_PAYLOAD_FIXED_SIZE + len(chunk) for chunk in chunks[1:]),
+        ]
+        fee_pool = (
+            base_txn_count + options.fee_padding_txns
+        ) * min_fee + _app_args_surcharge_fee(min_fee, app_args_sizes)
 
         composer = self.client.new_group()
         composer.arc89_replace_metadata(
@@ -320,7 +367,9 @@ class AsaMetadataRegistryWrite:
             sender=asset_manager.address,
         )
         _append_extra_resources(
-            composer, count=options.extra_resources, sender=asset_manager.address
+            composer,
+            count=options.extra_resources + int(not metadata.is_empty),
+            sender=asset_manager.address,
         )
         return composer
 
@@ -354,10 +403,18 @@ class AsaMetadataRegistryWrite:
             + (len(chunks) - 1)  # extra payload calls
             + 1  # MBR payment transaction
             + options.extra_resources  # optional extra resources
+            + int(not metadata.is_empty)  # extra_resources call
+            + int(not metadata.is_empty)  # hash-budget inner transaction
         )
 
         # Calculate total fee pool including padding
-        fee_pool = (txn_count + options.fee_padding_txns) * min_fee
+        app_args_sizes = [
+            _ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE + len(chunks[0]),
+            *(_ARC89_EXTRA_PAYLOAD_FIXED_SIZE + len(chunk) for chunk in chunks[1:]),
+        ]
+        fee_pool = (
+            txn_count + options.fee_padding_txns
+        ) * min_fee + _app_args_surcharge_fee(min_fee, app_args_sizes)
 
         composer = self.client.new_group()
         composer.arc89_replace_metadata_larger(
@@ -374,7 +431,9 @@ class AsaMetadataRegistryWrite:
             sender=asset_manager.address,
         )
         _append_extra_resources(
-            composer, count=options.extra_resources, sender=asset_manager.address
+            composer,
+            count=options.extra_resources + int(not metadata.is_empty),
+            sender=asset_manager.address,
         )
         return composer
 
@@ -405,7 +464,12 @@ class AsaMetadataRegistryWrite:
         )
 
         # Calculate total fee pool including padding
-        fee_pool = (txn_count + opt.fee_padding_txns) * min_fee
+        app_args_sizes = [
+            _ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE + len(chunk) for chunk in chunks
+        ]
+        fee_pool = (
+            txn_count + opt.fee_padding_txns
+        ) * min_fee + _app_args_surcharge_fee(min_fee, app_args_sizes)
 
         composer = self.client.new_group()
 

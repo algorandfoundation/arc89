@@ -47,6 +47,7 @@ from asa_metadata_registry.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
 from asa_metadata_registry.write.writer import (
+    _app_args_surcharge_fee,
     _append_extra_resources,
     _chunks_for_slice,
 )
@@ -120,6 +121,12 @@ class TestChunkingHelpers:
             _chunks_for_slice(b"test", max_size=0)
         with pytest.raises(ValueError, match="max_size must be > 0"):
             _chunks_for_slice(b"test", max_size=-1)
+
+    def test_app_args_surcharge_fee(self) -> None:
+        """Test exact pooled fee rounding for oversized application arguments."""
+        assert _app_args_surcharge_fee(1000, [2048]) == 0
+        assert _app_args_surcharge_fee(1000, [4112]) == 207
+        assert _app_args_surcharge_fee(1000, [4112, 4108]) == 413
 
 
 class TestComposerHelpers:

@@ -70,7 +70,7 @@ def test_replace_with_smaller_metadata_size(
         asa_metadata_registry_client=asa_metadata_registry_client,
         asset_id=mutable_maxed_metadata.asset_id,
         new_metadata=short_metadata,
-        extra_resources=1,
+        extra_resources=2,
     )
     assert -mbr_delta.amount == replace_mbr_delta.signed_amount
     assert mbr_delta.amount == replace_mbr_delta.amount

@@ -4,7 +4,7 @@
 
 // algopy.arc4.ARC4Contract.approval_program() -> uint64:
 main:
-    intcblock 1 0 8 2 1007 1006 30506
+    intcblock 1 0 8 2 1007 1006 32717
     bytecblock 0x151f7c75 0x 0x00 "ERR:assetMetadataNotExist" "ERR:unauthorized" "ERR:exceedsPageSize" "ERR:metadataSizeMismatch" "ERR:immutable" "ERR:asaNotExist" "ERR:pageIdxInvalid" "ERR:payloadOverflow" 0x37ac755d 0x068101 "ERR:mbrDeltaReceiverInvalid" "ERR:asaNotArc54Compliant" "ERR:mbrDeltaAmountInvalid" 0x151f7c7501 "ERR:exceedsMetadataSize" "ERR:flagIdxInvalid" "ERR:exceedsMaxMetadataSize" TMPL_TRUSTED_DEPLOYER TMPL_ARC90_NETAUTH
     // smart_contracts/asa_metadata_registry/contract.py:40
     // class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
@@ -31,7 +31,7 @@ main_extra_resources_route@33:
 main_arc89_get_metadata_registry_parameters_route@16:
     // smart_contracts/asa_metadata_registry/contract.py:820
     // @arc4.abimethod(readonly=True)
-    pushbytes 0x151f7c75080033772a100003ef07ee07f207f000000000000009c40000000000000190
+    pushbytes 0x151f7c750800337fcd100003ef0ffe0ffe0ffe00000000000009c40000000000000190
     log
     intc_0 // 1
     return
@@ -2087,7 +2087,7 @@ arc89_get_metadata_mbr_delta:
     // new_metadata_size.as_uint64() <= const.MAX_METADATA_SIZE,
     btoi
     dup
-    intc 6 // 30506
+    intc 6 // 32717
     <=
     // smart_contracts/asa_metadata_registry/contract.py:873-877
     // # Preconditions
@@ -4225,7 +4225,7 @@ _check_base_preconditions_after_assert@4:
     // smart_contracts/asa_metadata_registry/contract.py:52
     // return metadata_size <= const.MAX_METADATA_SIZE
     frame_dig -1
-    intc 6 // 30506
+    intc 6 // 32717
     <=
     // smart_contracts/asa_metadata_registry/contract.py:340-343
     // logged_assert(

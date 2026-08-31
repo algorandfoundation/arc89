@@ -17,6 +17,7 @@ from asa_metadata_registry.generated.asa_metadata_registry_client import (
 from smart_contracts.asa_metadata_registry import errors as err
 from tests.helpers.utils import (
     NON_EXISTENT_ASA_ID,
+    add_extra_resources,
     create_mbr_payment,
     get_create_metadata_fee,
 )
@@ -97,6 +98,8 @@ def send_create_metadata_with_chunks(
             ),
         )
 
+    if not metadata.is_empty:
+        add_extra_resources(composer)
     composer.send()
 
 
@@ -375,6 +378,8 @@ class TestInterleavedExtraPayload:
                 note=b"extra_payload_asset_1",
             ),
         )
+
+        add_extra_resources(composer, 2)
 
         # Send the group
         composer.send()

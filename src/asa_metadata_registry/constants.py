@@ -1,4 +1,4 @@
-"""Copy of ASA Metadata Registry smart contract constants."""
+"""ASA Metadata Registry SDK constants."""
 
 from typing import Final
 
@@ -16,7 +16,7 @@ MAX_GROUP_SIZE: Final[int] = 16
 
 MAX_BOX_SIZE: Final[int] = 32768
 MAX_STK_SIZE: Final[int] = 4096
-MAX_ARG_SIZE: Final[int] = 2048
+MAX_ARG_SIZE: Final[int] = 4096
 MAX_LOG_SIZE: Final[int] = 1024
 
 FLAT_MBR: Final[int] = 2500  # microALGO
@@ -99,24 +99,6 @@ ARC90_URI_BOX_QUERY: Final[bytes] = b"?" + ARC90_URI_BOX_QUERY_NAME + b"="
 HEADER_HASH_OP_BUDGET: Final[int] = 110
 PAGE_HASH_OP_BUDGET: Final[int] = 230
 
-# Method Signatures Overhead
-ARC89_CREATE_METADATA_FIXED_SIZE: Final[int] = (
-    ARC4_METHOD_SELECTOR_SIZE
-    + UINT64_SIZE
-    + BYTE_SIZE
-    + BYTE_SIZE
-    + UINT16_SIZE
-    + ARC4_DYNAMIC_LENGTH_SIZE
-)
-
-ARC89_EXTRA_PAYLOAD_FIXED_SIZE: Final[int] = (
-    ARC4_METHOD_SELECTOR_SIZE + UINT64_SIZE + ARC4_DYNAMIC_LENGTH_SIZE
-)
-
-ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE: Final[int] = (
-    ARC4_METHOD_SELECTOR_SIZE + UINT64_SIZE + UINT16_SIZE + ARC4_DYNAMIC_LENGTH_SIZE
-)
-
 # (bool,uint64,byte[]), ABI tuple are encoded a head(...) || tail(...)
 ARC89_GET_METADATA_RETURN_FIXED_SIZE: Final[int] = (
     ARC4_RETURN_PREFIX_SIZE
@@ -133,13 +115,13 @@ ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID: Final[int] = 1
 ARC89_EXTRA_PAYLOAD_ARG_PAYLOAD: Final[int] = 2
 
 # Pagination
-FIRST_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC89_CREATE_METADATA_FIXED_SIZE
-EXTRA_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC89_EXTRA_PAYLOAD_FIXED_SIZE
-REPLACE_PAYLOAD_MAX_SIZE: Final[int] = (
-    MAX_ARG_SIZE - ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE
-)
+# Fixed length arguments occupy separate ApplicationArgs entries. They count toward
+# the 16,384-byte aggregate limit but do not reduce the payload entry's 4,096-byte
+# capacity; only the byte[] length prefix does.
+FIRST_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC4_DYNAMIC_LENGTH_SIZE
+EXTRA_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC4_DYNAMIC_LENGTH_SIZE
+REPLACE_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC4_DYNAMIC_LENGTH_SIZE
 PAGE_SIZE: Final[int] = MAX_LOG_SIZE - ARC89_GET_METADATA_RETURN_FIXED_SIZE
-MAX_PAGES: Final[int] = 31
 
 # Asset Metadata Box
 ASSET_METADATA_BOX_KEY_SIZE: Final[int] = UINT64_SIZE
@@ -174,7 +156,8 @@ BIT_RIGHTMOST_IRR_FLAG: Final[int] = 8 * IRREVERSIBLE_FLAGS_SIZE - 1
 
 # Asset Metadata Box Body
 IDX_METADATA: Final[int] = IDX_DEPRECATED_BY + DEPRECATED_BY_SIZE
-MAX_METADATA_SIZE: Final[int] = FIRST_PAYLOAD_MAX_SIZE + 14 * EXTRA_PAYLOAD_MAX_SIZE
+MAX_METADATA_SIZE: Final[int] = MAX_BOX_SIZE - HEADER_SIZE
+MAX_PAGES: Final[int] = (MAX_METADATA_SIZE + PAGE_SIZE - 1) // PAGE_SIZE
 SHORT_METADATA_SIZE: Final[int] = MAX_STK_SIZE
 
 # Domain Separators

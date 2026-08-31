@@ -24,7 +24,7 @@ def test_delete_metadata_existing_asa(
         caller=asset_manager,
         asa_metadata_registry_client=asa_metadata_registry_client,
         asset_id=mutable_maxed_metadata.asset_id,
-        extra_resources=1,
+        extra_resources=2,
     )
     post_delete_balance = asa_metadata_registry_client.algorand.account.get_information(
         asset_manager.address
@@ -62,7 +62,7 @@ def test_delete_metadata_nonexistent_asa(
         caller=untrusted_account,
         asa_metadata_registry_client=asa_metadata_registry_client,
         asset_id=mutable_maxed_metadata.asset_id,
-        extra_resources=1,
+        extra_resources=2,
     )
     post_delete_balance = asa_metadata_registry_client.algorand.account.get_information(
         untrusted_account.address
