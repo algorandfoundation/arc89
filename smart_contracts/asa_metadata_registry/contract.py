@@ -43,6 +43,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
     """
 
     def __init__(self) -> None:
+        op.AppParamsSet.app_foreign_box_reads(True)
         self.asset_metadata = BoxMap(Asset, Bytes, key_prefix="")
 
     def _metadata_exists(self, asa: Asset) -> bool:
