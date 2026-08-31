@@ -380,7 +380,7 @@ class TestResolveArc90Uri:
         """Test resolution from explicit metadata_uri parameter."""
         reader = AsaMetadataRegistryRead(app_id=None)
         uri = reader.resolve_arc90_uri(
-            metadata_uri="algorand://app/123?box=AAAAAAAAAcg%3D"  # b64url of asset ID 456
+            metadata_uri="algorand://app/123?box=AAAAAAAAAcg"  # b64url of asset ID 456
         )
         assert uri.app_id == 123
         assert uri.asset_id == 456
@@ -1323,7 +1323,7 @@ class TestEdgeCases:
         # Even if asset_id is provided, URI should be used
         uri = reader.resolve_arc90_uri(
             asset_id=999,  # This should be ignored
-            metadata_uri="algorand://app/789?box=AAAAAAAAAcg%3D",  # b64url of asset ID 456
+            metadata_uri="algorand://app/789?box=AAAAAAAAAcg",  # b64url of asset ID 456
         )
 
         assert uri.app_id == 789

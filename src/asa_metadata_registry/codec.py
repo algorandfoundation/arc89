@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import binascii
 from dataclasses import dataclass
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+from urllib.parse import urlencode, urlparse, urlunparse
 
 from . import constants as const
 from .errors import InvalidArc90UriError
@@ -42,13 +42,19 @@ def b64_decode(data_b64: str) -> bytes:
 
 
 def b64url_encode(data: bytes) -> str:
-    """URL-safe base64, per ARC-90 examples."""
-    return base64.urlsafe_b64encode(data).decode("ascii")
+    """Canonical unpadded URL-safe base64."""
+    return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
 
 
 def b64url_decode(data_b64url: str) -> bytes:
-    """URL-safe base64 decode."""
-    return base64.urlsafe_b64decode(data_b64url.encode("ascii"))
+    """Decode canonical unpadded URL-safe base64."""
+    encoded = data_b64url.encode("ascii")
+    decoded = base64.b64decode(
+        encoded + b"=" * (-len(encoded) % 4), altchars=b"-_", validate=True
+    )
+    if b64url_encode(decoded) != data_b64url:
+        raise binascii.Error("Non-canonical base64url")
+    return decoded
 
 
 @dataclass(frozen=True, slots=True)
@@ -214,14 +220,20 @@ class Arc90Uri:
 
         compliance = Arc90Compliance.parse("#" + u.fragment if u.fragment else None)
 
-        # Parse query
-        qs = parse_qs(u.query, keep_blank_values=True)
-        if const.ARC90_URI_BOX_QUERY_NAME.decode() not in qs:
+        # Parse the raw value so percent-encoded aliases are rejected.
+        box_prefix = f"{const.ARC90_URI_BOX_QUERY_NAME.decode()}="
+        box_values = [
+            field[len(box_prefix) :]
+            for field in u.query.split("&")
+            if field.startswith(box_prefix)
+        ]
+        if not box_values:
             raise InvalidArc90UriError(
                 f"Missing '{const.ARC90_URI_BOX_QUERY_NAME.decode()}' query parameter"
             )
-        box_values = qs.get(const.ARC90_URI_BOX_QUERY_NAME.decode(), [""])
-        box_value = box_values[0] if box_values else ""
+        if len(box_values) != 1:
+            raise InvalidArc90UriError("Expected exactly one 'box' query parameter")
+        box_value = box_values[0]
 
         # Identify app_id & netauth based on authority / path conventions.
         netloc = u.netloc or ""
@@ -259,7 +271,7 @@ class Arc90Uri:
         else:
             try:
                 box_name = b64url_decode(box_value)
-            except (binascii.Error, ValueError, UnicodeDecodeError) as e:
+            except (binascii.Error, UnicodeError, ValueError) as e:
                 raise InvalidArc90UriError("Invalid base64url box name") from e
             if len(box_name) != const.ASSET_METADATA_BOX_KEY_SIZE:
                 raise InvalidArc90UriError(

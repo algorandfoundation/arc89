@@ -115,6 +115,20 @@ class TestAssetIdBoxNameConversion:
 class TestBase64Encoding:
     """Tests for base64 encoding/decoding functions."""
 
+    @pytest.mark.parametrize(
+        ("asset_id", "encoded"),
+        [
+            (0, "AAAAAAAAAAA"),
+            (1, "AAAAAAAAAAE"),
+            (12345, "AAAAAAAAMDk"),
+            (2**63 - 1, "f_________8"),
+        ],
+    )
+    def test_arc89_box_name_vectors(self, asset_id: int, encoded: str) -> None:
+        box_name = asset_id_to_box_name(asset_id)
+        assert b64url_encode(box_name) == encoded
+        assert box_name_to_asset_id(b64url_decode(encoded)) == asset_id
+
     def test_b64_encode_empty(self) -> None:
         """Test encoding empty bytes."""
         result = b64_encode(b"")
@@ -160,7 +174,7 @@ class TestBase64Encoding:
     def test_b64url_encode_simple(self) -> None:
         """Test URL-safe encoding."""
         result = b64url_encode(b"hello")
-        assert result == "aGVsbG8="
+        assert result == "aGVsbG8"
 
     def test_b64url_encode_with_special_chars(self) -> None:
         """Test URL-safe encoding with characters that differ from standard base64."""
@@ -176,7 +190,7 @@ class TestBase64Encoding:
 
     def test_b64url_decode_simple(self) -> None:
         """Test URL-safe decoding."""
-        result = b64url_decode("aGVsbG8=")
+        result = b64url_decode("aGVsbG8")
         assert result == b"hello"
 
     def test_b64url_decode_with_special_chars(self) -> None:
@@ -301,7 +315,7 @@ class TestArc90Uri:
 
     def test_parse_testnet_uri(self) -> None:
         """Test parsing testnet URI."""
-        uri = "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE%3D#arc89"
+        uri = "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE#arc89"
         parsed = Arc90Uri.parse(uri)
 
         assert parsed.netauth == "net:testnet"
@@ -313,7 +327,7 @@ class TestArc90Uri:
 
     def test_parse_mainnet_uri(self) -> None:
         """Test parsing mainnet URI."""
-        uri = "algorand://app/123456789?box=AAAAAAAAAAE%3D#arc89"
+        uri = "algorand://app/123456789?box=AAAAAAAAAAE#arc89"
         parsed = Arc90Uri.parse(uri)
 
         assert parsed.netauth is None
@@ -325,7 +339,7 @@ class TestArc90Uri:
 
     def test_parse_localnet_uri(self) -> None:
         """Test parsing localnet URI."""
-        uri = "algorand://net:localnet/app/1001?box=AAAAAAAAAAE%3D#arc3"
+        uri = "algorand://net:localnet/app/1001?box=AAAAAAAAAAE#arc3"
         parsed = Arc90Uri.parse(uri)
 
         assert parsed.netauth == "net:localnet"
@@ -349,7 +363,7 @@ class TestArc90Uri:
 
     def test_parse_uri_without_fragment(self) -> None:
         """Test parsing URI without compliance fragment."""
-        uri = "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE%3D"
+        uri = "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE"
         parsed = Arc90Uri.parse(uri)
 
         assert parsed.netauth == "net:testnet"
@@ -359,7 +373,7 @@ class TestArc90Uri:
 
     def test_parse_uri_multiple_compliance(self) -> None:
         """Test parsing URI with multiple compliance ARCs."""
-        uri = "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE%3D#arc89+90"
+        uri = "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE#arc89+90"
         parsed = Arc90Uri.parse(uri)
 
         assert parsed.compliance == Arc90Compliance((89, 90))
@@ -389,10 +403,14 @@ class TestArc90Uri:
         with pytest.raises(InvalidArc90UriError, match="Invalid app id"):
             Arc90Uri.parse("algorand://app/notanumber?box=")
 
-    def test_parse_invalid_box_name_base64_raises(self) -> None:
-        """Test parsing with invalid base64 box name raises error."""
+    @pytest.mark.parametrize(
+        "box_name",
+        ["!!!invalid!!!", "AAAAAAAAAAE=", "AAAAAAAAAAE%3D", "f_________9"],
+    )
+    def test_parse_noncanonical_box_name_raises(self, box_name: str) -> None:
+        """Test that aliases and invalid base64url box names are rejected."""
         with pytest.raises(InvalidArc90UriError, match="Invalid base64url box name"):
-            Arc90Uri.parse("algorand://net:testnet/app/123?box=!!!invalid!!!")
+            Arc90Uri.parse(f"algorand://net:testnet/app/123?box={box_name}")
 
     def test_parse_invalid_box_name_length_raises(self) -> None:
         """Test parsing with wrong box name length raises error."""
@@ -419,9 +437,7 @@ class TestArc90Uri:
         )
         result = uri_obj.to_uri()
 
-        assert "algorand://net:testnet/app/752790676" in result
-        assert "box=" in result
-        assert "arc89" in result
+        assert result == "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE#arc89"
 
     def test_to_uri_mainnet(self) -> None:
         """Test serializing mainnet URI."""
@@ -433,9 +449,7 @@ class TestArc90Uri:
         )
         result = uri_obj.to_uri()
 
-        assert "algorand://app/123456789" in result
-        assert "box=" in result
-        assert "arc89" in result
+        assert result == "algorand://app/123456789?box=AAAAAAAAAAE#arc89"
 
     def test_to_uri_partial(self) -> None:
         """Test serializing partial URI."""
@@ -514,7 +528,7 @@ class TestArc90Uri:
 
     def test_roundtrip_testnet(self) -> None:
         """Test round-trip for testnet URI."""
-        original_uri = "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE%3D#arc89"
+        original_uri = "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE#arc89"
         parsed = Arc90Uri.parse(original_uri)
         serialized = parsed.to_uri()
         reparsed = Arc90Uri.parse(serialized)
@@ -526,7 +540,7 @@ class TestArc90Uri:
 
     def test_roundtrip_mainnet(self) -> None:
         """Test round-trip for mainnet URI."""
-        original_uri = "algorand://app/123456789?box=AAAAAAAAAAE%3D#arc89"
+        original_uri = "algorand://app/123456789?box=AAAAAAAAAAE#arc89"
         parsed = Arc90Uri.parse(original_uri)
         serialized = parsed.to_uri()
         reparsed = Arc90Uri.parse(serialized)
@@ -556,7 +570,7 @@ class TestCompletePartialAssetUrl:
 
     def test_complete_already_complete_url(self) -> None:
         """Test that completing an already complete URL returns equivalent URI."""
-        complete_url = "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE%3D#arc89"
+        complete_url = "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE#arc89"
         asset_id = 1  # Matches the box content
 
         result = complete_partial_asset_url(complete_url, asset_id)
@@ -571,7 +585,7 @@ class TestCompletePartialAssetUrl:
 
     def test_complete_different_asset_id(self) -> None:
         """Test completing URL with different asset ID preserves the original if already complete."""
-        complete_url = "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE%3D#arc89"
+        complete_url = "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE#arc89"
         new_asset_id = 999
 
         result = complete_partial_asset_url(complete_url, new_asset_id)
