@@ -10,6 +10,7 @@ from ..models import (
     MbrDelta,
     MetadataExistence,
     MetadataHeader,
+    MetadataSlice,
     PaginatedMetadata,
     Pagination,
     RegistryParameters,
@@ -238,14 +239,14 @@ class AsaMetadataRegistryAvmRead:
         size: int,
         simulate: SimulateOptions | None = None,
         params: Any | None = None,
-    ) -> bytes:
+    ) -> MetadataSlice:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_slice(
                 args=(asset_id, offset, size), params=params
             ),
             simulate=simulate,
         )
-        return bytes(value)
+        return MetadataSlice.from_tuple(value)
 
     def arc89_get_metadata_header_hash(
         self,

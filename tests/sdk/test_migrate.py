@@ -373,7 +373,7 @@ class TestEnsureExistsAndNotAlreadyMigrated:
         with pytest.raises(ValueError, match="does not exist"):
             _ensure_exists_and_not_already_migrated(
                 registry=registry_with_write,
-                asset_id=9999,
+                asset_id=2**64 - 1,
             )
 
     def test_not_migrated_passes(

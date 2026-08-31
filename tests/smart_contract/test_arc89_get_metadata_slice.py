@@ -35,7 +35,10 @@ def test_get_slice(
         ),
     ).abi_return
     assert metadata_slice is not None
-    assert bytes(metadata_slice) == metadata.body.raw_bytes[offset : offset + size]
+    assert metadata_slice.revision > 0
+    assert (
+        bytes(metadata_slice.content) == metadata.body.raw_bytes[offset : offset + size]
+    )
 
 
 def test_fail_asa_not_exists(

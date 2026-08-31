@@ -196,7 +196,7 @@ class Arc89Interface(ARC4Contract, ABC):
         asset_id: Asset,
         offset: arc4.UInt16,
         size: arc4.UInt16,
-    ) -> Bytes:
+    ) -> abi.MetadataSlice:
         pass
 
     @abstractmethod

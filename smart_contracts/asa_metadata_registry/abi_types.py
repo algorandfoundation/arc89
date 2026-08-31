@@ -15,7 +15,7 @@ class MetadataHeader(Struct, kw_only=True):
     reversible_flags: arc4.Byte
     irreversible_flags: arc4.Byte
     hash: Hash
-    last_modified_round: UInt64
+    revision: UInt64
     deprecated_by: UInt64
 
 
@@ -33,7 +33,7 @@ class MutableFlag(Struct, kw_only=True):
     """Mutable Metadata Identifier or Flag"""
 
     flag: bool
-    last_modified_round: UInt64
+    revision: UInt64
 
 
 class MetadataExistence(Struct, kw_only=True):
@@ -49,14 +49,22 @@ class Pagination(Struct, kw_only=True):
     metadata_size: arc4.UInt16
     page_size: arc4.UInt16
     total_pages: arc4.UInt8
+    revision: UInt64
 
 
 class PaginatedMetadata(Struct, kw_only=True):
     """Paginated Asset Metadata"""
 
     has_next_page: bool
-    last_modified_round: UInt64
+    revision: UInt64
     page_content: Bytes
+
+
+class MetadataSlice(Struct, kw_only=True):
+    """Asset Metadata Slice"""
+
+    revision: UInt64
+    content: Bytes
 
 
 class RegistryParameters(Struct, kw_only=True):

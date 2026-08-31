@@ -19,6 +19,7 @@ from ..models import (
     MetadataBody,
     MetadataExistence,
     MetadataHeader,
+    MetadataSlice,
     PaginatedMetadata,
     Pagination,
     RegistryParameters,
@@ -240,10 +241,13 @@ class AsaMetadataRegistryRead:
             pagination = avm.arc89_get_metadata_pagination(
                 asset_id=asset_id, simulate=simulate
             )
+            if pagination.revision != header.revision:
+                raise MetadataDriftError(
+                    "Metadata changed between header and pagination reads"
+                )
 
             # Fetch pages in batches (max 16 tx/group in Algorand; keep a safe default of 10).
             total_pages = pagination.total_pages
-            last_round: int | None = None
             chunks: list[bytes] = []
 
             batch_size = 10
@@ -260,9 +264,7 @@ class AsaMetadataRegistryRead:
                 )
                 for v in values:
                     paged = PaginatedMetadata.from_tuple(v)
-                    if last_round is None:
-                        last_round = paged.last_modified_round
-                    elif paged.last_modified_round != last_round:
+                    if paged.revision != header.revision:
                         raise MetadataDriftError(
                             "Metadata changed between simulated page reads"
                         )
@@ -438,7 +440,7 @@ class AsaMetadataRegistryRead:
         size: int,
         source: MetadataSource = MetadataSource.AUTO,
         simulate: SimulateOptions | None = None,
-    ) -> bytes:
+    ) -> MetadataSlice:
         if source == MetadataSource.BOX or (
             source == MetadataSource.AUTO and self.algod is not None
         ):

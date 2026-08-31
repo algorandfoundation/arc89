@@ -27,25 +27,30 @@ class MetadataExistence(algopy.arc4.Struct):
 
 class MutableFlag(algopy.arc4.Struct):
     flag: algopy.arc4.Bool
-    last_modified_round: algopy.arc4.UIntN[typing.Literal[64]]
+    revision: algopy.arc4.UIntN[typing.Literal[64]]
 
 class MetadataHeader(algopy.arc4.Struct):
     identifiers: algopy.arc4.Byte
     reversible_flags: algopy.arc4.Byte
     irreversible_flags: algopy.arc4.Byte
     hash: algopy.arc4.StaticArray[algopy.arc4.Byte, typing.Literal[32]]
-    last_modified_round: algopy.arc4.UIntN[typing.Literal[64]]
+    revision: algopy.arc4.UIntN[typing.Literal[64]]
     deprecated_by: algopy.arc4.UIntN[typing.Literal[64]]
 
 class Pagination(algopy.arc4.Struct):
     metadata_size: algopy.arc4.UIntN[typing.Literal[16]]
     page_size: algopy.arc4.UIntN[typing.Literal[16]]
     total_pages: algopy.arc4.UIntN[typing.Literal[8]]
+    revision: algopy.arc4.UIntN[typing.Literal[64]]
 
 class PaginatedMetadata(algopy.arc4.Struct):
     has_next_page: algopy.arc4.Bool
-    last_modified_round: algopy.arc4.UIntN[typing.Literal[64]]
+    revision: algopy.arc4.UIntN[typing.Literal[64]]
     page_content: algopy.arc4.DynamicBytes
+
+class MetadataSlice(algopy.arc4.Struct):
+    revision: algopy.arc4.UIntN[typing.Literal[64]]
+    content: algopy.arc4.DynamicBytes
 
 class AsaMetadataRegistry(algopy.arc4.ARC4Client, typing.Protocol):
     """
@@ -252,7 +257,7 @@ class AsaMetadataRegistry(algopy.arc4.ARC4Client, typing.Protocol):
         asset_id: algopy.arc4.UIntN[typing.Literal[64]],
         offset: algopy.arc4.UIntN[typing.Literal[16]],
         size: algopy.arc4.UIntN[typing.Literal[16]],
-    ) -> algopy.arc4.DynamicBytes:
+    ) -> MetadataSlice:
         """
         Return a slice of the Asset Metadata for an ASA.
         """

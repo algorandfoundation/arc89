@@ -150,7 +150,7 @@ class TestReaderWithAlgod:
             source=MetadataSource.BOX,
         )
 
-        assert header.last_modified_round > 0
+        assert header.revision > 0
         assert len(header.metadata_hash) == 32
 
     def test_get_metadata_pagination(
@@ -180,7 +180,7 @@ class TestReaderWithAlgod:
         )
 
         assert len(page.page_content) > 0
-        assert page.last_modified_round > 0
+        assert page.revision > 0
 
     def test_get_metadata_slice(
         self,
@@ -188,15 +188,16 @@ class TestReaderWithAlgod:
         mutable_short_metadata: AssetMetadata,
     ) -> None:
         """Test getting a slice of metadata."""
-        slice_data = reader_with_algod.arc89_get_metadata_slice(
+        metadata_slice = reader_with_algod.arc89_get_metadata_slice(
             asset_id=mutable_short_metadata.asset_id,
             offset=0,
             size=10,
             source=MetadataSource.BOX,
         )
 
-        assert len(slice_data) <= 10
-        assert slice_data == mutable_short_metadata.body.raw_bytes[:10]
+        assert metadata_slice.revision > 0
+        assert len(metadata_slice.content) <= 10
+        assert metadata_slice.content == mutable_short_metadata.body.raw_bytes[:10]
 
     def test_get_metadata_header_hash(
         self,
@@ -309,7 +310,7 @@ class TestReaderWithAvm:
             source=MetadataSource.AVM,
         )
 
-        assert header.last_modified_round > 0
+        assert header.revision > 0
         assert len(header.metadata_hash) == 32
 
     def test_get_metadata_pagination_avm(

@@ -48,7 +48,7 @@ def test_replace_with_empty_metadata(
         asa_metadata_registry_client,
         mutable_short_metadata,
         empty_metadata,
-        prev_metadata.header.last_modified_round,
+        prev_metadata.header.revision,
     )
 
 
@@ -80,7 +80,7 @@ def test_replace_with_smaller_metadata_size(
         asa_metadata_registry_client,
         mutable_maxed_metadata,
         short_metadata,
-        prev_metadata.header.last_modified_round,
+        prev_metadata.header.revision,
     )
 
 
@@ -111,7 +111,7 @@ def test_replace_with_equal_metadata_size(
         asa_metadata_registry_client,
         mutable_maxed_metadata,
         maxed_metadata,
-        prev_metadata.header.last_modified_round,
+        prev_metadata.header.revision,
     )
 
 

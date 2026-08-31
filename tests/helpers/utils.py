@@ -294,14 +294,14 @@ def assert_metadata_replaced(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     old_metadata: AssetMetadata,
     new_metadata: AssetMetadata,
-    prev_last_modified_round: int,
+    prev_revision: int,
 ) -> None:
     """Verify that metadata was replaced correctly in the box storage.
 
     Checks that:
     - Body was replaced with new metadata body
     - Identifiers and hash were automatically recomputed
-    - Last modified round was incremented
+    - Revision was incremented
     - Flags and deprecated_by remain unchanged from previous metadata
     """
     assert old_metadata.asset_id == new_metadata.asset_id, "Asset IDs do not match"
@@ -313,7 +313,7 @@ def assert_metadata_replaced(
     assert updated_metadata.header.identifiers == new_metadata.identifiers_byte
     assert updated_metadata.header.flags == old_metadata.flags
     assert updated_metadata.header.deprecated_by == old_metadata.deprecated_by
-    assert updated_metadata.header.last_modified_round > prev_last_modified_round
+    assert updated_metadata.header.revision > prev_revision
 
     expected_metadata = AssetMetadata(
         asset_id=old_metadata.asset_id,

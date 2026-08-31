@@ -51,7 +51,7 @@ class MetadataArc3Error(AsaMetadataRegistryError, ValueError):
 class MetadataDriftError(AsaMetadataRegistryError, RuntimeError):
     """
     Raised when paginated metadata reads detect that metadata changed between pages
-    (last_modified_round mismatch).
+    (revision mismatch).
     """
 
 

@@ -19,6 +19,7 @@ def test_migrate_metadata(
 ) -> None:
     asset_id = mutable_short_metadata.asset_id
     assert not mutable_short_metadata.deprecated_by
+    pre_migration = get_metadata_from_state(asa_metadata_registry_client, asset_id)
 
     asa_metadata_registry_client.send.arc89_migrate_metadata(
         args=Arc89MigrateMetadataArgs(asset_id=asset_id, new_registry_id=42),
@@ -27,6 +28,20 @@ def test_migrate_metadata(
 
     post_migration = get_metadata_from_state(asa_metadata_registry_client, asset_id)
     assert post_migration.header.deprecated_by == 42
+    assert post_migration.header.revision == pre_migration.header.revision + 1
+    assert (
+        asa_metadata_registry_client.state.global_state.revision
+        == post_migration.header.revision
+    )
+
+    asa_metadata_registry_client.send.arc89_migrate_metadata(
+        args=Arc89MigrateMetadataArgs(asset_id=asset_id, new_registry_id=42),
+        params=CommonAppCallParams(sender=asset_manager.address),
+    )
+    after_idempotent_migration = get_metadata_from_state(
+        asa_metadata_registry_client, asset_id
+    )
+    assert after_idempotent_migration.header.revision == post_migration.header.revision
 
 
 def test_fail_asa_not_exists(

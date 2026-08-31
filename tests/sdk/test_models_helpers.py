@@ -15,6 +15,7 @@ from asa_metadata_registry import (
     MbrDelta,
     MbrDeltaSign,
     MetadataExistence,
+    MetadataSlice,
     PaginatedMetadata,
     Pagination,
     RegistryParameters,
@@ -352,21 +353,25 @@ class TestPagination:
 
     def test_basic_pagination(self) -> None:
         """Test basic pagination values."""
-        pagination = Pagination(metadata_size=5000, page_size=1000, total_pages=5)
+        pagination = Pagination(
+            metadata_size=5000, page_size=1000, total_pages=5, revision=42
+        )
         assert pagination.metadata_size == 5000
         assert pagination.page_size == 1000
         assert pagination.total_pages == 5
+        assert pagination.revision == 42
 
     def test_from_tuple(self) -> None:
         """Test from_tuple parsing."""
-        pagination = Pagination.from_tuple([3000, 1000, 3])
+        pagination = Pagination.from_tuple([3000, 1000, 3, 42])
         assert pagination.metadata_size == 3000
         assert pagination.page_size == 1000
         assert pagination.total_pages == 3
+        assert pagination.revision == 42
 
     def test_from_tuple_zero_metadata(self) -> None:
         """Test from_tuple with zero metadata."""
-        pagination = Pagination.from_tuple([0, 1000, 0])
+        pagination = Pagination.from_tuple([0, 1000, 0, 42])
         assert pagination.metadata_size == 0
         assert pagination.page_size == 1000
         assert pagination.total_pages == 0
@@ -374,7 +379,8 @@ class TestPagination:
     def test_from_tuple_invalid_length(self) -> None:
         """Test from_tuple with wrong number of elements."""
         with pytest.raises(
-            ValueError, match="Expected \\(metadata_size, page_size, total_pages\\)"
+            ValueError,
+            match="Expected \\(metadata_size, page_size, total_pages, revision\\)",
         ):
             Pagination.from_tuple([1000, 100])
 
@@ -385,40 +391,40 @@ class TestPaginatedMetadata:
     def test_has_next_page(self) -> None:
         """Test paginated metadata with next page."""
         metadata = PaginatedMetadata(
-            has_next_page=True, last_modified_round=1000, page_content=b"page data"
+            has_next_page=True, revision=1000, page_content=b"page data"
         )
         assert metadata.has_next_page is True
-        assert metadata.last_modified_round == 1000
+        assert metadata.revision == 1000
         assert metadata.page_content == b"page data"
 
     def test_no_next_page(self) -> None:
         """Test paginated metadata without next page."""
         metadata = PaginatedMetadata(
-            has_next_page=False, last_modified_round=2000, page_content=b"last page"
+            has_next_page=False, revision=2000, page_content=b"last page"
         )
         assert metadata.has_next_page is False
-        assert metadata.last_modified_round == 2000
+        assert metadata.revision == 2000
         assert metadata.page_content == b"last page"
 
     def test_from_tuple(self) -> None:
         """Test from_tuple parsing."""
         metadata = PaginatedMetadata.from_tuple([True, 1500, b"content"])
         assert metadata.has_next_page is True
-        assert metadata.last_modified_round == 1500
+        assert metadata.revision == 1500
         assert metadata.page_content == b"content"
 
     def test_from_tuple_empty_content(self) -> None:
         """Test from_tuple with empty content."""
         metadata = PaginatedMetadata.from_tuple([False, 0, b""])
         assert metadata.has_next_page is False
-        assert metadata.last_modified_round == 0
+        assert metadata.revision == 0
         assert metadata.page_content == b""
 
     def test_from_tuple_invalid_length(self) -> None:
         """Test from_tuple with wrong number of elements."""
         with pytest.raises(
             ValueError,
-            match="Expected \\(has_next_page, last_modified_round, page_content\\)",
+            match="Expected \\(has_next_page, revision, page_content\\)",
         ):
             PaginatedMetadata.from_tuple([True, 1000])
 
@@ -431,15 +437,20 @@ class TestPaginatedMetadataAdvanced:
         with pytest.raises(TypeError, match="has_next_page must be bool"):
             PaginatedMetadata.from_tuple(["not bool", 1000, b"data"])
 
-    def test_from_tuple_invalid_last_modified_round_type(self) -> None:
-        """Test from_tuple with non-int last_modified_round."""
-        with pytest.raises(TypeError, match="last_modified_round must be int"):
+    def test_from_tuple_invalid_revision_type(self) -> None:
+        """Test from_tuple with non-int revision."""
+        with pytest.raises(TypeError, match="revision must be int"):
             PaginatedMetadata.from_tuple([True, "not int", b"data"])
 
     def test_from_tuple_page_content_as_list(self) -> None:
         """Test from_tuple with page_content as list of ints."""
         result = PaginatedMetadata.from_tuple([False, 2000, [1, 2, 3, 4, 5]])
         assert result.page_content == b"\x01\x02\x03\x04\x05"
+
+
+def test_metadata_slice_from_tuple() -> None:
+    metadata_slice = MetadataSlice.from_tuple([42, b"data"])
+    assert metadata_slice == MetadataSlice(revision=42, content=b"data")
 
 
 class TestHelperFunctions:

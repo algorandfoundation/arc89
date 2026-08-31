@@ -9,6 +9,7 @@ from ..models import (
     AssetMetadataBox,
     AssetMetadataRecord,
     MetadataHeader,
+    MetadataSlice,
     PaginatedMetadata,
     Pagination,
     RegistryParameters,
@@ -57,7 +58,7 @@ class AsaMetadataRegistryBoxRead:
 
     def arc89_is_metadata_short(self, *, asset_id: int) -> tuple[bool, int]:
         h = self._box(asset_id).header
-        return h.is_short, h.last_modified_round
+        return h.is_short, h.revision
 
     def arc89_get_metadata_header(self, *, asset_id: int) -> MetadataHeader:
         return self._box(asset_id).header
@@ -68,7 +69,10 @@ class AsaMetadataRegistryBoxRead:
         page_size = self.params.page_size
         total_pages = 0 if size == 0 else (size + page_size - 1) // page_size
         return Pagination(
-            metadata_size=size, page_size=page_size, total_pages=total_pages
+            metadata_size=size,
+            page_size=page_size,
+            total_pages=total_pages,
+            revision=b.header.revision,
         )
 
     def arc89_get_metadata(self, *, asset_id: int, page: int) -> PaginatedMetadata:
@@ -78,20 +82,23 @@ class AsaMetadataRegistryBoxRead:
             # Contract would likely error; off-chain we return empty page
             return PaginatedMetadata(
                 has_next_page=False,
-                last_modified_round=b.header.last_modified_round,
+                revision=b.header.revision,
                 page_content=b"",
             )
         content = pages[page] if pages else b""
         has_next = (page + 1) < len(pages)
-        return PaginatedMetadata(has_next, b.header.last_modified_round, content)
+        return PaginatedMetadata(has_next, b.header.revision, content)
 
     def arc89_get_metadata_slice(
         self, *, asset_id: int, offset: int, size: int
-    ) -> bytes:
+    ) -> MetadataSlice:
         b = self._box(asset_id)
         if offset < 0 or size < 0:
-            return b""
-        return b.body.raw_bytes[offset : offset + size]
+            return MetadataSlice(revision=b.header.revision, content=b"")
+        return MetadataSlice(
+            revision=b.header.revision,
+            content=b.body.raw_bytes[offset : offset + size],
+        )
 
     def arc89_get_metadata_header_hash(self, *, asset_id: int) -> bytes:
         b = self._box(asset_id)

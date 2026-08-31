@@ -31,6 +31,7 @@ from asa_metadata_registry import (
     MetadataExistence,
     MetadataFlags,
     MetadataHeader,
+    MetadataSlice,
     MetadataSource,
     MissingAppClientError,
     PaginatedMetadata,
@@ -129,7 +130,7 @@ def sample_metadata_header() -> MetadataHeader:
         identifiers=0x00,
         flags=MetadataFlags.empty(),
         deprecated_by=0,
-        last_modified_round=1000,
+        revision=1000,
         metadata_hash=b"\x00" * 32,
     )
 
@@ -482,7 +483,7 @@ class TestGetAssetMetadata:
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=50, page_size=100, total_pages=1
+            metadata_size=50, page_size=100, total_pages=1, revision=1000
         )
         mock_avm.simulate_many.return_value = [
             (False, 1000, b'{"name": "test"}' + b"\x00" * 33)  # Pad to 50 bytes
@@ -514,7 +515,7 @@ class TestGetAssetMetadata:
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=20, page_size=100, total_pages=1
+            metadata_size=20, page_size=100, total_pages=1, revision=1000
         )
         mock_avm.simulate_many.return_value = [
             (False, 1000, b'{"name": "test"}' + b"\x00" * 2)  # Pad to 20 bytes
@@ -533,7 +534,7 @@ class TestGetAssetMetadata:
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=150, page_size=100, total_pages=2
+            metadata_size=150, page_size=100, total_pages=2, revision=1000
         )
         # Simulate two pages
         mock_avm.simulate_many.return_value = [
@@ -554,17 +555,33 @@ class TestGetAssetMetadata:
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=150, page_size=100, total_pages=2
+            metadata_size=150, page_size=100, total_pages=2, revision=1000
         )
-        # Different last_modified_round indicates drift
+        # Different revision indicates drift
         mock_avm.simulate_many.return_value = [
             (False, 1000, b"page1"),
-            (False, 1001, b"page2"),  # Different round!
+            (False, 1001, b"page2"),  # Different revision
         ]
 
         with pytest.raises(
             MetadataDriftError,
             match="Metadata changed between simulated page reads",
+        ):
+            reader.get_asset_metadata(asset_id=456, source=MetadataSource.AVM)
+
+    def test_get_asset_metadata_avm_detects_pagination_drift(
+        self, mock_avm_factory: Callable, sample_metadata_header: MetadataHeader
+    ) -> None:
+        reader = AsaMetadataRegistryRead(app_id=123, avm_factory=mock_avm_factory)
+        mock_avm = mock_avm_factory(123)
+        mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
+        mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
+            metadata_size=150, page_size=100, total_pages=2, revision=1001
+        )
+
+        with pytest.raises(
+            MetadataDriftError,
+            match="Metadata changed between header and pagination reads",
         ):
             reader.get_asset_metadata(asset_id=456, source=MetadataSource.AVM)
 
@@ -580,7 +597,7 @@ class TestGetAssetMetadata:
             identifiers=0x00,
             flags=MetadataFlags.empty(),
             deprecated_by=789,
-            last_modified_round=1000,
+            revision=1000,
             metadata_hash=b"\x00" * 32,
         )
         deprecated_record = AssetMetadataRecord(
@@ -595,7 +612,7 @@ class TestGetAssetMetadata:
             identifiers=0x00,
             flags=MetadataFlags.empty(),
             deprecated_by=0,
-            last_modified_round=2000,
+            revision=2000,
             metadata_hash=b"\x00" * 32,
         )
         current_record = AssetMetadataRecord(
@@ -620,7 +637,7 @@ class TestGetAssetMetadata:
         result = reader.get_asset_metadata(asset_id=456, follow_deprecation=True)
 
         assert result.app_id == 789
-        assert result.header.last_modified_round == 2000
+        assert result.header.revision == 2000
 
     def test_get_asset_metadata_stops_deprecation_loop(
         self,
@@ -634,7 +651,7 @@ class TestGetAssetMetadata:
             identifiers=0x00,
             flags=MetadataFlags.empty(),
             deprecated_by=999,  # Always points elsewhere
-            last_modified_round=1000,
+            revision=1000,
             metadata_hash=b"\x00" * 32,
         )
         looping_record = AssetMetadataRecord(
@@ -670,7 +687,7 @@ class TestGetAssetMetadata:
             identifiers=0x00,
             flags=MetadataFlags.empty(),
             deprecated_by=789,
-            last_modified_round=1000,
+            revision=1000,
             metadata_hash=b"\x00" * 32,
         )
         deprecated_record = AssetMetadataRecord(
@@ -833,7 +850,7 @@ class TestDispatcherIsMetadataImmutable:
             identifiers=0x00,
             flags=flags,
             deprecated_by=0,
-            last_modified_round=1000,
+            revision=1000,
             metadata_hash=b"\x00" * 32,
         )
         box_value = header.serialized + b'{"test": "data"}'
@@ -866,7 +883,7 @@ class TestDispatcherIsMetadataShort:
             identifiers=bitmasks.MASK_ID_SHORT,  # short flag
             flags=MetadataFlags.empty(),
             deprecated_by=0,
-            last_modified_round=1000,
+            revision=1000,
             metadata_hash=b"\x00" * 32,
         )
         box_value = header.serialized + b'{"small": "data"}'
@@ -904,7 +921,7 @@ class TestDispatcherGetMetadataHeader:
         result = reader.arc89_get_metadata_header(
             asset_id=456, source=MetadataSource.BOX
         )
-        assert result.last_modified_round == sample_metadata_header.last_modified_round
+        assert result.revision == sample_metadata_header.revision
 
     def test_avm_source(
         self, mock_avm_factory: Callable, sample_metadata_header: MetadataHeader
@@ -943,7 +960,9 @@ class TestDispatcherGetMetadataPagination:
         """Test AVM source."""
         reader = AsaMetadataRegistryRead(app_id=123, avm_factory=mock_avm_factory)
 
-        pagination = Pagination(metadata_size=150, page_size=100, total_pages=2)
+        pagination = Pagination(
+            metadata_size=150, page_size=100, total_pages=2, revision=1000
+        )
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_pagination.return_value = pagination
 
@@ -974,7 +993,7 @@ class TestDispatcherGetMetadata:
         reader = AsaMetadataRegistryRead(app_id=123, avm_factory=mock_avm_factory)
 
         page_data = PaginatedMetadata(
-            has_next_page=False, last_modified_round=2000, page_content=b"page1"
+            has_next_page=False, revision=2000, page_content=b"page1"
         )
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata.return_value = page_data
@@ -999,14 +1018,17 @@ class TestDispatcherGetMetadataSlice:
         result = reader.arc89_get_metadata_slice(
             asset_id=456, offset=10, size=20, source=MetadataSource.BOX
         )
-        assert result == metadata_content[10:30]
+        assert result.revision == sample_metadata_header.revision
+        assert result.content == metadata_content[10:30]
 
     def test_avm_source(self, mock_avm_factory: Callable) -> None:
         """Test AVM source."""
         reader = AsaMetadataRegistryRead(app_id=123, avm_factory=mock_avm_factory)
 
         mock_avm = mock_avm_factory(123)
-        mock_avm.arc89_get_metadata_slice.return_value = b"avm_slice"
+        mock_avm.arc89_get_metadata_slice.return_value = MetadataSlice(
+            revision=1000, content=b"avm_slice"
+        )
 
         reader.arc89_get_metadata_slice(
             asset_id=456, offset=5, size=15, source=MetadataSource.AVM
@@ -1261,7 +1283,7 @@ class TestEdgeCases:
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         # Zero pages
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=0, page_size=100, total_pages=0
+            metadata_size=0, page_size=100, total_pages=0, revision=1000
         )
         mock_avm.simulate_many.return_value = []
 
@@ -1297,7 +1319,7 @@ class TestEdgeCases:
             identifiers=0x00,
             flags=MetadataFlags.empty(),
             deprecated_by=123,  # Same as app_id
-            last_modified_round=1000,
+            revision=1000,
             metadata_hash=b"\x00" * 32,
         )
         record = AssetMetadataRecord(

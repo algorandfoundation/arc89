@@ -194,13 +194,13 @@ class TestMetadataHeader:
             identifiers=0,
             flags=flags,
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
         assert header.identifiers == 0
         assert header.flags == flags
         assert header.metadata_hash == b"\x00" * 32
-        assert header.last_modified_round == 1000
+        assert header.revision == 1000
         assert header.deprecated_by == 0
 
     def test_is_short_false(self) -> None:
@@ -210,7 +210,7 @@ class TestMetadataHeader:
             identifiers=0,  # Short bit not set
             flags=flags,
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
         assert header.is_short is False
@@ -222,7 +222,7 @@ class TestMetadataHeader:
             identifiers=bitmasks.MASK_ID_SHORT,
             flags=flags,
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
         assert header.is_short is True
@@ -234,7 +234,7 @@ class TestMetadataHeader:
             identifiers=0,
             flags=flags,
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
         assert header.is_immutable is False
@@ -249,7 +249,7 @@ class TestMetadataHeader:
             identifiers=0,
             flags=flags,
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
         assert header.is_immutable is True
@@ -264,7 +264,7 @@ class TestMetadataHeader:
             identifiers=0,
             flags=flags,
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
         assert header.is_arc3_compliant is True
@@ -279,7 +279,7 @@ class TestMetadataHeader:
             identifiers=0,
             flags=flags,
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
         assert header.is_arc54_burnable is True
@@ -294,7 +294,7 @@ class TestMetadataHeader:
             identifiers=0,
             flags=flags,
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
         assert header.is_arc89_native is True
@@ -309,7 +309,7 @@ class TestMetadataHeader:
             identifiers=0,
             flags=flags,
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
         assert header.is_arc20_smart_asa is True
@@ -324,7 +324,7 @@ class TestMetadataHeader:
             identifiers=0,
             flags=flags,
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
         assert header.is_arc62_circulating_supply is True
@@ -339,7 +339,7 @@ class TestMetadataHeader:
             identifiers=0,
             flags=flags,
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
         assert header.is_ntt_cross_chain is True
@@ -351,7 +351,7 @@ class TestMetadataHeader:
             5,  # reversible flags
             3,  # irreversible flags
             b"\xaa" * 32,  # hash
-            2000,  # last_modified_round
+            2000,  # revision
             100,  # deprecated_by
         ]
         header = MetadataHeader.from_tuple(tuple_data)
@@ -360,7 +360,7 @@ class TestMetadataHeader:
         assert header.flags.reversible_byte == 5
         assert header.flags.irreversible_byte == 3
         assert header.metadata_hash == b"\xaa" * 32
-        assert header.last_modified_round == 2000
+        assert header.revision == 2000
         assert header.deprecated_by == 100
 
     def test_from_tuple_invalid_length(self) -> None:
@@ -713,7 +713,7 @@ class TestAssetMetadataRecord:
             identifiers=0,
             flags=MetadataFlags.empty(),
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
         body = MetadataBody(raw_bytes=b'{"name":"Test"}')
@@ -734,7 +734,7 @@ class TestAssetMetadataRecord:
             identifiers=0,
             flags=MetadataFlags.empty(),
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
         body = MetadataBody(raw_bytes=b'{"name":"Test","value":123}')
@@ -757,7 +757,7 @@ class TestAssetMetadataRecord:
             identifiers=0,
             flags=MetadataFlags.empty(),
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=500,
         )
         body = MetadataBody(raw_bytes=b'{"name":"Test"}')

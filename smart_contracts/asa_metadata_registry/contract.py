@@ -43,7 +43,9 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
     """
 
     def __init__(self) -> None:
-        op.AppParamsSet.app_foreign_box_reads(True)
+        self.revision = UInt64(0)
+
+        op.AppParamsSet.app_foreign_box_reads(True)  # noqa: FBT003
         self.asset_metadata = BoxMap(Asset, Bytes, key_prefix="")
 
     def _metadata_exists(self, asa: Asset) -> bool:
@@ -131,19 +133,23 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             start_index=const.IDX_METADATA_HASH, value=metadata_hash
         )
 
-    def _get_last_modified_round(self, asa: Asset) -> UInt64:
+    def _get_revision(self, asa: Asset) -> UInt64:
         return op.btoi(
             self.asset_metadata.box(asa).extract(
-                start_index=const.IDX_LAST_MODIFIED_ROUND,
-                length=const.LAST_MODIFIED_ROUND_SIZE,
+                start_index=const.IDX_REVISION,
+                length=const.REVISION_SIZE,
             )
         )
 
-    def _set_last_modified_round(self, asa: Asset, last_modified_round: UInt64) -> None:
+    def _set_revision(self, asa: Asset, revision: UInt64) -> None:
         self.asset_metadata.box(asa).replace(
-            start_index=const.IDX_LAST_MODIFIED_ROUND,
-            value=op.itob(last_modified_round),
+            start_index=const.IDX_REVISION,
+            value=op.itob(revision),
         )
+
+    def _next_revision(self) -> UInt64:
+        self.revision += 1
+        return self.revision
 
     def _get_deprecated_by(self, asa: Asset) -> UInt64:
         return op.btoi(
@@ -377,7 +383,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         self._identify_metadata(asa)
         metadata_hash = self._compute_metadata_hash(asa)
         self._set_metadata_hash(asa, metadata_hash)
-        self._set_last_modified_round(asa, Global.round)
+        self._set_revision(asa, self._next_revision())
         self._emit_updated_event(asa, metadata_hash)
 
     @arc4.baremethod(create="require")
@@ -457,7 +463,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         else:
             metadata_hash = self._compute_metadata_hash(asset_id)
         self._set_metadata_hash(asset_id, metadata_hash)
-        self._set_last_modified_round(asset_id, Global.round)
+        self._set_revision(asset_id, self._next_revision())
         self._set_deprecated_by(asset_id, UInt64(0))
 
         # Postconditions
@@ -657,17 +663,18 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             err.NEW_REGISTRY_ID_INVALID,
         )
 
-        # Update Deprecated By
-        self._set_deprecated_by(asset_id, new_registry_id)
+        if new_registry_id != self._get_deprecated_by(asset_id):
+            self._set_deprecated_by(asset_id, new_registry_id)
+            self._set_revision(asset_id, self._next_revision())
 
-        arc4.emit(
-            abi.Arc89MetadataMigrated(
-                asset_id=asset_id.id,
-                round=Global.round,
-                timestamp=Global.latest_timestamp,
-                new_registry_id=self._get_deprecated_by(asset_id),
+            arc4.emit(
+                abi.Arc89MetadataMigrated(
+                    asset_id=asset_id.id,
+                    round=Global.round,
+                    timestamp=Global.latest_timestamp,
+                    new_registry_id=self._get_deprecated_by(asset_id),
+                )
             )
-        )
 
     @arc4.abimethod
     def arc89_delete_metadata(
@@ -955,14 +962,14 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             asset_id: The Asset ID to check the Asset Metadata size classification for
 
         Returns:
-            Tuple of (is short metadata, Metadata Last Modified Round)
+            Tuple of (is short metadata, Metadata Revision)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
         return abi.MutableFlag(
             flag=self._is_short(asset_id),
-            last_modified_round=self._get_last_modified_round(asset_id),
+            revision=self._get_revision(asset_id),
         )
 
     @arc4.abimethod(readonly=True)
@@ -979,7 +986,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
 
         Returns:
             Asset Metadata Header: (Identifiers, Reversible Flags, Irreversible Flags,
-            Hash, Last Modified Round, Deprecated By)
+            Hash, Revision, Deprecated By)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
@@ -991,7 +998,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
                 self._get_irreversible_flags(asset_id)
             ),
             hash=abi.Hash(self._get_metadata_hash(asset_id)),
-            last_modified_round=self._get_last_modified_round(asset_id),
+            revision=self._get_revision(asset_id),
             deprecated_by=self._get_deprecated_by(asset_id),
         )
 
@@ -1007,7 +1014,8 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             asset_id: The Asset ID to get the Asset Metadata pagination for
 
         Returns:
-            Tuple of (total metadata byte size, PAGE_SIZE, total number of pages)
+            Tuple of (total metadata byte size, PAGE_SIZE, total number of pages,
+            Metadata Revision)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
@@ -1016,6 +1024,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             metadata_size=arc4.UInt16(self._get_metadata_size(asset_id)),
             page_size=arc4.UInt16(const.PAGE_SIZE),
             total_pages=arc4.UInt8(self._get_total_pages(asset_id)),
+            revision=self._get_revision(asset_id),
         )
 
     @arc4.abimethod(readonly=True)
@@ -1033,7 +1042,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             page: The 0-based Metadata page number
 
         Returns:
-            Tuple of (has next page, Metadata Last Modified Round, page content)
+            Tuple of (has next page, Metadata Revision, page content)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
@@ -1049,7 +1058,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
 
         return abi.PaginatedMetadata(
             has_next_page=has_next_page,
-            last_modified_round=self._get_last_modified_round(asset_id),
+            revision=self._get_revision(asset_id),
             page_content=page_content,
         )
 
@@ -1060,7 +1069,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         asset_id: Asset,
         offset: arc4.UInt16,
         size: arc4.UInt16,
-    ) -> Bytes:
+    ) -> abi.MetadataSlice:
         """
         Return a slice of the Asset Metadata for an ASA.
 
@@ -1083,7 +1092,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         metadata_slice = self.asset_metadata.box(asset_id).extract(
             start_index=const.IDX_METADATA + offset.as_uint64(), length=size.as_uint64()
         )
-        return metadata_slice
+        return abi.MetadataSlice(
+            revision=self._get_revision(asset_id),
+            content=metadata_slice,
+        )
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_header_hash(
