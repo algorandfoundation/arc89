@@ -685,6 +685,23 @@ class TestAssetMetadata:
 class TestAssetMetadataRecord:
     """Tests for AssetMetadataRecord dataclass."""
 
+    @staticmethod
+    def _record(
+        json_obj: dict[str, object], flags: MetadataFlags
+    ) -> AssetMetadataRecord:
+        return AssetMetadataRecord(
+            app_id=100,
+            asset_id=200,
+            header=MetadataHeader(
+                identifiers=0,
+                flags=flags,
+                metadata_hash=b"\x00" * 32,
+                last_modified_round=1000,
+                deprecated_by=0,
+            ),
+            body=MetadataBody.from_json(json_obj),
+        )
+
     def test_basic_record(self) -> None:
         """Test basic metadata record."""
         header = MetadataHeader(
@@ -752,6 +769,67 @@ class TestAssetMetadataRecord:
         assert metadata.body == body
         assert metadata.flags == header.flags
         assert metadata.deprecated_by == 500
+
+    def test_arc20_app_id_returns_id_when_flag_and_properties_are_valid(self) -> None:
+        record = self._record(
+            {"properties": {"arc-20": {"application-id": 111}}},
+            MetadataFlags(
+                reversible=ReversibleFlags(arc20=True),
+                irreversible=IrreversibleFlags.empty(),
+            ),
+        )
+
+        assert record.arc20_app_id == 111
+
+    def test_arc20_app_id_returns_none_when_flag_is_not_set(self) -> None:
+        record = self._record(
+            {"properties": {"arc-20": {"application-id": 111}}},
+            MetadataFlags.empty(),
+        )
+
+        assert record.arc20_app_id is None
+
+    def test_arc62_app_id_returns_id_when_flag_and_properties_are_valid(self) -> None:
+        record = self._record(
+            {"properties": {"arc-62": {"application-id": 222}}},
+            MetadataFlags(
+                reversible=ReversibleFlags(arc62=True),
+                irreversible=IrreversibleFlags.empty(),
+            ),
+        )
+
+        assert record.arc62_app_id == 222
+
+    def test_arc62_app_id_returns_none_when_flag_is_not_set(self) -> None:
+        record = self._record(
+            {"properties": {"arc-62": {"application-id": 222}}},
+            MetadataFlags.empty(),
+        )
+
+        assert record.arc62_app_id is None
+
+    @pytest.mark.parametrize(
+        "properties",
+        [
+            {},
+            {"arc-20": {}},
+            {"arc-20": {"application-id": 0}},
+            {"arc-20": {"application-id": True}},
+            {"arc-20": {"application-id": 2**64}},
+        ],
+    )
+    def test_arc20_app_id_returns_none_for_invalid_properties(
+        self, properties: dict[str, object]
+    ) -> None:
+        record = self._record(
+            {"properties": properties},
+            MetadataFlags(
+                reversible=ReversibleFlags(arc20=True),
+                irreversible=IrreversibleFlags.empty(),
+            ),
+        )
+
+        assert record.arc20_app_id is None
 
 
 class TestAssetMetadataDeriveAndValidateFlagsFromArc3Json:

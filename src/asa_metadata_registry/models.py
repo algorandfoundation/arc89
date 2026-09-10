@@ -21,6 +21,7 @@ from .hashing import (
 from .validation import (
     decode_metadata_json,
     encode_metadata_json,
+    is_positive_uint64,
     validate_arc3_properties,
     validate_arc3_schema,
     validate_arc20_arc62_require_arc3,
@@ -72,6 +73,28 @@ def _coerce_bytes(v: object, *, name: str) -> bytes:
 def _is_nonzero_32(am: bytes) -> bool:
     """True if am is 32 bytes and not all-zero."""
     return len(am) == 32 and any(b != 0 for b in am)
+
+
+def _get_arc3_property_app_id(
+    metadata_json: Mapping[str, object], key: str
+) -> int | None:
+    """Return the positive uint64 application ID from an ARC-3 properties entry."""
+    properties = metadata_json.get("properties")
+    if not isinstance(properties, Mapping):
+        return None
+
+    entry = properties.get(key)
+    if not isinstance(entry, Mapping):
+        return None
+
+    app_id = entry.get("application-id")
+    if (
+        not isinstance(app_id, int)
+        or isinstance(app_id, bool)
+        or not is_positive_uint64(app_id)
+    ):
+        return None
+    return app_id
 
 
 def _chunk_metadata_payload(
@@ -817,6 +840,20 @@ class AssetMetadataRecord:
     @property
     def json(self) -> dict[str, object]:
         return decode_metadata_json(self.body.raw_bytes)
+
+    @property
+    def arc20_app_id(self) -> int | None:
+        """Return the ARC-20 Smart ASA application ID, if declared by this record."""
+        if not self.header.is_arc20_smart_asa:
+            return None
+        return _get_arc3_property_app_id(self.json, const.ARC3_PROPERTIES_KEY_ARC20)
+
+    @property
+    def arc62_app_id(self) -> int | None:
+        """Return the ARC-62 Circulating Supply application ID, if declared by this record."""
+        if not self.header.is_arc62_circulating_supply:
+            return None
+        return _get_arc3_property_app_id(self.json, const.ARC3_PROPERTIES_KEY_ARC62)
 
     def as_asset_metadata(self) -> AssetMetadata:
         return AssetMetadata(
