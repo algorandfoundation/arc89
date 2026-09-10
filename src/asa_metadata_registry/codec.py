@@ -233,7 +233,7 @@ class Arc90Uri:
         if netloc.startswith("net:"):
             netauth = netloc
             if (
-                len(path_segs) < 2
+                len(path_segs) != 2
                 or path_segs[0] != const.ARC90_URI_APP_PATH_NAME.decode()
             ):
                 raise InvalidArc90UriError(
@@ -243,7 +243,7 @@ class Arc90Uri:
                 app_id = int(path_segs[1])
             except ValueError as e:
                 raise InvalidArc90UriError("Invalid app id in path") from e
-        elif netloc == const.ARC90_URI_APP_PATH_NAME.decode() and len(path_segs) >= 1:
+        elif netloc == const.ARC90_URI_APP_PATH_NAME.decode() and len(path_segs) == 1:
             # MainNet example: algorand://app/<app_id>?box=...
             try:
                 app_id = int(path_segs[0])
