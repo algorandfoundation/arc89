@@ -379,6 +379,18 @@ class TestArc90Uri:
         with pytest.raises(InvalidArc90UriError, match="Expected path '/app/<app_id>'"):
             Arc90Uri.parse("algorand://net:testnet/asset/123?box=")
 
+    @pytest.mark.parametrize(
+        "uri",
+        [
+            "algorand://net:testnet/app/456/more/stuff?box=",
+            "algorand://app/123/extra/garbage?box=",
+        ],
+    )
+    def test_parse_extra_path_segments_raises(self, uri: str) -> None:
+        """Test parsing URIs with extra path segments raises an error."""
+        with pytest.raises(InvalidArc90UriError):
+            Arc90Uri.parse(uri)
+
     def test_parse_invalid_app_id_raises(self) -> None:
         """Test parsing with non-numeric app ID raises error."""
         with pytest.raises(InvalidArc90UriError, match="Invalid app id"):
