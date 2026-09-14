@@ -96,6 +96,8 @@ class Arc90Compliance:
 
             try:
                 arc_num = int(p)
+                if arc_num == 0:
+                    return cls(())  # ARC-0 is not a valid compliance fragment
                 arcs.append(arc_num)
             except ValueError:
                 return cls(())  # Invalid number

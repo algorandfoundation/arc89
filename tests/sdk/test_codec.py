@@ -232,10 +232,10 @@ class TestArc90Compliance:
         result = Arc90Compliance.parse("#arc89+090")
         assert result == Arc90Compliance(())  # Invalid
 
-    def test_parse_single_digit_zero_valid(self) -> None:
-        """Test parsing single digit 0 (valid)."""
+    def test_parse_arc0_invalid(self) -> None:
+        """Test parsing ARC-0 (invalid)."""
         result = Arc90Compliance.parse("#arc0")
-        assert result == Arc90Compliance((0,))
+        assert result == Arc90Compliance(())  # Invalid
 
     def test_parse_without_arc_prefix_invalid(self) -> None:
         """Test parsing without 'arc' prefix (invalid)."""
