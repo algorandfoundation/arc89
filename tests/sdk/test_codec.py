@@ -568,31 +568,56 @@ class TestCompletePartialAssetUrl:
         assert parsed.app_id == 752790676
         assert parsed.netauth == "net:testnet"
 
-    def test_complete_already_complete_url(self) -> None:
-        """Test that completing an already complete URL returns equivalent URI."""
+    def test_complete_prefilled_box_raises(self) -> None:
+        """An Asset URL MUST have an empty box value; a pre-filled one is rejected."""
         complete_url = "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE#arc89"
-        asset_id = 1  # Matches the box content
+        with pytest.raises(InvalidArc90UriError, match="empty box value"):
+            complete_partial_asset_url(complete_url, 1)
+        with pytest.raises(InvalidArc90UriError, match="empty box value"):
+            complete_partial_asset_url(complete_url, 999)
 
-        result = complete_partial_asset_url(complete_url, asset_id)
+    def test_parse_rejects_extra_query_parameter(self) -> None:
+        with pytest.raises(InvalidArc90UriError, match="Unexpected query parameter"):
+            Arc90Uri.parse("algorand://app/1?box=&foo=bar")
 
-        # Parse both to compare
-        parsed_original = Arc90Uri.parse(complete_url)
-        parsed_result = Arc90Uri.parse(result)
+    @pytest.mark.parametrize(
+        "uri",
+        [
+            "algorand://app/01?box=",
+            "algorand://app/-1?box=",
+            "algorand://app/1_000?box=",
+        ],
+    )
+    def test_parse_rejects_non_canonical_app_id(self, uri: str) -> None:
+        with pytest.raises(InvalidArc90UriError, match="Invalid app id"):
+            Arc90Uri.parse(uri)
 
-        assert parsed_result.asset_id == parsed_original.asset_id
-        assert parsed_result.app_id == parsed_original.app_id
-        assert parsed_result.netauth == parsed_original.netauth
+    def test_parse_rejects_extra_path_segments(self) -> None:
+        with pytest.raises(InvalidArc90UriError, match="Invalid app id"):
+            Arc90Uri.parse("algorand://app/1/extra?box=")
 
-    def test_complete_different_asset_id(self) -> None:
-        """Test completing URL with different asset ID preserves the original if already complete."""
-        complete_url = "algorand://net:testnet/app/752790676?box=AAAAAAAAAAE#arc89"
-        new_asset_id = 999
+    def test_parse_gh_netauth(self) -> None:
+        uri = "algorand://gh:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9_cOUJOiI/app/753324084?box=AAAAAAAAMDk#arc89"
+        parsed = Arc90Uri.parse(uri)
+        assert parsed.netauth == "gh:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9_cOUJOiI"
+        assert parsed.to_uri() == uri
 
-        result = complete_partial_asset_url(complete_url, new_asset_id)
+    @pytest.mark.parametrize(
+        "fragment",
+        [
+            "#arc89+-3",
+            "#arc1_0",
+            "#arc" + chr(0x663),
+            "##arc89",
+            "#arc90+89",
+            "#arc89+89",
+        ],
+    )
+    def test_parse_rejects_non_grammar_fragments(self, fragment: str) -> None:
+        assert Arc90Compliance.parse(fragment) == Arc90Compliance(())
 
-        parsed = Arc90Uri.parse(result)
-        # Should preserve the original asset ID since URI was already complete
-        assert parsed.asset_id == 1  # Original asset ID
+    def test_to_fragment_sorts_and_dedups(self) -> None:
+        assert Arc90Compliance((89, 20, 20)).to_fragment() == "#arc20+89"
 
     def test_complete_mainnet_url(self) -> None:
         """Test completing mainnet partial URL."""

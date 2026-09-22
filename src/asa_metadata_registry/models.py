@@ -784,7 +784,7 @@ class AssetMetadataBox:
         *,
         params: RegistryParameters | None = None,
         asa_am: bytes | None = None,
-        skip_validation_on_override: bool = True,
+        skip_validation_on_override: bool = False,
     ) -> bool:
         """
         Compare observed on-chain hash to the locally computed effective hash.

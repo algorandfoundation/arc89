@@ -36,6 +36,7 @@ from asa_metadata_registry import (
     InvalidFlagIndexError,
     IrreversibleFlags,
     MbrDelta,
+    MetadataEncodingError,
     MetadataFlags,
     MissingAppClientError,
     RegistryParameters,
@@ -1628,11 +1629,13 @@ class TestReplaceMetadataSlice:
     ) -> None:
         """Test replacing a slice of metadata."""
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        # Raw (unvalidated) slice write
         writer.replace_metadata_slice(
             asset_manager=asset_manager,
             asset_id=mutable_short_metadata.asset_id,
             offset=0,
             payload=b"patch",
+            validate=False,
         )
         record = reader_with_algod.box.get_asset_metadata_record(
             asset_id=mutable_short_metadata.asset_id,
@@ -1640,3 +1643,31 @@ class TestReplaceMetadataSlice:
         assert record is not None
         body = record.body.raw_bytes
         assert body[:5].decode("utf-8") == "patch"
+
+    def test_replace_slice_validates_post_replacement_json(
+        self,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        asset_manager: SigningAccount,
+        mutable_short_metadata: AssetMetadata,
+        reader_with_algod: AsaMetadataRegistryRead,
+    ) -> None:
+        writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
+        body = mutable_short_metadata.body.raw_bytes
+        with pytest.raises(MetadataEncodingError):
+            writer.replace_metadata_slice(
+                asset_manager=asset_manager,
+                asset_id=mutable_short_metadata.asset_id,
+                offset=0,
+                payload=b"patch",
+            )
+        offset = body.index(b"Silvio")
+        writer.replace_metadata_slice(
+            asset_manager=asset_manager,
+            asset_id=mutable_short_metadata.asset_id,
+            offset=offset,
+            payload=b"Cosimo",
+        )
+        record = reader_with_algod.box.get_asset_metadata_record(
+            asset_id=mutable_short_metadata.asset_id,
+        )
+        assert record.json["name"] == "Cosimo"

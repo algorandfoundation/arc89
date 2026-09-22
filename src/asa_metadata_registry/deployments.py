@@ -4,6 +4,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Final, Literal
 
+from .codec import b64_decode, b64url_decode, b64url_encode
 from .constants import MAINNET_GH_B64, TESTNET_GH_B64
 
 # ---------------------------------------------------------------------------
@@ -61,3 +62,34 @@ DEFAULT_DEPLOYMENTS: Final[Mapping[str, RegistryDeployment]] = {
         arc90_uri_netauth=None,
     ),
 }
+
+
+def deployment_for_genesis(genesis_hash_b64: str) -> RegistryDeployment | None:
+    """The trusted deployment for a network genesis hash, if any."""
+    for d in DEFAULT_DEPLOYMENTS.values():
+        if d.genesis_hash_b64 == genesis_hash_b64:
+            return d
+    return None
+
+
+def netauth_for_genesis(genesis_hash_b64: str) -> str | None:
+    """Canonical ARC-90 netauth for a network: the deployment label, else `gh:<base64url>`."""
+    d = deployment_for_genesis(genesis_hash_b64)
+    if d is not None:
+        return d.arc90_uri_netauth
+    return "gh:" + b64url_encode(b64_decode(genesis_hash_b64))
+
+
+def netauth_matches_genesis(netauth: str | None, genesis_hash_b64: str) -> bool:
+    """True if an ARC-90 netauth denotes the network with the given genesis hash."""
+    if netauth is None:
+        return genesis_hash_b64 == MAINNET_GH_B64
+    if netauth.startswith("gh:"):
+        try:
+            return b64url_decode(netauth[3:]) == b64_decode(genesis_hash_b64)
+        except Exception:
+            return False
+    d = deployment_for_genesis(genesis_hash_b64)
+    if d is None:  # unknown network (e.g. LocalNet): a label cannot be verified
+        return netauth.startswith("net:")
+    return d.arc90_uri_netauth == netauth

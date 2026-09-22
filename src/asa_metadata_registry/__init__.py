@@ -25,10 +25,12 @@ from .errors import (
     InvalidArc90UriError,
     InvalidFlagIndexError,
     InvalidPageIndexError,
+    InvalidSliceError,
     MetadataArc3Error,
     MetadataDriftError,
     MetadataEncodingError,
     MetadataHashMismatchError,
+    MetadataKeyError,
     MetadataNotFoundError,
     MissingAppClientError,
     RegistryResolutionError,
@@ -41,6 +43,8 @@ from .hashing import (
 )
 from .migrate import (
     build_arc2_migration_message_txn,
+    build_arc2_revocation_message_txn,
+    discover_backport_uri,
     migrate_legacy_metadata_to_registry,
 )
 from .models import (
@@ -97,6 +101,8 @@ __all__ = [
     "InvalidArc90UriError",
     "InvalidFlagIndexError",
     "InvalidPageIndexError",
+    "InvalidSliceError",
+    "MetadataKeyError",
     "MetadataArc3Error",
     "MetadataDriftError",
     "MetadataEncodingError",
@@ -141,5 +147,7 @@ __all__ = [
     "validate_arc3_schema",
     # Migrate
     "build_arc2_migration_message_txn",
+    "build_arc2_revocation_message_txn",
+    "discover_backport_uri",
     "migrate_legacy_metadata_to_registry",
 ]

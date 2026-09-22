@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import base64
 import binascii
+import re
 from dataclasses import dataclass
-from urllib.parse import urlencode, urlparse, urlunparse
+from itertools import pairwise
 
 from . import constants as const
 from .errors import InvalidArc90UriError
@@ -57,17 +58,18 @@ def b64url_decode(data_b64url: str) -> bytes:
     return decoded
 
 
+_FRAGMENT_RE = re.compile(r"^arc(0|[1-9][0-9]*)(\+(0|[1-9][0-9]*))*$")
+_NETAUTH_RE = re.compile(r"^(net:[A-Za-z0-9._-]+|gh:[A-Za-z0-9_-]+)$")
+_APP_ID_RE = re.compile(r"^(0|[1-9][0-9]*)$")
+_BOX_VALUE_RE = re.compile(r"^[A-Za-z0-9_-]*$")
+
+
 @dataclass(frozen=True, slots=True)
 class Arc90Compliance:
     """
-    Represents the ARC-90 compliance fragment '#arc<A>+<B>+...'.
-
-    Per ARC-90:
-    - Format: #arc<A>+<B>+<C> where A, B, C are decimal numbers
-    - First entry has 'arc' prefix, subsequent entries are bare numbers
-    - No leading zeros allowed
-    - Special case: ARC-3 must be sole entry (#arc3)
-    - Order is not enforced (clients MUST accept any order)
+    The ARC-90 compliance fragment '#arc<A>+<B>+...': unpadded decimal ARC numbers in
+    strictly ascending order, 'arc' literal on the first entry only, ARC-3 sole entry.
+    Non-compliant fragments parse as empty (ignored), as ARC-90 requires.
     """
 
     arcs: tuple[int, ...] = ()
@@ -76,55 +78,23 @@ class Arc90Compliance:
     def parse(cls, fragment: str | None) -> Arc90Compliance:
         if not fragment:
             return cls(())
-
-        frag = fragment.lstrip("#")
-        if not frag:
+        frag = fragment[1:] if fragment.startswith("#") else fragment
+        if not _FRAGMENT_RE.match(frag):
             return cls(())
-
-        # Validate format: arc<number>+<number>+...
-        # First must have 'arc' prefix, rest are bare numbers
-        if not frag.startswith("arc"):
-            return cls(())  # Invalid, ignore per spec
-
-        # Remove 'arc' prefix
-        remainder = frag[3:]
-        if not remainder:
+        arcs = tuple(int(p) for p in frag[3:].split("+"))
+        if any(b <= a for a, b in pairwise(arcs)):
             return cls(())
-
-        # Split by '+'
-        parts = remainder.split("+")
-        arcs: list[int] = []
-
-        for p in parts:
-            # No leading zeros allowed (except single digit)
-            if len(p) > 1 and p[0] == "0":
-                return cls(())  # Invalid format
-
-            try:
-                arc_num = int(p)
-                arcs.append(arc_num)
-            except ValueError:
-                return cls(())  # Invalid number
-
-        # Validate ARC-3 special case
         if 3 in arcs and len(arcs) > 1:
-            return cls(())  # ARC-3 must be sole entry
-
-        return cls(tuple(arcs))
+            return cls(())
+        return cls(arcs)
 
     def to_fragment(self) -> str | None:
         if not self.arcs:
             return None
-
-        # Validate ARC-3 special case before serializing
-        if 3 in self.arcs and len(self.arcs) > 1:
+        arcs = tuple(sorted(set(self.arcs)))
+        if 3 in arcs and len(arcs) > 1:
             raise ValueError("ARC-3 must be the sole entry in compliance fragment")
-
-        # First entry with 'arc', rest are bare numbers
-        parts = [f"arc{self.arcs[0]}"]
-        parts.extend(str(n) for n in self.arcs[1:])
-
-        return "#" + "+".join(parts)
+        return "#arc" + "+".join(str(n) for n in arcs)
 
 
 @dataclass(frozen=True, slots=True)
@@ -165,33 +135,14 @@ class Arc90Uri:
         )
 
     def to_uri(self) -> str:
-        """
-        Render the URI using ARC-89 conventions (base64url for box query parameter).
-        """
-        box = ""
-        if self.box_name is not None:
-            box = b64url_encode(self.box_name)
-
+        """Render the URI (canonical unpadded base64url box value)."""
+        box = b64url_encode(self.box_name) if self.box_name is not None else ""
         fragment = self.compliance.to_fragment() or ""
-
-        if self.netauth:
-            netloc = self.netauth
-            path = f"{const.ARC90_URI_APP_PATH_NAME.decode()}/{self.app_id}"  # No leading slash - urlunparse adds it
-        else:
-            # ARC-89 draft mainnet examples
-            netloc = const.ARC90_URI_APP_PATH_NAME.decode()
-            path = f"{self.app_id}"  # No leading slash - urlunparse adds it
-
-        query = urlencode({const.ARC90_URI_BOX_QUERY_NAME.decode(): box})
-        return urlunparse(
-            (
-                const.ARC90_URI_SCHEME_NAME.decode(),
-                netloc,
-                path,
-                "",
-                query,
-                fragment.lstrip("#"),
-            )
+        authority = f"{self.netauth}/" if self.netauth else ""
+        return (
+            f"{const.ARC90_URI_SCHEME.decode()}{authority}"
+            f"{const.ARC90_URI_APP_PATH.decode()}{self.app_id}"
+            f"{const.ARC90_URI_BOX_QUERY.decode()}{box}{fragment}"
         )
 
     def to_algod_box_name_b64(self) -> str:
@@ -205,70 +156,51 @@ class Arc90Uri:
     @staticmethod
     def parse(uri: str) -> Arc90Uri:
         """
-        Parse an ARC-90 URI used by ARC-89.
+        Parse an ARC-89 Asset Metadata URI, with the exact shape the registry enforces:
 
-        Supports common serializations:
-        - algorand://net:testnet/app/<app_id>?box=<b64url>#arc89
-        - algorand://net:localnet/app/<app_id>?box=<b64url>#arc3
-        - algorand://app/<app_id>?box=<b64url>#arc89   (mainnet)
+            algorand://[<netauth>/]app/<app_id>?box=<base64url>[#arc<A>+<B>...]
+
+        where <netauth> is `net:<label>` or `gh:<base64url>` (absent on MainNet), <app_id>
+        is an unpadded decimal, `box` is the only query parameter and its value is empty
+        (partial URI) or the canonical unpadded base64url of the 8-byte Asset ID.
         """
-        u = urlparse(uri)
-        if u.scheme != const.ARC90_URI_SCHEME_NAME.decode():
-            raise InvalidArc90UriError(
-                f"Not an {const.ARC90_URI_SCHEME_NAME.decode()}:// URI"
-            )
+        scheme = const.ARC90_URI_SCHEME.decode()
+        if not uri.startswith(scheme):
+            raise InvalidArc90UriError(f"Not an {scheme} URI")
+        rest = uri[len(scheme) :]
 
-        compliance = Arc90Compliance.parse("#" + u.fragment if u.fragment else None)
+        rest, _, fragment = rest.partition("#")
+        if "#" in fragment:
+            raise InvalidArc90UriError("Unexpected '#' in fragment")
+        compliance = Arc90Compliance.parse("#" + fragment if fragment else None)
 
-        # Parse the raw value so percent-encoded aliases are rejected.
+        path, sep, query = rest.partition("?")
         box_prefix = f"{const.ARC90_URI_BOX_QUERY_NAME.decode()}="
-        box_values = [
-            field[len(box_prefix) :]
-            for field in u.query.split("&")
-            if field.startswith(box_prefix)
-        ]
-        if not box_values:
+        if not sep or not query.startswith(box_prefix):
             raise InvalidArc90UriError(
                 f"Missing '{const.ARC90_URI_BOX_QUERY_NAME.decode()}' query parameter"
             )
-        if len(box_values) != 1:
-            raise InvalidArc90UriError("Expected exactly one 'box' query parameter")
-        box_value = box_values[0]
+        box_value = query[len(box_prefix) :]
+        if "&" in box_value:
+            raise InvalidArc90UriError("Unexpected query parameter")
+        if not _BOX_VALUE_RE.match(box_value):
+            raise InvalidArc90UriError("Invalid base64url box name")
 
-        # Identify app_id & netauth based on authority / path conventions.
-        netloc = u.netloc or ""
-        path_segs = [s for s in u.path.split("/") if s]
-
+        app_path = const.ARC90_URI_APP_PATH.decode()  # "app/"
         netauth: str | None = None
-        app_id: int | None = None
+        if not path.startswith(app_path):
+            authority, slash, path = path.partition("/")
+            if not slash or not _NETAUTH_RE.match(authority):
+                raise InvalidArc90UriError("Unrecognized ARC-90 app URI shape")
+            if not path.startswith(app_path):
+                raise InvalidArc90UriError(f"Expected path '/{app_path}<app_id>'")
+            netauth = authority
+        app_id_str = path[len(app_path) :]
+        if not _APP_ID_RE.match(app_id_str):
+            raise InvalidArc90UriError("Invalid app id in path")
 
-        if netloc.startswith("net:"):
-            netauth = netloc
-            if (
-                len(path_segs) < 2
-                or path_segs[0] != const.ARC90_URI_APP_PATH_NAME.decode()
-            ):
-                raise InvalidArc90UriError(
-                    f"Expected path '/{const.ARC90_URI_APP_PATH_NAME.decode()}/<app_id>' for net: URIs"
-                )
-            try:
-                app_id = int(path_segs[1])
-            except ValueError as e:
-                raise InvalidArc90UriError("Invalid app id in path") from e
-        elif netloc == const.ARC90_URI_APP_PATH_NAME.decode() and len(path_segs) >= 1:
-            # MainNet example: algorand://app/<app_id>?box=...
-            try:
-                app_id = int(path_segs[0])
-            except ValueError as e:
-                raise InvalidArc90UriError("Invalid app id in path") from e
-        else:
-            raise InvalidArc90UriError("Unrecognized ARC-90 app URI shape")
-
-        # Parse box name (optional/partial)
-        box_name: bytes | None
-        if box_value == "":
-            box_name = None
-        else:
+        box_name: bytes | None = None
+        if box_value:
             try:
                 box_name = b64url_decode(box_value)
             except (binascii.Error, UnicodeError, ValueError) as e:
@@ -279,7 +211,10 @@ class Arc90Uri:
                 )
 
         return Arc90Uri(
-            netauth=netauth, app_id=app_id, box_name=box_name, compliance=compliance
+            netauth=netauth,
+            app_id=int(app_id_str),
+            box_name=box_name,
+            compliance=compliance,
         )
 
 
@@ -298,6 +233,5 @@ def complete_partial_asset_url(asset_url: str, asset_id: int) -> str:
     """
     parsed = Arc90Uri.parse(asset_url)
     if not parsed.is_partial:
-        # Already complete
-        return parsed.to_uri()
+        raise InvalidArc90UriError("Asset URL MUST have an empty box value")
     return parsed.with_asset_id(asset_id).to_uri()

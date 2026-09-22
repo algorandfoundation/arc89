@@ -7,6 +7,11 @@ from typing import Any
 
 from ..algod import AlgodBoxReader
 from ..codec import Arc90Uri
+from ..deployments import (
+    deployment_for_genesis,
+    netauth_for_genesis,
+    netauth_matches_genesis,
+)
 from ..errors import (
     InvalidArc90UriError,
     MetadataDriftError,
@@ -57,6 +62,7 @@ class AsaMetadataRegistryRead:
     app_id: int | None
     algod: AlgodBoxReader | None = None
     avm_factory: Callable[[int], AsaMetadataRegistryAvmRead] | None = None
+    netauth: str | None = None
 
     _params_cache: RegistryParameters | None = None
 
@@ -81,9 +87,9 @@ class AsaMetadataRegistryRead:
                 object.__setattr__(self, "_params_cache", p)
                 return p
             except Exception:
-                pass
+                # Fall back to the compiled defaults without caching, so later reads retry.
+                return get_default_registry_params()
 
-        # Fall back to spec defaults.
         p = get_default_registry_params()
         object.__setattr__(self, "_params_cache", p)
         return p
@@ -114,6 +120,41 @@ class AsaMetadataRegistryRead:
     # Locator / discovery
     # ------------------------------------------------------------------
 
+    def _genesis_hash(self) -> str | None:
+        return self.algod.get_genesis_hash_b64() if self.algod is not None else None
+
+    def _trusted_app_id(self, app_id: int | None) -> int | None:
+        """Explicit app id, else the configured one, else the deployment for the network."""
+        if app_id is not None:
+            return int(app_id)
+        if self.app_id is not None:
+            return int(self.app_id)
+        gh = self._genesis_hash()
+        deployment = deployment_for_genesis(gh) if gh is not None else None
+        return deployment.app_id if deployment is not None else None
+
+    def _check_trusted(self, uri: Arc90Uri, trusted_app_id: int | None) -> None:
+        """Reject a URI naming another registry or another network than the trusted one."""
+        if trusted_app_id is None:
+            raise RegistryResolutionError(
+                "No trusted registry for this network: configure or pass app_id"
+            )
+        if uri.app_id != trusted_app_id:
+            raise RegistryResolutionError(
+                f"URI names registry {uri.app_id}, trusted registry is {trusted_app_id}"
+            )
+        if self.netauth is not None:
+            if uri.netauth != self.netauth:
+                raise RegistryResolutionError(
+                    f"URI netauth {uri.netauth!r} does not match {self.netauth!r}"
+                )
+            return
+        gh = self._genesis_hash()
+        if gh is not None and not netauth_matches_genesis(uri.netauth, gh):
+            raise RegistryResolutionError(
+                f"URI netauth {uri.netauth!r} does not denote the connected network"
+            )
+
     def resolve_arc90_uri(
         self,
         *,
@@ -124,18 +165,20 @@ class AsaMetadataRegistryRead:
         """
         Resolve the ARC-90 URI for an asset, from either an explicit URI or the ASA's `url` field.
 
-        If `metadata_uri` is provided, it's parsed and returned.
-
-        If only `asset_id` is provided, the SDK attempts:
-        1) ASA url -> ARC-89 partial URI completion (requires algod)
-        2) configured `app_id` (if present)
+        The registry identity always comes from the trusted side (explicit `app_id`, the
+        configured one, or the known deployment of the connected network): a URI naming
+        another registry or network is rejected, never followed.
         """
+        trusted = self._trusted_app_id(app_id)
+
         if metadata_uri:
             parsed = Arc90Uri.parse(metadata_uri)
             if parsed.asset_id is None:
                 raise InvalidArc90UriError(
                     "Metadata URI is partial; missing box value (asset id)"
                 )
+            if trusted is not None:
+                self._check_trusted(parsed, trusted)
             return parsed
 
         if asset_id is None:
@@ -143,23 +186,28 @@ class AsaMetadataRegistryRead:
                 "Either asset_id or metadata_uri must be provided"
             )
 
-        # Try ASA url resolution first (best UX).
         if self.algod is not None:
             try:
-                return self.algod.resolve_metadata_uri_from_asset(asset_id=asset_id)
+                from_asset = self.algod.resolve_metadata_uri_from_asset(
+                    asset_id=asset_id
+                )
             except InvalidArc90UriError:
-                # Fall through to configured app id.
-                pass
+                from_asset = None  # Not an ARC-89 Asset URL: use the trusted registry.
+            if from_asset is not None:
+                self._check_trusted(from_asset, trusted)
+                return from_asset
 
-        resolved_app_id = app_id if app_id is not None else self.app_id
-        if resolved_app_id is None:
+        if trusted is None:
             raise RegistryResolutionError(
                 "Cannot resolve registry app_id from inputs or ASA url"
             )
-
-        return Arc90Uri(
-            netauth=None, app_id=int(resolved_app_id), box_name=None
-        ).with_asset_id(asset_id)
+        netauth = self.netauth
+        if netauth is None:
+            gh = self._genesis_hash()
+            netauth = netauth_for_genesis(gh) if gh is not None else None
+        return Arc90Uri(netauth=netauth, app_id=trusted, box_name=None).with_asset_id(
+            asset_id
+        )
 
     # ------------------------------------------------------------------
     # High-level read
@@ -175,11 +223,13 @@ class AsaMetadataRegistryRead:
         follow_deprecation: bool = True,
         max_deprecation_hops: int = 5,
         simulate: SimulateOptions | None = None,
+        drift_retries: int = 2,
     ) -> AssetMetadataRecord:
         """
         Fetch a full ARC-89 metadata record (header + metadata bytes).
 
         When `source=AUTO`, the SDK prefers BOX reads (fast) if algod is available; otherwise AVM.
+        Non-atomic reads that observe a Revision change are retried up to `drift_retries` times.
         """
         uri = self.resolve_arc90_uri(
             asset_id=asset_id, metadata_uri=metadata_uri, app_id=app_id
@@ -191,12 +241,18 @@ class AsaMetadataRegistryRead:
         current_asset_id = uri.asset_id
 
         for _ in range(max_deprecation_hops + 1):
-            record = self._get_asset_metadata_once(
-                app_id=current_app_id,
-                asset_id=current_asset_id,
-                source=source,
-                simulate=simulate,
-            )
+            for attempt in range(drift_retries + 1):
+                try:
+                    record = self._get_asset_metadata_once(
+                        app_id=current_app_id,
+                        asset_id=current_asset_id,
+                        source=source,
+                        simulate=simulate,
+                    )
+                    break
+                except MetadataDriftError:
+                    if attempt == drift_retries:
+                        raise
             if follow_deprecation and record.header.deprecated_by not in (
                 0,
                 current_app_id,
@@ -205,8 +261,9 @@ class AsaMetadataRegistryRead:
                 continue
             return record
 
-        # exceeded
-        return record
+        raise RegistryResolutionError(
+            f"Deprecation chain exceeded {max_deprecation_hops} hops (last registry {current_app_id})"
+        )
 
     def _get_asset_metadata_once(
         self,
@@ -271,8 +328,11 @@ class AsaMetadataRegistryRead:
                     chunks.append(paged.page_content)
 
             body_raw_bytes = b"".join(chunks)
-            # pagination.metadata_size is uint16; metadata bytes should match size.
-            body = MetadataBody(body_raw_bytes[: pagination.metadata_size])
+            if len(body_raw_bytes) != pagination.metadata_size:
+                raise MetadataDriftError(
+                    "Assembled metadata size does not match the pagination size"
+                )
+            body = MetadataBody(body_raw_bytes)
 
             return AssetMetadataRecord(
                 app_id=app_id, asset_id=asset_id, header=header, body=body

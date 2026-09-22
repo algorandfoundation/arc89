@@ -486,7 +486,7 @@ class TestGetAssetMetadata:
             metadata_size=50, page_size=100, total_pages=1, revision=1000
         )
         mock_avm.simulate_many.return_value = [
-            (False, 1000, b'{"name": "test"}' + b"\x00" * 33)  # Pad to 50 bytes
+            (False, 1000, b'{"name": "test"}' + b"\x00" * 34)  # Pad to 50 bytes
         ]
 
         result = reader.get_asset_metadata(asset_id=456, source=MetadataSource.AVM)
@@ -518,7 +518,7 @@ class TestGetAssetMetadata:
             metadata_size=20, page_size=100, total_pages=1, revision=1000
         )
         mock_avm.simulate_many.return_value = [
-            (False, 1000, b'{"name": "test"}' + b"\x00" * 2)  # Pad to 20 bytes
+            (False, 1000, b'{"name": "test"}' + b"\x00" * 4)  # Pad to 20 bytes
         ]
 
         result = reader.get_asset_metadata(asset_id=456, source=MetadataSource.AVM)
@@ -646,35 +646,24 @@ class TestGetAssetMetadata:
         """Test deprecation following stops after max hops."""
         reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
 
-        # Create circular deprecation
-        looping_header = MetadataHeader(
-            identifiers=0x00,
-            flags=MetadataFlags.empty(),
-            deprecated_by=999,  # Always points elsewhere
-            revision=1000,
-            metadata_hash=b"\x00" * 32,
-        )
-        looping_record = AssetMetadataRecord(
-            app_id=123,
-            asset_id=456,
-            header=looping_header,
-            body=MetadataBody(b'{"loop": true}'),
-        )
+        # Circular deprecation: 123 -> 999 -> 123 -> ...
+        def box_for(app_id: int, _box_name: bytes) -> dict[str, str]:
+            header = MetadataHeader(
+                identifiers=0x00,
+                flags=MetadataFlags.empty(),
+                deprecated_by=999 if app_id == 123 else 123,
+                revision=1000,
+                metadata_hash=b"\x00" * 32,
+            )
+            return {"value": b64_encode(header.serialized + b'{"loop": true}')}
 
-        # Mock always returns the same looping record
-        box_value = looping_record.header.serialized + looping_record.body.raw_bytes
-        mock_algod_reader.algod.application_box_by_name = Mock(
-            return_value={"value": b64_encode(box_value)}
-        )
+        mock_algod_reader.algod.application_box_by_name = Mock(side_effect=box_for)
         mock_algod_reader.algod.asset_info = Mock(return_value={"params": {"url": ""}})
 
-        result = reader.get_asset_metadata(
-            asset_id=456, follow_deprecation=True, max_deprecation_hops=3
-        )
-
-        # Should stop after max hops and return last result
-        # Since deprecated_by=999, it follows to app_id 999
-        assert result.app_id == 999
+        with pytest.raises(RegistryResolutionError, match="exceeded 3 hops"):
+            reader.get_asset_metadata(
+                asset_id=456, follow_deprecation=True, max_deprecation_hops=3
+            )
 
     def test_get_asset_metadata_no_deprecation_follow(
         self,
@@ -1345,8 +1334,48 @@ class TestEdgeCases:
         # Even if asset_id is provided, URI should be used
         uri = reader.resolve_arc90_uri(
             asset_id=999,  # This should be ignored
-            metadata_uri="algorand://app/789?box=AAAAAAAAAcg",  # b64url of asset ID 456
+            metadata_uri="algorand://app/123?box=AAAAAAAAAcg",  # b64url of asset ID 456
         )
 
-        assert uri.app_id == 789
+        assert uri.app_id == 123
         assert uri.asset_id == 456
+
+    def test_metadata_uri_naming_another_registry_raises(
+        self, mock_algod_reader: AlgodBoxReader
+    ) -> None:
+        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        with pytest.raises(RegistryResolutionError, match="trusted registry is 123"):
+            reader.resolve_arc90_uri(metadata_uri="algorand://app/789?box=AAAAAAAAAcg")
+
+    def test_asset_url_naming_another_registry_raises(
+        self, mock_algod_reader: AlgodBoxReader
+    ) -> None:
+        """A hostile ASA pointing at its own app is rejected, not followed."""
+        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        mock_algod_reader.algod.asset_info = Mock(
+            return_value={"params": {"url": "algorand://app/4242?box=#arc89"}}
+        )
+        with pytest.raises(RegistryResolutionError, match="trusted registry is 123"):
+            reader.resolve_arc90_uri(asset_id=999)
+
+    def test_asset_url_with_prefilled_box_falls_back_to_trusted_registry(
+        self, mock_algod_reader: AlgodBoxReader
+    ) -> None:
+        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        mock_algod_reader.algod.asset_info = Mock(
+            return_value={"params": {"url": "algorand://app/123?box=AAAAAAAAMDk#arc89"}}
+        )
+        uri = reader.resolve_arc90_uri(asset_id=999)
+        assert (uri.app_id, uri.asset_id) == (123, 999)
+
+    def test_asset_url_on_another_network_raises(
+        self, mock_algod_reader: AlgodBoxReader
+    ) -> None:
+        reader = AsaMetadataRegistryRead(
+            app_id=123, algod=mock_algod_reader, netauth="net:testnet"
+        )
+        mock_algod_reader.algod.asset_info = Mock(
+            return_value={"params": {"url": "algorand://app/123?box=#arc89"}}
+        )
+        with pytest.raises(RegistryResolutionError, match="netauth"):
+            reader.resolve_arc90_uri(asset_id=999)

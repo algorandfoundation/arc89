@@ -34,18 +34,30 @@ from asa_metadata_registry import (
     ReversibleFlags,
 )
 from asa_metadata_registry import constants as const
+from asa_metadata_registry.errors import MetadataHashMismatchError
 from asa_metadata_registry.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
+from asa_metadata_registry.hashing import compute_arc3_metadata_hash
 from asa_metadata_registry.migrate import (
     _derive_migration_uri,
     _encode_arc2_migration_message,
     _ensure_exists_and_not_already_migrated,
+    _parse_arc2_backport_message,
     build_arc2_migration_message_txn,
+    build_arc2_revocation_message_txn,
+    discover_backport_uri,
     migrate_legacy_metadata_to_registry,
 )
+from asa_metadata_registry.validation import encode_metadata_json
 from smart_contracts.template_vars import ARC90_NETAUTH
 from tests.helpers.factories import create_arc3_payload
+
+
+def _arc3_am(obj: dict[str, object]) -> bytes:
+    """The ARC-3 `am` of the bytes the SDK stores when migrating a mapping."""
+    return compute_arc3_metadata_hash(encode_metadata_json(obj))
+
 
 # ================================================================
 # Fixtures
@@ -64,6 +76,7 @@ def make_legacy_arc3_asa(
         with_metadata_hash: bool = False,
         default_frozen: bool = False,
         clawback: str | None = None,
+        metadata_hash: bytes | None = None,
     ) -> int:
         return algorand_client.send.asset_create(
             params=AssetCreateParams(
@@ -78,7 +91,8 @@ def make_legacy_arc3_asa(
                 reserve=asset_manager.address,
                 freeze=asset_manager.address,
                 clawback=clawback or asset_manager.address,
-                metadata_hash=bytes(32 * [0xAB]) if with_metadata_hash else None,
+                metadata_hash=metadata_hash
+                or (bytes(32 * [0xAB]) if with_metadata_hash else None),
             )
         ).asset_id
 
@@ -380,7 +394,7 @@ class TestEnsureExistsAndNotAlreadyMigrated:
         with pytest.raises(ValueError, match="does not exist"):
             _ensure_exists_and_not_already_migrated(
                 registry=registry_with_write,
-                asset_id=2**64 - 1,
+                asset_id=2**63 - 1,
             )
 
     def test_not_migrated_passes(
@@ -494,7 +508,7 @@ class TestMigrateLegacyMetadata:
         arc3_metadata: dict[str, object],
     ) -> None:
         """No flags provided — SDK should auto-set immutable and arc3."""
-        asset_id = make_legacy_arc3_asa(with_metadata_hash=True)
+        asset_id = make_legacy_arc3_asa(metadata_hash=_arc3_am(arc3_metadata))
         migrate_legacy_metadata_to_registry(
             registry=registry_with_write,
             asset_manager=asset_manager,
@@ -515,7 +529,7 @@ class TestMigrateLegacyMetadata:
         arc3_metadata: dict[str, object],
     ) -> None:
         """Explicit immutable=False with a non-zero am should raise a readable SDK error."""
-        asset_id = make_legacy_arc3_asa(with_metadata_hash=True)
+        asset_id = make_legacy_arc3_asa(metadata_hash=_arc3_am(arc3_metadata))
         flags = MetadataFlags(
             reversible=ReversibleFlags.empty(),
             irreversible=IrreversibleFlags(immutable=False),
@@ -539,15 +553,15 @@ class TestMigrateLegacyMetadata:
     ) -> None:
         """ARC-20 properties in ARC-3 metadata with non-zero am: immutable patched in after derivation."""
         # ARC-20 requires DefaultFrozen and the controlling App account as Clawback
-        asset_id = make_legacy_arc3_asa(
-            with_metadata_hash=True,
-            default_frozen=True,
-            clawback=get_application_address(999),
-        )
         arc3_with_arc20 = {
             "name": "ARC-20 Token",
             "properties": {"arc-20": {"application-id": 999}},
         }
+        asset_id = make_legacy_arc3_asa(
+            metadata_hash=_arc3_am(arc3_with_arc20),
+            default_frozen=True,
+            clawback=get_application_address(999),
+        )
 
         migrate_legacy_metadata_to_registry(
             registry=registry_with_write,
@@ -1086,3 +1100,147 @@ class TestMigrationIntegration:
         )
         assert pagination.metadata_size > 0
         assert pagination.metadata_size <= const.SHORT_METADATA_SIZE
+
+
+class TestMigrateAmVerification:
+    def test_mismatching_am_raises(
+        self,
+        registry_with_write: AsaMetadataRegistry,
+        asset_manager: SigningAccount,
+        make_legacy_arc3_asa: Callable[..., int],
+        arc3_metadata: dict[str, object],
+    ) -> None:
+        asset_id = make_legacy_arc3_asa(
+            with_metadata_hash=True
+        )  # 0xAB.. is not the ARC-3 hash
+        with pytest.raises(MetadataHashMismatchError):
+            migrate_legacy_metadata_to_registry(
+                registry=registry_with_write,
+                asset_manager=asset_manager,
+                asset_id=asset_id,
+                metadata=arc3_metadata,
+                arc3_compliant=True,
+            )
+
+    def test_raw_bytes_are_stored_verbatim(
+        self,
+        registry_with_write: AsaMetadataRegistry,
+        asset_manager: SigningAccount,
+        make_legacy_arc3_asa: Callable[..., int],
+        arc3_metadata: dict[str, object],
+    ) -> None:
+        raw = json.dumps(arc3_metadata, indent=2).encode()  # pretty-printed legacy file
+        asset_id = make_legacy_arc3_asa(metadata_hash=compute_arc3_metadata_hash(raw))
+        migrate_legacy_metadata_to_registry(
+            registry=registry_with_write,
+            asset_manager=asset_manager,
+            asset_id=asset_id,
+            metadata=raw,
+            arc3_compliant=True,
+        )
+        record = registry_with_write.read.get_asset_metadata(asset_id=asset_id)
+        assert record.body.raw_bytes == raw
+        assert record.header.metadata_hash == compute_arc3_metadata_hash(raw)
+
+
+class TestBackportDiscovery:
+    @staticmethod
+    def _note(payload: bytes) -> str:
+        import base64
+
+        return base64.b64encode(payload).decode()
+
+    def test_parse_messages(self) -> None:
+        import msgpack
+
+        uri = "algorand://app/1?box=AAAAAAAAAAE"
+        assert (
+            _parse_arc2_backport_message(
+                self._note(b'arc89:j{"uri": "' + uri.encode() + b'"}')
+            )
+            == uri
+        )
+        assert (
+            _parse_arc2_backport_message(
+                self._note(b"arc89:m" + msgpack.packb({"uri": "x"}))
+            )
+            == "x"
+        )
+        assert _parse_arc2_backport_message(self._note(b'arc89:j{"uri": ""}')) == ""
+        assert (
+            _parse_arc2_backport_message(self._note(b'arc62:j{"application-id": 1}'))
+            is None
+        )
+        assert _parse_arc2_backport_message(self._note(b"arc89:jnot json")) is None
+        assert _parse_arc2_backport_message(self._note(b'arc89:j{"uri": 5}')) is None
+        assert _parse_arc2_backport_message(None) is None
+
+    def test_latest_confirmed_wins_and_revocation(self) -> None:
+        from unittest.mock import Mock
+
+        txns = [
+            {
+                "note": self._note(b'arc89:j{"uri": "first"}'),
+                "confirmed-round": 10,
+                "intra-round-offset": 0,
+            },
+            {
+                "note": self._note(b"garbage"),
+                "confirmed-round": 30,
+                "intra-round-offset": 0,
+            },
+            {
+                "note": self._note(b'arc89:j{"uri": "second"}'),
+                "confirmed-round": 20,
+                "intra-round-offset": 1,
+            },
+            {
+                "note": self._note(b'arc89:j{"uri": "earlier"}'),
+                "confirmed-round": 20,
+                "intra-round-offset": 0,
+            },
+        ]
+        indexer = Mock()
+        indexer.search_asset_transactions.return_value = {"transactions": txns}
+        assert discover_backport_uri(indexer=indexer, asset_id=1) == "second"
+
+        txns.append(
+            {
+                "note": self._note(b'arc89:j{"uri": ""}'),
+                "confirmed-round": 40,
+                "intra-round-offset": 0,
+            }
+        )
+        assert discover_backport_uri(indexer=indexer, asset_id=1) is None
+
+    def test_pagination_and_no_message(self) -> None:
+        from unittest.mock import Mock
+
+        indexer = Mock()
+        indexer.search_asset_transactions.side_effect = [
+            {"transactions": [], "next-token": "t"},
+            {
+                "transactions": [
+                    {
+                        "note": self._note(b'arc89:j{"uri": "paged"}'),
+                        "confirmed-round": 1,
+                        "intra-round-offset": 0,
+                    }
+                ]
+            },
+        ]
+        assert discover_backport_uri(indexer=indexer, asset_id=1) == "paged"
+        indexer.search_asset_transactions.side_effect = [{"transactions": []}]
+        assert discover_backport_uri(indexer=indexer, asset_id=1) is None
+
+    def test_revocation_txn_note(
+        self,
+        registry_with_write: AsaMetadataRegistry,
+        asset_manager: SigningAccount,
+        make_legacy_arc3_asa: Callable[..., int],
+    ) -> None:
+        asset_id = make_legacy_arc3_asa()
+        txn = build_arc2_revocation_message_txn(
+            registry=registry_with_write, asset_id=asset_id, asset_manager=asset_manager
+        )
+        assert txn.note == b'arc89:j{"uri":""}'

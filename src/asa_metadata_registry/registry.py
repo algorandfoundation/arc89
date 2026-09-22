@@ -9,6 +9,7 @@ from algosdk.v2client.algod import AlgodClient
 from .algod import AlgodBoxReader
 from .app_client import import_generated_client
 from .codec import Arc90Uri
+from .deployments import DEFAULT_DEPLOYMENTS
 from .errors import MissingAppClientError, RegistryResolutionError
 from .generated.asa_metadata_registry_client import AsaMetadataRegistryClient
 from .read.avm import AsaMetadataRegistryAvmRead
@@ -103,6 +104,7 @@ class AsaMetadataRegistry:
             app_id=config.app_id,
             algod=self._algod_reader,
             avm_factory=self._avm_reader_factory,
+            netauth=config.netauth,
         )
 
     @property
@@ -119,9 +121,35 @@ class AsaMetadataRegistry:
 
     @classmethod
     def from_algod(
-        cls, *, algod: AlgodClient, app_id: int | None
+        cls, *, algod: AlgodClient, app_id: int | None, netauth: str | None = None
     ) -> AsaMetadataRegistry:
-        return cls(config=RegistryConfig(app_id=app_id), algod=algod, app_client=None)
+        return cls(
+            config=RegistryConfig(app_id=app_id, netauth=netauth),
+            algod=algod,
+            app_client=None,
+        )
+
+    @classmethod
+    def for_network(
+        cls,
+        network: str,
+        *,
+        algod: AlgodClient | None = None,
+        app_client: AsaMetadataRegistryClient | None = None,
+    ) -> AsaMetadataRegistry:
+        """Pin the registry to a trusted deployment (`DEFAULT_DEPLOYMENTS`) by network name."""
+        deployment = DEFAULT_DEPLOYMENTS.get(network)
+        if deployment is None or deployment.app_id is None:
+            raise RegistryResolutionError(
+                f"No trusted deployment for network {network!r}"
+            )
+        return cls(
+            config=RegistryConfig(
+                app_id=deployment.app_id, netauth=deployment.arc90_uri_netauth
+            ),
+            algod=algod,
+            app_client=app_client,
+        )
 
     @classmethod
     def from_app_client(
