@@ -154,6 +154,8 @@ IDX_METADATA: Final[int] = IDX_DEPRECATED_BY + DEPRECATED_BY_SIZE
 MAX_METADATA_SIZE: Final[int] = MAX_BOX_SIZE - HEADER_SIZE
 MAX_PAGES: Final[int] = (MAX_METADATA_SIZE + PAGE_SIZE - 1) // PAGE_SIZE
 SHORT_METADATA_SIZE: Final[int] = MAX_STK_SIZE
+# Sentinel `new_metadata_size` for the deletion MBR Delta quote (never a valid size)
+DELETE_METADATA_SIZE: Final[int] = 0xFFFF
 
 # Domain Separators
 HASH_DOMAIN_HEADER: Final[bytes] = b"arc0089/header"

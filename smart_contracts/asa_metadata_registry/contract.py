@@ -872,6 +872,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         """
         Return the Asset Metadata Box MBR Delta for an ASA, given a new Asset Metadata byte size.
         If the Asset Metadata Box does not exist, the creation MBR Delta is returned.
+        If new_metadata_size is DELETE_METADATA_SIZE (0xFFFF), the deletion MBR Delta is returned.
 
         Args:
             asset_id: The Asset ID to calculate the Asset Metadata MBR Delta for
@@ -880,6 +881,21 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         Returns:
             MBR Delta: tuple of (sign enum, amount in microALGO)
         """
+        if new_metadata_size.as_uint64() == const.DELETE_METADATA_SIZE:
+            if not self._metadata_exists(asset_id):
+                return abi.MbrDelta(
+                    sign=arc4.UInt8(enums.MBR_DELTA_NULL), amount=UInt64(0)
+                )
+            box_size = (
+                const.ASSET_METADATA_BOX_KEY_SIZE
+                + const.HEADER_SIZE
+                + self._get_metadata_size(asset_id)
+            )
+            return abi.MbrDelta(
+                sign=arc4.UInt8(enums.MBR_DELTA_NEG),
+                amount=const.FLAT_MBR + const.BYTE_MBR * box_size,
+            )
+
         # Preconditions
         logged_assert(
             new_metadata_size.as_uint64() <= const.MAX_METADATA_SIZE,

@@ -193,7 +193,7 @@ class AsaMetadataRegistry(algopy.arc4.ARC4Client, typing.Protocol):
     ) -> MbrDelta:
         """
         Return the Asset Metadata Box MBR Delta for an ASA, given a new Asset Metadata byte size.
-        If the Asset Metadata Box does not exist, the creation MBR Delta is returned.
+        If the Asset Metadata Box does not exist, the creation MBR Delta is returned. If new_metadata_size is DELETE_METADATA_SIZE (0xFFFF), the deletion MBR Delta is returned.
         """
 
     @algopy.arc4.abimethod(readonly=True)
