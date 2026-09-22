@@ -17,6 +17,9 @@ ASA_NOT_ARC3_COMPLIANT: LiteralString = "asaNotArc3Compliant"
 # The ASA must not have a clawback address
 ASA_NOT_ARC54_COMPLIANT: LiteralString = "asaNotArc54Compliant"
 
+# The ASA must be DefaultFrozen with a Clawback Address
+ASA_NOT_ARC20_COMPLIANT: LiteralString = "asaNotArc20Compliant"
+
 # Invalid ARC-89 partial URI
 ASA_NOT_ARC89_COMPLIANT: LiteralString = "asaNotArc89Compliant"
 

@@ -18,12 +18,14 @@ from unittest.mock import Mock
 import pytest
 from algokit_utils import (
     AlgoAmount,
+    AssetCreateParams,
     AssetDestroyParams,
     CommonAppCallParams,
     SendParams,
     SigningAccount,
 )
 from algosdk.error import AlgodHTTPError
+from algosdk.logic import get_application_address
 
 from asa_metadata_registry import (
     AsaMetadataRegistryRead,
@@ -43,6 +45,7 @@ from asa_metadata_registry import (
     flags,
     get_default_registry_params,
 )
+from asa_metadata_registry import constants as const
 from asa_metadata_registry.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryClient,
 )
@@ -507,6 +510,25 @@ class TestCreateMetadata:
             )
 
 
+def _create_arc3_asa(
+    client: AsaMetadataRegistryClient,
+    manager: SigningAccount,
+    *,
+    default_frozen: bool = False,
+    clawback: str | None = None,
+) -> int:
+    return client.algorand.send.asset_create(
+        params=AssetCreateParams(
+            sender=manager.address,
+            manager=manager.address,
+            total=42,
+            asset_name="ARC3 Test" + const.ARC3_NAME_SUFFIX.decode(),
+            default_frozen=default_frozen,
+            clawback=clawback,
+        )
+    ).asset_id
+
+
 class TestCreateMetadataArc3Compliant:
     """Test create_metadata validation for declared ARC-3 compliant ASAs."""
 
@@ -641,13 +663,19 @@ class TestCreateMetadataArc3Compliant:
         self,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
         asset_manager: SigningAccount,
-        arc_3_asa: int,
         rev_flag: ReversibleFlags,
     ) -> None:
         """Test that arc20/arc62 reversible flags without arc3 flag skip properties validation."""
+        # ARC-20 still requires the ASA-level conditions (DefaultFrozen, Clawback)
+        asset_id = _create_arc3_asa(
+            asa_metadata_registry_client,
+            asset_manager,
+            default_frozen=rev_flag.arc20,
+            clawback=asset_manager.address if rev_flag.arc20 else None,
+        )
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
         metadata = AssetMetadata.from_json(
-            asset_id=arc_3_asa,
+            asset_id=asset_id,
             json_obj=create_arc3_payload(name="ARC3 Compliant Test", properties={}),
             flags=MetadataFlags(
                 reversible=rev_flag, irreversible=IrreversibleFlags(arc3=False)
@@ -663,12 +691,17 @@ class TestCreateMetadataArc3Compliant:
         self,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
         asset_manager: SigningAccount,
-        arc_3_asa: int,
     ) -> None:
         """Test that both arc20+arc62 flags with valid properties creates metadata successfully."""
+        asset_id = _create_arc3_asa(
+            asa_metadata_registry_client,
+            asset_manager,
+            default_frozen=True,
+            clawback=get_application_address(123456),
+        )
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
         metadata = AssetMetadata.from_json(
-            asset_id=arc_3_asa,
+            asset_id=asset_id,
             json_obj=create_arc3_payload(
                 name="ARC3 Compliant Test",
                 properties={
@@ -698,15 +731,21 @@ class TestCreateMetadataArc3Compliant:
         self,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
         asset_manager: SigningAccount,
-        arc_3_asa: int,
         flag_index: int,
     ) -> None:
         """Test that valid properties with arc3 + arc20/arc62 flags creates metadata successfully."""
+        is_arc20 = flag_index == flags.REV_FLG_ARC20
+        asset_id = _create_arc3_asa(
+            asa_metadata_registry_client,
+            asset_manager,
+            default_frozen=is_arc20,
+            clawback=get_application_address(123456) if is_arc20 else None,
+        )
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
 
-        arc_key = "arc-20" if flag_index == flags.REV_FLG_ARC20 else "arc-62"
+        arc_key = "arc-20" if is_arc20 else "arc-62"
         metadata = AssetMetadata.from_json(
-            asset_id=arc_3_asa,
+            asset_id=asset_id,
             json_obj=create_arc3_payload(
                 name="ARC3 Compliant Test",
                 properties={arc_key: {"application-id": 123456}},
@@ -774,7 +813,7 @@ class TestWriteSingleTransactionSimulation:
 
         composer = writer.client.new_group()
         composer.arc89_set_reversible_flag(
-            args=(mutable_short_metadata.asset_id, flags.REV_FLG_ARC20, True),
+            args=(mutable_short_metadata.asset_id, flags.REV_FLG_NTT, True),
             params=CommonAppCallParams(
                 sender=asset_manager.address, static_fee=AlgoAmount(micro_algo=min_fee)
             ),
@@ -821,7 +860,7 @@ class TestSetReversibleFlag:
         writer.set_reversible_flag(
             asset_manager=asset_manager,
             asset_id=mutable_short_metadata.asset_id,
-            flag_index=flags.REV_FLG_ARC20,
+            flag_index=flags.REV_FLG_NTT,
             value=True,
         )
         # Verify flag was set
@@ -832,7 +871,7 @@ class TestSetReversibleFlag:
         updated = AssetMetadataBox.parse(
             asset_id=mutable_short_metadata.asset_id, value=box_value
         )
-        assert updated.header.is_arc20_smart_asa is True
+        assert updated.header.flags.reversible.ntt is True
 
     def test_set_reversible_flag_false(
         self,
@@ -931,16 +970,28 @@ class TestSetReversibleFlag:
         asa_metadata_registry_client: AsaMetadataRegistryClient,
         asset_manager: SigningAccount,
         reader_with_algod: AsaMetadataRegistryRead,
-        arc_3_asa: int,
         flag_index: int,
         arc_key: str,
     ) -> None:
         """Test that valid properties with arc3 + arc20/arc62 flags sets the flag successfully."""
+        app_id = 123456
+        # ARC-20 also requires DefaultFrozen and the controlling App account as Clawback
+        is_arc20 = flag_index == flags.REV_FLG_ARC20
+        asset_id = asa_metadata_registry_client.algorand.send.asset_create(
+            params=AssetCreateParams(
+                sender=asset_manager.address,
+                manager=asset_manager.address,
+                total=42,
+                asset_name="ARC3 Test" + const.ARC3_NAME_SUFFIX.decode(),
+                default_frozen=is_arc20,
+                clawback=get_application_address(app_id) if is_arc20 else None,
+            )
+        ).asset_id
         writer = AsaMetadataRegistryWrite(client=asa_metadata_registry_client)
         metadata = create_test_metadata(
-            arc_3_asa,
+            asset_id,
             metadata_content=create_arc3_payload(
-                name="ARC3 Test", properties={arc_key: {"application-id": 123456}}
+                name="ARC3 Test", properties={arc_key: {"application-id": app_id}}
             ),
             flags=MetadataFlags(
                 reversible=ReversibleFlags.empty(),
@@ -950,17 +1001,17 @@ class TestSetReversibleFlag:
         create_metadata(
             asset_manager=asset_manager,
             asa_metadata_registry_client=asa_metadata_registry_client,
-            asset_id=arc_3_asa,
+            asset_id=asset_id,
             metadata=metadata,
         )
         writer.set_reversible_flag(
             asset_manager=asset_manager,
-            asset_id=arc_3_asa,
+            asset_id=asset_id,
             flag_index=flag_index,
             value=True,
         )
         record = reader_with_algod.box.get_asset_metadata_record(
-            asset_id=arc_3_asa,
+            asset_id=asset_id,
         )
         assert record is not None
         assert record.header.flags.reversible.arc20 is (
@@ -1122,7 +1173,7 @@ class TestWriteIntegration:
         writer.set_reversible_flag(
             asset_manager=asset_manager,
             asset_id=arc_89_asa,
-            flag_index=flags.REV_FLG_ARC20,
+            flag_index=flags.REV_FLG_ARC62,
             value=True,
         )
         writer.set_reversible_flag(
@@ -1143,8 +1194,8 @@ class TestWriteIntegration:
         )
         assert box_value is not None
         result = AssetMetadataBox.parse(asset_id=arc_89_asa, value=box_value)
-        assert result.header.is_arc20_smart_asa is True
-        assert result.header.flags.reversible.arc20 is True
+        assert result.header.is_arc62_circulating_supply is True
+        assert result.header.flags.reversible.arc62 is True
         assert result.header.flags.reversible.reserved_3 is True
         assert result.header.flags.irreversible.reserved_3 is True
 

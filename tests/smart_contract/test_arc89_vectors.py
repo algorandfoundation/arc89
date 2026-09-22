@@ -29,9 +29,15 @@ def test_metadata_vector_on_chain(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     vector: dict[str, object],
 ) -> None:
+    # The ARC-20 bit requires a DefaultFrozen ASA with a Clawback Address
+    arc20 = bool(int(vector["reversible_flags"]) & 0x01)
     asset_id = asa_metadata_registry_client.algorand.send.asset_create(
         params=AssetCreateParams(
-            sender=asset_manager.address, manager=asset_manager.address, total=42
+            sender=asset_manager.address,
+            manager=asset_manager.address,
+            total=42,
+            default_frozen=arc20,
+            clawback=asset_manager.address if arc20 else None,
         )
     ).asset_id
     metadata = AssetMetadata(

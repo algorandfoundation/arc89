@@ -42,6 +42,10 @@ class AsaValidation(ARC4Contract):
         clawback, exists = op.AssetParamsGet.asset_clawback(asa)
         return exists and clawback == Global.zero_address
 
+    def _is_arc20_compliant(self, asa: Asset) -> bool:
+        default_frozen, _exists = op.AssetParamsGet.asset_default_frozen(asa)
+        return default_frozen and asa.clawback != Global.zero_address
+
     def _is_arc89_compliant(self, asa: Asset, arc89_partial_uri: Bytes) -> bool:
         # au == partial URI, optionally followed by an ARC-90 fragment ("#...")
         asa_url = asa.url

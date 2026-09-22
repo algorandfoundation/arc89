@@ -177,6 +177,9 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             start_index=old_asset_metadata_box_size, value=payload
         )
 
+    def _is_arc20_smart_asa(self, asa: Asset) -> bool:
+        return self._get_reversible_flag_value(asa, UInt64(flg.REV_FLG_ARC20))
+
     def _is_arc3_metadata(self, asa: Asset) -> bool:
         return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_ARC3))
 
@@ -467,6 +470,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         if self._is_arc54_burnable(asset_id):
             logged_assert(
                 self._is_arc54_compliant(asset_id), err.ASA_NOT_ARC54_COMPLIANT
+            )
+        if self._is_arc20_smart_asa(asset_id):
+            logged_assert(
+                self._is_arc20_compliant(asset_id), err.ASA_NOT_ARC20_COMPLIANT
             )
         if self._is_arc89_native(asset_id):
             ensure_budget(required_budget=const.ASA_URL_CHECK_OP_BUDGET)
@@ -768,6 +775,12 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
 
             # Update Metadata Header
             self._update_header_excluding_flags_and_emit(asset_id)
+
+            # Postconditions
+            if self._is_arc20_smart_asa(asset_id):
+                logged_assert(
+                    self._is_arc20_compliant(asset_id), err.ASA_NOT_ARC20_COMPLIANT
+                )
 
     @arc4.abimethod
     def arc89_set_irreversible_flag(

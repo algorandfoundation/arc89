@@ -22,6 +22,7 @@ from algokit_utils import (
     LogicError,
     SigningAccount,
 )
+from algosdk.logic import get_application_address
 
 from asa_metadata_registry import (
     Arc90Compliance,
@@ -58,7 +59,12 @@ def make_legacy_arc3_asa(
 ) -> Callable[..., int]:
     """Factory for legacy ARC-3 ASAs. Pass with_metadata_hash=True to include a non-zero metadata hash."""
 
-    def _factory(*, with_metadata_hash: bool = False) -> int:
+    def _factory(
+        *,
+        with_metadata_hash: bool = False,
+        default_frozen: bool = False,
+        clawback: str | None = None,
+    ) -> int:
         return algorand_client.send.asset_create(
             params=AssetCreateParams(
                 sender=asset_manager.address,
@@ -67,10 +73,11 @@ def make_legacy_arc3_asa(
                 unit_name="LNFT",
                 url="ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
                 decimals=0,
+                default_frozen=default_frozen,
                 manager=asset_manager.address,
                 reserve=asset_manager.address,
                 freeze=asset_manager.address,
-                clawback=asset_manager.address,
+                clawback=clawback or asset_manager.address,
                 metadata_hash=bytes(32 * [0xAB]) if with_metadata_hash else None,
             )
         ).asset_id
@@ -531,7 +538,12 @@ class TestMigrateLegacyMetadata:
         make_legacy_arc3_asa: Callable[..., int],
     ) -> None:
         """ARC-20 properties in ARC-3 metadata with non-zero am: immutable patched in after derivation."""
-        asset_id = make_legacy_arc3_asa(with_metadata_hash=True)
+        # ARC-20 requires DefaultFrozen and the controlling App account as Clawback
+        asset_id = make_legacy_arc3_asa(
+            with_metadata_hash=True,
+            default_frozen=True,
+            clawback=get_application_address(999),
+        )
         arc3_with_arc20 = {
             "name": "ARC-20 Token",
             "properties": {"arc-20": {"application-id": 999}},
