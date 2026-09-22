@@ -751,7 +751,6 @@ class AssetMetadataBox:
 
         identifiers = self.header.expected_identifiers(body=self.body, params=p)
         computed_hash = compute_metadata_hash(
-            asset_id=self.asset_id,
             metadata_identifiers=identifiers,
             reversible_flags=self.header.flags.reversible_byte,
             irreversible_flags=self.header.flags.irreversible_byte,
@@ -945,7 +944,6 @@ class AssetMetadata:
 
     def compute_header_hash(self) -> bytes:
         return compute_header_hash(
-            asset_id=self.asset_id,
             metadata_identifiers=self.identifiers_byte,
             reversible_flags=self.flags.reversible_byte,
             irreversible_flags=self.flags.irreversible_byte,
@@ -954,7 +952,6 @@ class AssetMetadata:
 
     def compute_page_hash(self, *, page_index: int) -> bytes:
         return compute_page_hash(
-            asset_id=self.asset_id,
             page_index=page_index,
             page_content=self.body.get_page(page_index),
         )
@@ -967,7 +964,6 @@ class AssetMetadata:
         """
         p = get_default_registry_params()
         return compute_metadata_hash(
-            asset_id=self.asset_id,
             metadata_identifiers=self.identifiers_byte,
             reversible_flags=self.flags.reversible.byte_value,
             irreversible_flags=self.flags.irreversible.byte_value,

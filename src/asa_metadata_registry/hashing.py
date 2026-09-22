@@ -6,7 +6,6 @@ import hashlib
 import json
 
 from . import constants as const
-from .codec import asset_id_to_box_name
 from .errors import InvalidPageIndexError
 
 MAX_UINT8 = 2**8 - 1
@@ -40,17 +39,15 @@ def sha256(data: bytes) -> bytes:
 
 def compute_header_hash(
     *,
-    asset_id: int,
     metadata_identifiers: int,
     reversible_flags: int,
     irreversible_flags: int,
     metadata_size: int,
 ) -> bytes:
     """
-    Compute hh = SHA-512/256("arc0089/header" || asset_id || identifiers || rev_flags || irr_flags || metadata_size)
+    Compute hh = SHA-512/256("arc0089/header" || identifiers || rev_flags || irr_flags || metadata_size)
 
     Args:
-        asset_id: Asset ID (uint64)
         metadata_identifiers: Metadata Identifiers (byte)
         reversible_flags: Reversible Flags (byte)
         irreversible_flags: Irreversible Flags (byte)
@@ -70,7 +67,6 @@ def compute_header_hash(
 
     data = (
         const.HASH_DOMAIN_HEADER
-        + asset_id_to_box_name(asset_id)
         + bytes([metadata_identifiers])
         + bytes([reversible_flags])
         + bytes([irreversible_flags])
@@ -90,15 +86,13 @@ def paginate(metadata: bytes, page_size: int) -> list[bytes]:
 
 def compute_page_hash(
     *,
-    asset_id: int,
     page_index: int,
     page_content: bytes,
 ) -> bytes:
     """
-    Compute ph[i] = SHA-512/256("arc0089/page" || asset_id || page_index || page_size || page_content)
+    Compute ph[i] = SHA-512/256("arc0089/page" || page_index || page_size || page_content)
 
     Args:
-        asset_id: Asset ID (uint64)
         page_index: 0-based page index (uint8)
         page_content: Page content raw bytes
 
@@ -112,7 +106,6 @@ def compute_page_hash(
 
     data = (
         const.HASH_DOMAIN_PAGE
-        + asset_id_to_box_name(asset_id)
         + bytes([page_index])
         + len(page_content).to_bytes(const.UINT16_SIZE, "big", signed=False)
         + page_content
@@ -122,7 +115,6 @@ def compute_page_hash(
 
 def compute_metadata_hash(
     *,
-    asset_id: int,
     metadata_identifiers: int,
     reversible_flags: int,
     irreversible_flags: int,
@@ -141,7 +133,6 @@ def compute_metadata_hash(
         32-byte metadata hash
     """
     hh = compute_header_hash(
-        asset_id=asset_id,
         metadata_identifiers=metadata_identifiers,
         reversible_flags=reversible_flags,
         irreversible_flags=irreversible_flags,
@@ -151,7 +142,7 @@ def compute_metadata_hash(
 
     data = const.HASH_DOMAIN_METADATA + hh
     for i, p in enumerate(pages):
-        data += compute_page_hash(asset_id=asset_id, page_index=i, page_content=p)
+        data += compute_page_hash(page_index=i, page_content=p)
 
     return sha512_256(data)
 

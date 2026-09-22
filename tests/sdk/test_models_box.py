@@ -396,7 +396,6 @@ class TestAssetMetadataBoxAdvanced:
 
         # Compute correct hash
         correct_hash = compute_metadata_hash(
-            asset_id=123,
             metadata_identifiers=bitmasks.MASK_ID_SHORT,
             reversible_flags=0,
             irreversible_flags=0,

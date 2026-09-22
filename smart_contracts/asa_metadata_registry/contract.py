@@ -293,11 +293,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         self._set_metadata_identifiers(asa, identifiers)
 
     def _compute_header_hash(self, asa: Asset) -> Bytes:
-        # hh = SHA-512/256("arc0089/header" || Asset ID || Metadata Identifiers
-        # || Reversible Flags || Irreversible Flags || Metadata Size)
+        # hh = SHA-512/256("arc0089/header" || Metadata Identifiers || Reversible Flags
+        # || Irreversible Flags || Metadata Size)
         ensure_budget(required_budget=const.HEADER_HASH_OP_BUDGET)
         domain = Bytes(const.HASH_DOMAIN_HEADER)
-        asset_id = op.itob(asa.id)
         metadata_identifiers = self._get_metadata_identifiers(asa)
         reversible_flags = self._get_reversible_flags(asa)
         irreversible_flags = self._get_irreversible_flags(asa)
@@ -307,25 +306,21 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         )
         return op.sha512_256(
             domain
-            + asset_id
             + metadata_identifiers
             + reversible_flags
             + irreversible_flags
             + metadata_size
         )
 
-    def _compute_page_hash(
-        self, asa: Asset, page_index: UInt64, page_content: Bytes
-    ) -> Bytes:
-        # ph[i] = SHA-512/256("arc0089/page" || Asset ID || Page Index || Page Size || Page Content)
+    def _compute_page_hash(self, page_index: UInt64, page_content: Bytes) -> Bytes:
+        # ph[i] = SHA-512/256("arc0089/page" || Page Index || Page Size || Page Content)
         ensure_budget(required_budget=const.PAGE_HASH_OP_BUDGET)
         domain = Bytes(const.HASH_DOMAIN_PAGE)
-        asset_id = op.itob(asa.id)
         page_idx = trimmed_itob(uint=page_index, size=UInt64(const.UINT8_SIZE))
         page_size = trimmed_itob(
             uint=page_content.length, size=UInt64(const.UINT16_SIZE)
         )
-        return op.sha512_256(domain + asset_id + page_idx + page_size + page_content)
+        return op.sha512_256(domain + page_idx + page_size + page_content)
 
     def _compute_metadata_hash(self, asa: Asset) -> Bytes:
         # am = SHA-512/256("arc0089/am" || hh || ph[0] || ph[1] || ... || ph[total_pages - 1]) or
@@ -337,7 +332,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         if total_pages > 0:
             for page_index in urange(0, total_pages):
                 page_content = self._get_metadata_page(asa, page_index)
-                ph = self._compute_page_hash(asa, page_index, page_content)
+                ph = self._compute_page_hash(page_index, page_content)
                 concatenated_ph += ph
         return op.sha512_256(domain + hh + concatenated_ph)
 
@@ -1143,7 +1138,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             logged_err(err.EMPTY_METADATA)
 
         page_content = self._get_metadata_page(asset_id, page.as_uint64())
-        page_hash = self._compute_page_hash(asset_id, page.as_uint64(), page_content)
+        page_hash = self._compute_page_hash(page.as_uint64(), page_content)
         return abi.Hash(page_hash)
 
     @arc4.abimethod(readonly=True)

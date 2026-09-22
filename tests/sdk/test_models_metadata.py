@@ -406,7 +406,6 @@ class TestAssetMetadata:
 
         # Verify hash is correct by comparing to the standalone hash function
         expected_hash = hash_fn(
-            asset_id=metadata.asset_id,
             metadata_identifiers=metadata.identifiers_byte,
             reversible_flags=metadata.flags.reversible_byte,
             irreversible_flags=metadata.flags.irreversible_byte,
@@ -440,7 +439,6 @@ class TestAssetMetadata:
 
         # Verify hash matches expected value
         expected_hash = hash_fn(
-            asset_id=456,
             metadata_identifiers=bitmasks.MASK_ID_SHORT,
             reversible_flags=flags.reversible_byte,
             irreversible_flags=flags.irreversible_byte,
@@ -475,7 +473,6 @@ class TestAssetMetadata:
 
         # Verify hash matches expected value
         expected_hash = hash_fn(
-            asset_id=789,
             metadata_identifiers=0,
             reversible_flags=flags.reversible_byte,
             irreversible_flags=flags.irreversible_byte,

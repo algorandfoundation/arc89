@@ -618,42 +618,29 @@ def test_arc89_native_with_matching_metadata_hash(
     arc89_partial_uri: str,
 ) -> None:
     """
-    Test that metadata creation SUCCEEDS when:
-    - ASA has a non-zero metadata hash (am)
-    - Metadata is flagged as ARC89 native
-    - Metadata is NOT flagged as ARC3
-    - The ASA's metadata hash MATCHES the computed hash
-
-    Note: This test demonstrates that when the ASA has no metadata hash (zero am),
-    the contract computes and sets the hash correctly. We verify the computed hash
-    matches what the SDK computes.
+    Native immutable ASA: `am` is computed before the ASA exists (no Asset ID in the
+    hash) and must match the Metadata Hash computed by the registry.
     """
-    # Create ASA without metadata hash first (the contract will compute it)
+    body = MetadataBody(raw_bytes=b'{"name":"Test"}')
+    flags = MetadataFlags(
+        reversible=ReversibleFlags.empty(),
+        irreversible=IrreversibleFlags(arc89_native=True, immutable=True),
+    )
+    am = AssetMetadata(
+        asset_id=0, body=body, flags=flags, deprecated_by=0
+    ).compute_arc89_metadata_hash()
+
     asset_id = asa_metadata_registry_client.algorand.send.asset_create(
         params=AssetCreateParams(
             sender=asset_manager.address,
             manager=asset_manager.address,
             total=42,
-            url=arc89_partial_uri,  # ARC89 compliant URL, NOT ARC3
+            url=arc89_partial_uri,
+            metadata_hash=am,
         )
     ).asset_id
 
-    # Create metadata with ARC89 native flag
-    metadata_body = MetadataBody(raw_bytes=b'{"name":"Test"}')
-    flags = MetadataFlags(
-        reversible=ReversibleFlags.empty(),
-        irreversible=IrreversibleFlags(
-            arc89_native=True
-        ),  # No immutable needed since no am
-    )
-    metadata = AssetMetadata(
-        asset_id=asset_id,
-        body=metadata_body,
-        flags=flags,
-        deprecated_by=0,
-    )
-
-    # This should succeed - the contract computes the hash since am is zero
+    metadata = AssetMetadata(asset_id=asset_id, body=body, flags=flags, deprecated_by=0)
     create_metadata(
         asset_manager=asset_manager,
         asa_metadata_registry_client=asa_metadata_registry_client,
@@ -661,14 +648,9 @@ def test_arc89_native_with_matching_metadata_hash(
         metadata=metadata,
     )
 
-    # Verify the metadata was created and hash matches SDK computation
     created_metadata = get_metadata_from_state(asa_metadata_registry_client, asset_id)
     assert created_metadata.header.flags.irreversible.arc89_native
-    assert not created_metadata.header.flags.irreversible.arc3
-    # The contract-computed hash should match what the SDK computes
-    assert (
-        created_metadata.header.metadata_hash == metadata.compute_arc89_metadata_hash()
-    )
+    assert created_metadata.header.metadata_hash == am
 
 
 def test_arc89_native_with_arc3_bypasses_hash_check(

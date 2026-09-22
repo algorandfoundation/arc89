@@ -103,7 +103,6 @@ class AsaMetadataRegistryBoxRead:
     def arc89_get_metadata_header_hash(self, *, asset_id: int) -> bytes:
         b = self._box(asset_id)
         return compute_header_hash(
-            asset_id=asset_id,
             metadata_identifiers=b.header.identifiers,
             reversible_flags=b.header.flags.reversible_byte,
             irreversible_flags=b.header.flags.irreversible_byte,
@@ -115,9 +114,7 @@ class AsaMetadataRegistryBoxRead:
         pages = paginate(b.body.raw_bytes, self.params.page_size)
         if page < 0 or page >= len(pages):
             return b""
-        return compute_page_hash(
-            asset_id=asset_id, page_index=page, page_content=pages[page]
-        )
+        return compute_page_hash(page_index=page, page_content=pages[page])
 
     def arc89_get_metadata_hash(self, *, asset_id: int) -> bytes:
         # On-chain method returns the header's stored metadata_hash.

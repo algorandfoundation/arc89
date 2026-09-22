@@ -17,7 +17,6 @@ import json
 import pytest
 
 from asa_metadata_registry import hashing
-from asa_metadata_registry.codec import asset_id_to_box_name
 from smart_contracts import constants as const
 
 
@@ -101,7 +100,6 @@ class TestComputeHeaderHash:
     def test_basic_header_hash(self) -> None:
         """Test computing header hash with basic parameters."""
         result = hashing.compute_header_hash(
-            asset_id=12345,
             metadata_identifiers=0b10101010,
             reversible_flags=0b11001100,
             irreversible_flags=0b00110011,
@@ -112,7 +110,6 @@ class TestComputeHeaderHash:
     def test_zero_values(self) -> None:
         """Test header hash with all zero values."""
         result = hashing.compute_header_hash(
-            asset_id=0,
             metadata_identifiers=0,
             reversible_flags=0,
             irreversible_flags=0,
@@ -123,7 +120,6 @@ class TestComputeHeaderHash:
     def test_max_values(self) -> None:
         """Test header hash with maximum values."""
         result = hashing.compute_header_hash(
-            asset_id=2**64 - 1,
             metadata_identifiers=255,
             reversible_flags=255,
             irreversible_flags=255,
@@ -134,7 +130,6 @@ class TestComputeHeaderHash:
     def test_deterministic(self) -> None:
         """Test that header hash is deterministic."""
         params = {
-            "asset_id": 99999,
             "metadata_identifiers": 42,
             "reversible_flags": 128,
             "irreversible_flags": 64,
@@ -144,35 +139,15 @@ class TestComputeHeaderHash:
         result2 = hashing.compute_header_hash(**params)
         assert result1 == result2
 
-    def test_different_asset_id_different_hash(self) -> None:
-        """Test that different asset IDs produce different hashes."""
-        result1 = hashing.compute_header_hash(
-            asset_id=1,
-            metadata_identifiers=0,
-            reversible_flags=0,
-            irreversible_flags=0,
-            metadata_size=100,
-        )
-        result2 = hashing.compute_header_hash(
-            asset_id=2,
-            metadata_identifiers=0,
-            reversible_flags=0,
-            irreversible_flags=0,
-            metadata_size=100,
-        )
-        assert result1 != result2
-
     def test_different_identifiers_different_hash(self) -> None:
         """Test that different metadata identifiers produce different hashes."""
         result1 = hashing.compute_header_hash(
-            asset_id=100,
             metadata_identifiers=1,
             reversible_flags=0,
             irreversible_flags=0,
             metadata_size=100,
         )
         result2 = hashing.compute_header_hash(
-            asset_id=100,
             metadata_identifiers=2,
             reversible_flags=0,
             irreversible_flags=0,
@@ -183,14 +158,12 @@ class TestComputeHeaderHash:
     def test_different_reversible_flags_different_hash(self) -> None:
         """Test that different reversible flags produce different hashes."""
         result1 = hashing.compute_header_hash(
-            asset_id=100,
             metadata_identifiers=0,
             reversible_flags=1,
             irreversible_flags=0,
             metadata_size=100,
         )
         result2 = hashing.compute_header_hash(
-            asset_id=100,
             metadata_identifiers=0,
             reversible_flags=2,
             irreversible_flags=0,
@@ -201,14 +174,12 @@ class TestComputeHeaderHash:
     def test_different_irreversible_flags_different_hash(self) -> None:
         """Test that different irreversible flags produce different hashes."""
         result1 = hashing.compute_header_hash(
-            asset_id=100,
             metadata_identifiers=0,
             reversible_flags=0,
             irreversible_flags=1,
             metadata_size=100,
         )
         result2 = hashing.compute_header_hash(
-            asset_id=100,
             metadata_identifiers=0,
             reversible_flags=0,
             irreversible_flags=2,
@@ -219,14 +190,12 @@ class TestComputeHeaderHash:
     def test_different_metadata_size_different_hash(self) -> None:
         """Test that different metadata sizes produce different hashes."""
         result1 = hashing.compute_header_hash(
-            asset_id=100,
             metadata_identifiers=0,
             reversible_flags=0,
             irreversible_flags=0,
             metadata_size=100,
         )
         result2 = hashing.compute_header_hash(
-            asset_id=100,
             metadata_identifiers=0,
             reversible_flags=0,
             irreversible_flags=0,
@@ -238,7 +207,6 @@ class TestComputeHeaderHash:
         """Test that negative metadata_identifiers raises ValueError."""
         with pytest.raises(ValueError, match="metadata_identifiers must fit in byte"):
             hashing.compute_header_hash(
-                asset_id=100,
                 metadata_identifiers=-1,
                 reversible_flags=0,
                 irreversible_flags=0,
@@ -249,7 +217,6 @@ class TestComputeHeaderHash:
         """Test that metadata_identifiers > 255 raises ValueError."""
         with pytest.raises(ValueError, match="metadata_identifiers must fit in byte"):
             hashing.compute_header_hash(
-                asset_id=100,
                 metadata_identifiers=256,
                 reversible_flags=0,
                 irreversible_flags=0,
@@ -260,7 +227,6 @@ class TestComputeHeaderHash:
         """Test that negative reversible_flags raises ValueError."""
         with pytest.raises(ValueError, match="reversible_flags must fit in byte"):
             hashing.compute_header_hash(
-                asset_id=100,
                 metadata_identifiers=0,
                 reversible_flags=-1,
                 irreversible_flags=0,
@@ -271,7 +237,6 @@ class TestComputeHeaderHash:
         """Test that reversible_flags > 255 raises ValueError."""
         with pytest.raises(ValueError, match="reversible_flags must fit in byte"):
             hashing.compute_header_hash(
-                asset_id=100,
                 metadata_identifiers=0,
                 reversible_flags=256,
                 irreversible_flags=0,
@@ -282,7 +247,6 @@ class TestComputeHeaderHash:
         """Test that negative irreversible_flags raises ValueError."""
         with pytest.raises(ValueError, match="irreversible_flags must fit in byte"):
             hashing.compute_header_hash(
-                asset_id=100,
                 metadata_identifiers=0,
                 reversible_flags=0,
                 irreversible_flags=-1,
@@ -293,7 +257,6 @@ class TestComputeHeaderHash:
         """Test that irreversible_flags > 255 raises ValueError."""
         with pytest.raises(ValueError, match="irreversible_flags must fit in byte"):
             hashing.compute_header_hash(
-                asset_id=100,
                 metadata_identifiers=0,
                 reversible_flags=0,
                 irreversible_flags=256,
@@ -304,7 +267,6 @@ class TestComputeHeaderHash:
         """Test that negative metadata_size raises ValueError."""
         with pytest.raises(ValueError, match="metadata_size must fit in uint16"):
             hashing.compute_header_hash(
-                asset_id=100,
                 metadata_identifiers=0,
                 reversible_flags=0,
                 irreversible_flags=0,
@@ -315,7 +277,6 @@ class TestComputeHeaderHash:
         """Test that metadata_size > 65535 raises ValueError."""
         with pytest.raises(ValueError, match="metadata_size must fit in uint16"):
             hashing.compute_header_hash(
-                asset_id=100,
                 metadata_identifiers=0,
                 reversible_flags=0,
                 irreversible_flags=0,
@@ -326,7 +287,6 @@ class TestComputeHeaderHash:
         """Test that header hash uses correct domain separator."""
         # The hash should include the domain separator const.HASH_DOMAIN_HEADER
         # We can verify by manually constructing the expected input
-        asset_id = 12345
         metadata_identifiers = 10
         reversible_flags = 20
         irreversible_flags = 30
@@ -334,7 +294,6 @@ class TestComputeHeaderHash:
 
         expected_data = (
             const.HASH_DOMAIN_HEADER
-            + asset_id_to_box_name(asset_id)
             + bytes([metadata_identifiers])
             + bytes([reversible_flags])
             + bytes([irreversible_flags])
@@ -343,7 +302,6 @@ class TestComputeHeaderHash:
         expected_hash = hashing.sha512_256(expected_data)
 
         result = hashing.compute_header_hash(
-            asset_id=asset_id,
             metadata_identifiers=metadata_identifiers,
             reversible_flags=reversible_flags,
             irreversible_flags=irreversible_flags,
@@ -438,7 +396,6 @@ class TestComputePageHash:
     def test_basic_page_hash(self) -> None:
         """Test computing page hash with basic parameters."""
         result = hashing.compute_page_hash(
-            asset_id=12345,
             page_index=0,
             page_content=b"hello world",
         )
@@ -447,7 +404,6 @@ class TestComputePageHash:
     def test_empty_page(self) -> None:
         """Test page hash with empty content."""
         result = hashing.compute_page_hash(
-            asset_id=100,
             page_index=0,
             page_content=b"",
         )
@@ -456,7 +412,6 @@ class TestComputePageHash:
     def test_max_page_size(self) -> None:
         """Test page hash with maximum page size (uint16 max)."""
         result = hashing.compute_page_hash(
-            asset_id=100,
             page_index=0,
             page_content=b"x" * 65535,
         )
@@ -465,7 +420,6 @@ class TestComputePageHash:
     def test_deterministic(self) -> None:
         """Test that page hash is deterministic."""
         params = {
-            "asset_id": 99999,
             "page_index": 5,
             "page_content": b"test page content",
         }
@@ -473,29 +427,13 @@ class TestComputePageHash:
         result2 = hashing.compute_page_hash(**params)
         assert result1 == result2
 
-    def test_different_asset_id_different_hash(self) -> None:
-        """Test that different asset IDs produce different hashes."""
-        result1 = hashing.compute_page_hash(
-            asset_id=1,
-            page_index=0,
-            page_content=b"content",
-        )
-        result2 = hashing.compute_page_hash(
-            asset_id=2,
-            page_index=0,
-            page_content=b"content",
-        )
-        assert result1 != result2
-
     def test_different_page_index_different_hash(self) -> None:
         """Test that different page indices produce different hashes."""
         result1 = hashing.compute_page_hash(
-            asset_id=100,
             page_index=0,
             page_content=b"content",
         )
         result2 = hashing.compute_page_hash(
-            asset_id=100,
             page_index=1,
             page_content=b"content",
         )
@@ -504,12 +442,10 @@ class TestComputePageHash:
     def test_different_page_content_different_hash(self) -> None:
         """Test that different page content produces different hashes."""
         result1 = hashing.compute_page_hash(
-            asset_id=100,
             page_index=0,
             page_content=b"content1",
         )
         result2 = hashing.compute_page_hash(
-            asset_id=100,
             page_index=0,
             page_content=b"content2",
         )
@@ -518,7 +454,6 @@ class TestComputePageHash:
     def test_page_index_max(self) -> None:
         """Test page hash with maximum page index (255)."""
         result = hashing.compute_page_hash(
-            asset_id=100,
             page_index=255,
             page_content=b"test",
         )
@@ -528,7 +463,6 @@ class TestComputePageHash:
         """Test that negative page_index raises ValueError."""
         with pytest.raises(ValueError, match="page_index must fit in uint8"):
             hashing.compute_page_hash(
-                asset_id=100,
                 page_index=-1,
                 page_content=b"test",
             )
@@ -537,7 +471,6 @@ class TestComputePageHash:
         """Test that page_index > 255 raises ValueError."""
         with pytest.raises(ValueError, match="page_index must fit in uint8"):
             hashing.compute_page_hash(
-                asset_id=100,
                 page_index=256,
                 page_content=b"test",
             )
@@ -546,20 +479,17 @@ class TestComputePageHash:
         """Test that page_content larger than uint16 max raises ValueError."""
         with pytest.raises(ValueError, match="page_content length must fit in uint16"):
             hashing.compute_page_hash(
-                asset_id=100,
                 page_index=0,
                 page_content=b"x" * 65536,
             )
 
     def test_page_hash_domain_separator(self) -> None:
         """Test that page hash uses correct domain separator."""
-        asset_id = 12345
         page_index = 3
         page_content = b"test page"
 
         expected_data = (
             const.HASH_DOMAIN_PAGE
-            + asset_id_to_box_name(asset_id)
             + bytes([page_index])
             + len(page_content).to_bytes(const.UINT16_SIZE, "big", signed=False)
             + page_content
@@ -567,7 +497,6 @@ class TestComputePageHash:
         expected_hash = hashing.sha512_256(expected_data)
 
         result = hashing.compute_page_hash(
-            asset_id=asset_id,
             page_index=page_index,
             page_content=page_content,
         )
@@ -580,7 +509,6 @@ class TestComputeMetadataHash:
     def test_empty_metadata(self) -> None:
         """Test metadata hash with empty metadata."""
         result = hashing.compute_metadata_hash(
-            asset_id=12345,
             metadata_identifiers=0,
             reversible_flags=0,
             irreversible_flags=0,
@@ -592,7 +520,6 @@ class TestComputeMetadataHash:
     def test_single_page_metadata(self) -> None:
         """Test metadata hash with single page of metadata."""
         result = hashing.compute_metadata_hash(
-            asset_id=12345,
             metadata_identifiers=1,
             reversible_flags=2,
             irreversible_flags=3,
@@ -605,7 +532,6 @@ class TestComputeMetadataHash:
         """Test metadata hash with multiple pages."""
         metadata = b"x" * 3000
         result = hashing.compute_metadata_hash(
-            asset_id=12345,
             metadata_identifiers=1,
             reversible_flags=2,
             irreversible_flags=3,
@@ -617,7 +543,6 @@ class TestComputeMetadataHash:
     def test_deterministic(self) -> None:
         """Test that metadata hash is deterministic."""
         params = {
-            "asset_id": 99999,
             "metadata_identifiers": 5,
             "reversible_flags": 10,
             "irreversible_flags": 15,
@@ -631,7 +556,6 @@ class TestComputeMetadataHash:
     def test_different_metadata_different_hash(self) -> None:
         """Test that different metadata produces different hashes."""
         result1 = hashing.compute_metadata_hash(
-            asset_id=100,
             metadata_identifiers=0,
             reversible_flags=0,
             irreversible_flags=0,
@@ -639,7 +563,6 @@ class TestComputeMetadataHash:
             page_size=1024,
         )
         result2 = hashing.compute_metadata_hash(
-            asset_id=100,
             metadata_identifiers=0,
             reversible_flags=0,
             irreversible_flags=0,
@@ -652,7 +575,6 @@ class TestComputeMetadataHash:
         """Test that different page sizes produce different hashes."""
         metadata = b"x" * 2000
         result1 = hashing.compute_metadata_hash(
-            asset_id=100,
             metadata_identifiers=0,
             reversible_flags=0,
             irreversible_flags=0,
@@ -660,7 +582,6 @@ class TestComputeMetadataHash:
             page_size=512,
         )
         result2 = hashing.compute_metadata_hash(
-            asset_id=100,
             metadata_identifiers=0,
             reversible_flags=0,
             irreversible_flags=0,
@@ -671,7 +592,6 @@ class TestComputeMetadataHash:
 
     def test_metadata_hash_includes_header_hash(self) -> None:
         """Test that metadata hash incorporates header hash."""
-        asset_id = 12345
         metadata_identifiers = 5
         reversible_flags = 10
         irreversible_flags = 15
@@ -680,7 +600,6 @@ class TestComputeMetadataHash:
 
         # Compute expected hash manually
         hh = hashing.compute_header_hash(
-            asset_id=asset_id,
             metadata_identifiers=metadata_identifiers,
             reversible_flags=reversible_flags,
             irreversible_flags=irreversible_flags,
@@ -690,13 +609,10 @@ class TestComputeMetadataHash:
 
         data = const.HASH_DOMAIN_METADATA + hh
         for i, p in enumerate(pages):
-            data += hashing.compute_page_hash(
-                asset_id=asset_id, page_index=i, page_content=p
-            )
+            data += hashing.compute_page_hash(page_index=i, page_content=p)
         expected = hashing.sha512_256(data)
 
         result = hashing.compute_metadata_hash(
-            asset_id=asset_id,
             metadata_identifiers=metadata_identifiers,
             reversible_flags=reversible_flags,
             irreversible_flags=irreversible_flags,
@@ -707,13 +623,11 @@ class TestComputeMetadataHash:
 
     def test_empty_metadata_only_includes_header_hash(self) -> None:
         """Test that empty metadata hash only includes header hash."""
-        asset_id = 12345
         metadata_identifiers = 5
         reversible_flags = 10
         irreversible_flags = 15
 
         hh = hashing.compute_header_hash(
-            asset_id=asset_id,
             metadata_identifiers=metadata_identifiers,
             reversible_flags=reversible_flags,
             irreversible_flags=irreversible_flags,
@@ -722,7 +636,6 @@ class TestComputeMetadataHash:
         expected = hashing.sha512_256(const.HASH_DOMAIN_METADATA + hh)
 
         result = hashing.compute_metadata_hash(
-            asset_id=asset_id,
             metadata_identifiers=metadata_identifiers,
             reversible_flags=reversible_flags,
             irreversible_flags=irreversible_flags,
@@ -736,7 +649,6 @@ class TestComputeMetadataHash:
         metadata = b"same content"
 
         result1 = hashing.compute_metadata_hash(
-            asset_id=100,
             metadata_identifiers=1,
             reversible_flags=0,
             irreversible_flags=0,
@@ -744,7 +656,6 @@ class TestComputeMetadataHash:
             page_size=1024,
         )
         result2 = hashing.compute_metadata_hash(
-            asset_id=100,
             metadata_identifiers=2,
             reversible_flags=0,
             irreversible_flags=0,

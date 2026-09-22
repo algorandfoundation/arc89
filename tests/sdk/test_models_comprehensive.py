@@ -255,7 +255,6 @@ class TestAssetMetadataRecordAdvanced:
         params = get_default_registry_params()
 
         correct_hash = compute_metadata_hash(
-            asset_id=200,
             metadata_identifiers=bitmasks.MASK_ID_SHORT,
             reversible_flags=0,
             irreversible_flags=0,
