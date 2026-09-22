@@ -70,7 +70,7 @@ ARC4_DYNAMIC_LENGTH_SIZE: Final[int] = 2
 #   algorand://<netauth>/app/<app_id>?box=<base64url_box_name>#<fragment>
 #
 # Examples:
-#   - TestNet:  algorand://net:testnet/app/752790676?box=AAAAAAAAAAE#arc89
+#   - TestNet:  algorand://net:testnet/app/753324084?box=AAAAAAAAAAE#arc89
 #   - LocalNet: algorand://net:localnet/app/1002?box=AAAAAAAAA-w#arc3
 #   - MainNet:  algorand://app/123456789?box=AAAAAAAAAAE#arc89
 
@@ -93,6 +93,7 @@ ARC90_URI_BOX_QUERY: Final[bytes] = b"?" + ARC90_URI_BOX_QUERY_NAME + b"="
 HEADER_HASH_OP_BUDGET: Final[int] = 110
 PAGE_HASH_OP_BUDGET: Final[int] = 230
 ASA_URL_CHECK_OP_BUDGET: Final[int] = 400
+GROUP_SCAN_OP_BUDGET_PER_TXN: Final[int] = 20
 
 # (bool,uint64,byte[]), ABI tuple are encoded a head(...) || tail(...)
 ARC89_GET_METADATA_RETURN_FIXED_SIZE: Final[int] = (

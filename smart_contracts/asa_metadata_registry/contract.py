@@ -228,6 +228,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         # Append staged extra payload (in the same Group, if any)
         group_size = Global.group_size
         group_index = Txn.group_index
+        ensure_budget(
+            required_budget=(group_size - group_index - 1)
+            * const.GROUP_SCAN_OP_BUDGET_PER_TXN
+        )
         for idx in urange(group_index + 1, group_size):
             txn = gtxn.Transaction(idx)
             if self._is_extra_payload_call(asa, txn):
@@ -411,8 +415,9 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
 
         Args:
             asset_id: The Asset ID to create the Asset Metadata for
-            reversible_flags: The Reversible Flags. WARNING: LSB and 1 can by set only at creation time
-            irreversible_flags: The Irreversible Flags. WARNING: if the MSB is True the Asset Metadata is IMMUTABLE
+            reversible_flags: The Reversible Flags
+            irreversible_flags: The Irreversible Flags. WARNING: LSB and 1 can be set only at creation
+                                time; if the MSB is True the Asset Metadata is IMMUTABLE
             metadata_size: The Metadata byte size to be created
             payload: The Metadata payload (without Header). WARNING: Payload larger than args capacity
                      must be provided with arc89_extra_payload calls in the Group
