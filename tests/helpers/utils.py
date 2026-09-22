@@ -357,7 +357,7 @@ def create_metadata(
         asa_metadata_registry_client,
         metadata,
         _ARC89_CREATE_METADATA_FIXED_SIZE,
-        extra_txns=2,
+        extra_txns=2 + int(metadata.is_arc89_native),
     )
 
     create_metadata_composer = asa_metadata_registry_client.new_group()
@@ -612,7 +612,7 @@ def get_create_metadata_fee(
         client,
         metadata,
         _ARC89_CREATE_METADATA_FIXED_SIZE,
-        extra_txns=2,
+        extra_txns=2 + int(metadata.is_arc89_native),
     )
     return fee
 

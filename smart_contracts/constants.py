@@ -79,6 +79,7 @@ ARC90_URI_APP_PATH_NAME: Final[bytes] = b"app"
 ARC90_URI_BOX_QUERY_NAME: Final[bytes] = b"box"
 
 ARC90_URI_PATH_SEP: Final[bytes] = b"/"
+ARC90_URI_FRAGMENT_SEP: Final[bytes] = b"#"
 
 ARC90_URI_SCHEME: Final[bytes] = ARC90_URI_SCHEME_NAME + b"://"
 ARC90_URI_APP_PATH: Final[bytes] = ARC90_URI_APP_PATH_NAME + ARC90_URI_PATH_SEP
@@ -91,6 +92,7 @@ ARC90_URI_BOX_QUERY: Final[bytes] = b"?" + ARC90_URI_BOX_QUERY_NAME + b"="
 # Opcode Budgets
 HEADER_HASH_OP_BUDGET: Final[int] = 110
 PAGE_HASH_OP_BUDGET: Final[int] = 230
+ASA_URL_CHECK_OP_BUDGET: Final[int] = 400
 
 # (bool,uint64,byte[]), ABI tuple are encoded a head(...) || tail(...)
 ARC89_GET_METADATA_RETURN_FIXED_SIZE: Final[int] = (

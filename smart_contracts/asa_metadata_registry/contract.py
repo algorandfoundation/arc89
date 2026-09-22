@@ -469,9 +469,16 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
                 self._is_arc54_compliant(asset_id), err.ASA_NOT_ARC54_COMPLIANT
             )
         if self._is_arc89_native(asset_id):
-            logged_assert(
-                self._is_arc89_compliant(asset_id), err.ASA_NOT_ARC89_COMPLIANT
+            ensure_budget(required_budget=const.ASA_URL_CHECK_OP_BUDGET)
+            arc89_partial_uri = arc90_box_query(
+                Global.current_application_id.id, Bytes()
             )
+            logged_assert(
+                self._is_arc89_compliant(asset_id, arc89_partial_uri),
+                err.ASA_NOT_ARC89_COMPLIANT,
+            )
+            if self._is_arc89_arc3_url(asset_id, arc89_partial_uri):
+                logged_assert(self._is_arc3_metadata(asset_id), err.REQUIRES_ARC3)
             if has_am and not self._is_arc3_metadata(asset_id):
                 logged_assert(
                     asa_metadata_hash == self._compute_metadata_hash(asset_id),

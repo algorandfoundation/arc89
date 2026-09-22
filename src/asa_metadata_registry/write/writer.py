@@ -245,9 +245,8 @@ class AsaMetadataRegistryWrite:
             + opt.extra_resources  # optional extra resources
         )
 
-        # Add extra transaction for non-empty metadata opcode budget
-        if not metadata.is_empty:
-            base_txn_count += 1
+        # Opcode budget inner transactions: metadata hashing, native Asset URL check
+        base_txn_count += int(not metadata.is_empty) + int(metadata.is_arc89_native)
 
         # Calculate total fee pool including padding
         app_args_sizes = [

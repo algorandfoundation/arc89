@@ -42,6 +42,9 @@ METADATA_NOT_SHORT: LiteralString = "metadataNotShort"
 # Must be flagged as immutable
 REQUIRES_IMMUTABLE: LiteralString = "requiresImmutable"
 
+# Must be flagged as ARC-3 compliant (Asset URL declares #arc3)
+REQUIRES_ARC3: LiteralString = "requiresArc3"
+
 # Metadata is immutable
 IMMUTABLE: LiteralString = "immutable"
 

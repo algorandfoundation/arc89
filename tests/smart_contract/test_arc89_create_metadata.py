@@ -489,6 +489,107 @@ def test_fail_asa_not_arc89_compliant(
         )
 
 
+def _native_flags() -> MetadataFlags:
+    return MetadataFlags(
+        reversible=ReversibleFlags.empty(),
+        irreversible=IrreversibleFlags(arc89_native=True),
+    )
+
+
+@pytest.mark.parametrize("suffix", ["AAAAAAAAAAE", "&other=1", "junk"])
+def test_fail_native_url_not_exact(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    arc89_partial_uri: str,
+    suffix: str,
+) -> None:
+    # Only a "#" fragment may follow the partial URI of a native ASA
+    asset_id = asa_metadata_registry_client.algorand.send.asset_create(
+        params=AssetCreateParams(
+            sender=asset_manager.address,
+            manager=asset_manager.address,
+            total=42,
+            url=arc89_partial_uri + suffix,
+        )
+    ).asset_id
+    metadata = AssetMetadata(
+        asset_id=asset_id,
+        body=MetadataBody.empty(),
+        flags=_native_flags(),
+        deprecated_by=0,
+    )
+
+    with pytest.raises(LogicError, match=err.ASA_NOT_ARC89_COMPLIANT):
+        create_metadata(
+            asset_manager=asset_manager,
+            asa_metadata_registry_client=asa_metadata_registry_client,
+            asset_id=asset_id,
+            metadata=metadata,
+        )
+
+
+@pytest.mark.parametrize("fragment", ["", "#arc89", "#arc20+89"])
+def test_native_url_with_fragment(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    arc89_partial_uri: str,
+    fragment: str,
+) -> None:
+    asset_id = asa_metadata_registry_client.algorand.send.asset_create(
+        params=AssetCreateParams(
+            sender=asset_manager.address,
+            manager=asset_manager.address,
+            total=42,
+            url=arc89_partial_uri + fragment,
+        )
+    ).asset_id
+    metadata = AssetMetadata(
+        asset_id=asset_id,
+        body=MetadataBody.empty(),
+        flags=_native_flags(),
+        deprecated_by=0,
+    )
+
+    create_metadata(
+        asset_manager=asset_manager,
+        asa_metadata_registry_client=asa_metadata_registry_client,
+        asset_id=asset_id,
+        metadata=metadata,
+    )
+
+    created_metadata = get_metadata_from_state(asa_metadata_registry_client, asset_id)
+    assert created_metadata.header.flags.irreversible.arc89_native
+
+
+def test_fail_native_arc3_url_requires_arc3_flag(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    arc89_partial_uri: str,
+) -> None:
+    asset_id = asa_metadata_registry_client.algorand.send.asset_create(
+        params=AssetCreateParams(
+            sender=asset_manager.address,
+            manager=asset_manager.address,
+            total=42,
+            url=arc89_partial_uri + const.ARC3_URL_SUFFIX.decode(),
+        )
+    ).asset_id
+    metadata = AssetMetadata(
+        asset_id=asset_id,
+        body=MetadataBody.empty(),
+        flags=_native_flags(),
+        deprecated_by=0,
+    )
+
+    with pytest.raises(LogicError, match=err.REQUIRES_ARC3):
+        create_metadata(
+            asset_manager=asset_manager,
+            asa_metadata_registry_client=asa_metadata_registry_client,
+            asset_id=asset_id,
+            metadata=metadata,
+        )
+
+
 def test_fail_payload_overflow(
     asset_manager: SigningAccount,
     asa_metadata_registry_client: AsaMetadataRegistryClient,
