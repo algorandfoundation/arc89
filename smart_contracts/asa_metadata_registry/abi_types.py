@@ -90,6 +90,7 @@ class Arc89MetadataUpdated(Struct, kw_only=True):
     asset_id: UInt64
     round: UInt64
     timestamp: Timestamp
+    revision: UInt64
     reversible_flags: arc4.Byte
     irreversible_flags: arc4.Byte
     is_short: bool
@@ -103,6 +104,7 @@ class Arc89MetadataMigrated(Struct, kw_only=True):
     new_registry_id: UInt64
     round: UInt64
     timestamp: Timestamp
+    revision: UInt64
 
 
 class Arc89MetadataDeleted(Struct, kw_only=True):
@@ -111,3 +113,5 @@ class Arc89MetadataDeleted(Struct, kw_only=True):
     asset_id: UInt64
     round: UInt64
     timestamp: Timestamp
+    revision: UInt64
+    asa_exists: bool

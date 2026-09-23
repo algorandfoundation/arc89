@@ -394,6 +394,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
                 asset_id=asa.id,
                 round=Global.round,
                 timestamp=Global.latest_timestamp,
+                revision=self._get_revision(asa),
                 reversible_flags=arc4.Byte(op.btoi(self._get_reversible_flags(asa))),
                 irreversible_flags=arc4.Byte(
                     op.btoi(self._get_irreversible_flags(asa))
@@ -711,6 +712,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
                     asset_id=asset_id.id,
                     round=Global.round,
                     timestamp=Global.latest_timestamp,
+                    revision=self._get_revision(asset_id),
                     new_registry_id=self._get_deprecated_by(asset_id),
                 )
             )
@@ -732,11 +734,13 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         """
         # Preconditions
         logged_assert(self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST)
-        if self._asa_exists(asset_id):
+        asa_exists = self._asa_exists(asset_id)
+        if asa_exists:
             logged_assert(not self._is_immutable(asset_id), err.IMMUTABLE)
             logged_assert(self._is_asa_manager(asset_id), err.UNAUTHORIZED)
 
         # Delete Metadata and refund MBR
+        revision = self._get_revision(asset_id)
         mbr_i = Global.current_application_address.min_balance
         del self.asset_metadata[asset_id]
         mbr_delta_amount = mbr_i - Global.current_application_address.min_balance
@@ -747,6 +751,8 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
                 asset_id=asset_id.id,
                 round=Global.round,
                 timestamp=Global.latest_timestamp,
+                revision=revision,
+                asa_exists=asa_exists,
             )
         )
 
