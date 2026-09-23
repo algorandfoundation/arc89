@@ -99,6 +99,7 @@ ARC90_URI_BOX_QUERY: Final[bytes] = b"?" + ARC90_URI_BOX_QUERY_NAME + b"="
 HEADER_HASH_OP_BUDGET: Final[int] = 110
 PAGE_HASH_OP_BUDGET: Final[int] = 230
 ASA_URL_CHECK_OP_BUDGET: Final[int] = 400
+GROUP_TAIL_OP_BUDGET_PER_TXN: Final[int] = 150
 
 # (bool,uint64,byte[]), ABI tuple are encoded a head(...) || tail(...)
 ARC89_GET_METADATA_RETURN_FIXED_SIZE: Final[int] = (

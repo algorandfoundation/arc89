@@ -207,6 +207,17 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             and txn.app_args(const.ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID) == op.itob(asa.id)
         )
 
+    def _is_head_call(self, asa: Asset, txn: gtxn.Transaction) -> bool:
+        if not self._is_registry_call(txn):
+            return False
+        selector = txn.app_args(const.ARC4_METHOD_SELECTOR_ARG)
+        return (
+            selector == arc4.arc4_signature(Arc89Interface.arc89_create_metadata)
+            or selector == arc4.arc4_signature(Arc89Interface.arc89_replace_metadata)
+            or selector
+            == arc4.arc4_signature(Arc89Interface.arc89_replace_metadata_larger)
+        ) and txn.app_args(const.ARC89_HEAD_CALL_ARG_ASSET_ID) == op.itob(asa.id)
+
     def _read_extra_payload(self, txn: gtxn.Transaction) -> Bytes:
         # This subroutine assumes txn is already validated as an extra payload txn
         return arc4.DynamicBytes.from_bytes(
@@ -225,27 +236,22 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             self._get_metadata_size(asa) <= metadata_size, err.PAYLOAD_OVERFLOW
         )
 
-        # Append staged extra payload (in the same Group, if any)
+        # Append the contiguous extra payload calls following this head call (if any)
         group_size = Global.group_size
         group_index = Txn.group_index
-        ensure_budget(
-            required_budget=(group_size - group_index - 1)
-            * const.GROUP_SCAN_OP_BUDGET_PER_TXN
-        )
         for idx in urange(group_index + 1, group_size):
             txn = gtxn.Transaction(idx)
-            if self._is_extra_payload_call(asa, txn):
-                extra_payload = self._read_extra_payload(txn)
-                logged_assert(
-                    self._get_metadata_size(asa) + extra_payload.length
-                    <= metadata_size,
-                    err.PAYLOAD_OVERFLOW,
-                )
-                self._append_payload(asa, extra_payload)
-                logged_assert(
-                    self._get_metadata_size(asa) <= metadata_size,
-                    err.PAYLOAD_OVERFLOW,
-                )
+            if not self._is_extra_payload_call(asa, txn):
+                break
+            extra_payload = self._read_extra_payload(txn)
+            logged_assert(
+                self._get_metadata_size(asa) + extra_payload.length <= metadata_size,
+                err.PAYLOAD_OVERFLOW,
+            )
+            self._append_payload(asa, extra_payload)
+            logged_assert(
+                self._get_metadata_size(asa) <= metadata_size, err.PAYLOAD_OVERFLOW
+            )
         logged_assert(
             self._get_metadata_size(asa) == metadata_size,
             err.METADATA_SIZE_MISMATCH,
@@ -299,10 +305,10 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         )
         self._set_metadata_identifiers(asa, identifiers)
 
-    def _compute_header_hash(self, asa: Asset) -> Bytes:
+    def _compute_header_hash(self, asa: Asset, extra_budget: UInt64) -> Bytes:
         # hh = SHA-512/256("arc0089/header" || Metadata Identifiers || Reversible Flags
         # || Irreversible Flags || Metadata Size)
-        ensure_budget(required_budget=const.HEADER_HASH_OP_BUDGET)
+        ensure_budget(required_budget=const.HEADER_HASH_OP_BUDGET + extra_budget)
         domain = Bytes(const.HASH_DOMAIN_HEADER)
         metadata_identifiers = self._get_metadata_identifiers(asa)
         reversible_flags = self._get_reversible_flags(asa)
@@ -319,9 +325,11 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             + metadata_size
         )
 
-    def _compute_page_hash(self, page_index: UInt64, page_content: Bytes) -> Bytes:
+    def _compute_page_hash(
+        self, page_index: UInt64, page_content: Bytes, extra_budget: UInt64
+    ) -> Bytes:
         # ph[i] = SHA-512/256("arc0089/page" || Page Index || Page Size || Page Content)
-        ensure_budget(required_budget=const.PAGE_HASH_OP_BUDGET)
+        ensure_budget(required_budget=const.PAGE_HASH_OP_BUDGET + extra_budget)
         domain = Bytes(const.HASH_DOMAIN_PAGE)
         page_idx = trimmed_itob(uint=page_index, size=UInt64(const.UINT8_SIZE))
         page_size = trimmed_itob(
@@ -329,17 +337,24 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         )
         return op.sha512_256(domain + page_idx + page_size + page_content)
 
+    def _tail_budget(self) -> UInt64:
+        # Budget to leave for the calls after this head call in the Group
+        return (
+            Global.group_size - Txn.group_index - 1
+        ) * const.GROUP_TAIL_OP_BUDGET_PER_TXN
+
     def _compute_metadata_hash(self, asa: Asset) -> Bytes:
         # am = SHA-512/256("arc0089/am" || hh || ph[0] || ph[1] || ... || ph[total_pages - 1]) or
         # am = SHA-512/256("arc0089/am" || hh), if no pages
         domain = Bytes(const.HASH_DOMAIN_METADATA)
-        hh = self._compute_header_hash(asa)
+        tail_budget = self._tail_budget()
+        hh = self._compute_header_hash(asa, tail_budget)
         total_pages = self._get_total_pages(asa)
         concatenated_ph = Bytes()
         if total_pages > 0:
             for page_index in urange(0, total_pages):
                 page_content = self._get_metadata_page(asa, page_index)
-                ph = self._compute_page_hash(page_index, page_content)
+                ph = self._compute_page_hash(page_index, page_content, tail_budget)
                 concatenated_ph += ph
         return op.sha512_256(domain + hh + concatenated_ph)
 
@@ -481,7 +496,9 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
                 self._is_arc20_compliant(asset_id), err.ASA_NOT_ARC20_COMPLIANT
             )
         if self._is_arc89_native(asset_id):
-            ensure_budget(required_budget=const.ASA_URL_CHECK_OP_BUDGET)
+            ensure_budget(
+                required_budget=const.ASA_URL_CHECK_OP_BUDGET + self._tail_budget()
+            )
             arc89_partial_uri = arc90_box_query(
                 Global.current_application_id.id, Bytes()
             )
@@ -744,10 +761,16 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             payload: The Metadata extra payload to concatenate
         """
         # Preconditions
-        logged_assert(Global.group_size >= 2, err.NO_PAYLOAD_HEAD_CALL)
+        logged_assert(Txn.group_index > 0, err.NO_PAYLOAD_HEAD_CALL)
         logged_assert(self._asa_exists(asset_id), err.ASA_NOT_EXIST)
         logged_assert(self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST)
         logged_assert(self._is_asa_manager(asset_id), err.UNAUTHORIZED)
+        previous = gtxn.Transaction(Txn.group_index - 1)
+        logged_assert(
+            self._is_head_call(asset_id, previous)
+            or self._is_extra_payload_call(asset_id, previous),
+            err.NO_PAYLOAD_HEAD_CALL,
+        )
 
     @arc4.abimethod
     def arc89_set_reversible_flag(
@@ -1151,7 +1174,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
-        return abi.Hash(self._compute_header_hash(asset_id))
+        return abi.Hash(self._compute_header_hash(asset_id, UInt64(0)))
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_page_hash(
@@ -1179,7 +1202,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             logged_err(err.EMPTY_METADATA)
 
         page_content = self._get_metadata_page(asset_id, page.as_uint64())
-        page_hash = self._compute_page_hash(page.as_uint64(), page_content)
+        page_hash = self._compute_page_hash(page.as_uint64(), page_content, UInt64(0))
         return abi.Hash(page_hash)
 
     @arc4.abimethod(readonly=True)

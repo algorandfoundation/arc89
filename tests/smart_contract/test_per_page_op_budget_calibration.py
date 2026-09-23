@@ -69,7 +69,7 @@ def test_per_page_count(
     if page_count > 0:
         extra_count, total_fee = total_extra_resources(algorand_client, metadata)
         min_fee = algorand_client.get_suggested_params().min_fee
-        assert total_fee == (1 + (page_count + 3) // 5) * min_fee
+        assert total_fee == (1 + (page_count + 3) // 5 + int(extra_count > 0)) * min_fee
         if page_count == const.MAX_PAGES:
             assert extra_count == 2
 

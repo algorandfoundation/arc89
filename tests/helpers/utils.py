@@ -67,6 +67,7 @@ def _get_chunks_and_fee(
     metadata: AssetMetadata,
     head_fixed_size: int,
     extra_txns: int = 0,
+    trailing_extra: int = 0,
 ) -> tuple[list[bytes], int]:
     """Get metadata chunks and calculate the total fee.
 
@@ -75,6 +76,7 @@ def _get_chunks_and_fee(
         metadata: The metadata to chunk
         head_fixed_size: Aggregate encoded size of the head call's non-payload arguments
         extra_txns: Additional transactions to include in fee calculation
+        trailing_extra: Extra resources calls appended after the extra payload calls
 
     Returns:
         Tuple of (chunks list, total fee in microAlgos)
@@ -85,7 +87,8 @@ def _get_chunks_and_fee(
         head_fixed_size + len(chunks[0]),
         *(_ARC89_EXTRA_PAYLOAD_FIXED_SIZE + len(chunk) for chunk in chunks[1:]),
     ]
-    fee = (len(chunks) + extra_txns) * min_fee
+    tail_txns = tail_budget_txns(len(chunks) - 1 + trailing_extra)
+    fee = (len(chunks) + extra_txns + tail_txns) * min_fee
     fee += _app_args_surcharge_fee(min_fee, app_args_sizes)
     return chunks, fee
 
@@ -203,9 +206,17 @@ def total_extra_resources(
 
     total_pages = metadata.body.total_pages()
     min_fee = algorand_client.get_suggested_params().min_fee
-    # The first inner budget call is needed at two pages, then every five pages.
-    total_fee = (1 + (total_pages + 3) // 5) * min_fee
+    # The first inner budget call is needed at two pages, then every five pages, plus
+    # the head call reservation for the extra resources calls after it.
+    tail_txns = tail_budget_txns(extra_count)
+    total_fee = (1 + (total_pages + 3) // 5 + tail_txns) * min_fee
     return extra_count, total_fee
+
+
+def tail_budget_txns(trailing_calls: int) -> int:
+    """Budget inner transactions the head call issues for the calls after it."""
+    reserved = trailing_calls * const.GROUP_TAIL_OP_BUDGET_PER_TXN
+    return reserved // const.APP_CALL_OP_BUDGET + int(trailing_calls > 0)
 
 
 def set_flag_and_verify(
@@ -358,6 +369,7 @@ def create_metadata(
         metadata,
         _ARC89_CREATE_METADATA_FIXED_SIZE,
         extra_txns=2 + int(metadata.is_arc89_native),
+        trailing_extra=int(not metadata.is_empty),
     )
 
     create_metadata_composer = asa_metadata_registry_client.new_group()
@@ -412,6 +424,7 @@ def replace_metadata(
         new_metadata,
         _ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE,
         extra_txns=1 + int(not new_metadata.is_empty),
+        trailing_extra=extra_resources,
     )
     min_fee = _get_min_fee(asa_metadata_registry_client)
     replace_metadata_composer = asa_metadata_registry_client.new_group()
@@ -613,6 +626,7 @@ def get_create_metadata_fee(
         metadata,
         _ARC89_CREATE_METADATA_FIXED_SIZE,
         extra_txns=2 + int(metadata.is_arc89_native),
+        trailing_extra=int(not metadata.is_empty),
     )
     return fee
 
@@ -703,7 +717,11 @@ def build_replace_metadata_composer(
         ),
         params=CommonAppCallParams(
             sender=sender.address,
-            static_fee=AlgoAmount(micro_algo=(len(chunks) + 1) * min_fee + surcharge),
+            static_fee=AlgoAmount(
+                micro_algo=(len(chunks) + 1 + tail_budget_txns(len(chunks) - 1))
+                * min_fee
+                + surcharge
+            ),
         ),
     )
     return composer
@@ -742,7 +760,11 @@ def build_replace_metadata_larger_composer(
         ),
         params=CommonAppCallParams(
             sender=sender.address,
-            static_fee=AlgoAmount(micro_algo=(len(chunks) + 1) * min_fee + surcharge),
+            static_fee=AlgoAmount(
+                micro_algo=(len(chunks) + 1 + tail_budget_txns(len(chunks) - 1))
+                * min_fee
+                + surcharge
+            ),
         ),
     )
     return composer

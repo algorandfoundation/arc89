@@ -94,6 +94,12 @@ def _hash_budget_txns(total_pages: int) -> int:
     return (total_pages + 3) // 5
 
 
+def _tail_budget_txns(trailing_calls: int) -> int:
+    """Budget inner transactions the head call issues for the calls after it."""
+    reserved = trailing_calls * const.GROUP_TAIL_OP_BUDGET_PER_TXN
+    return reserved // const.APP_CALL_OP_BUDGET + int(trailing_calls > 0)
+
+
 def _chunks_for_slice(payload: bytes, max_size: int) -> list[bytes]:
     if max_size <= 0:
         raise ValueError("max_size must be > 0")
@@ -227,14 +233,19 @@ class AsaMetadataRegistryWrite:
         ).arc89_get_metadata_registry_parameters()
         return p
 
-    def _box_resources(self, asset_id: int, *, hashing: bool) -> tuple[int, int]:
+    def _box_resources(
+        self, asset_id: int, *, hashing: bool, other_calls: int = 0
+    ) -> tuple[int, int]:
         """(extra_resources calls, budget inner txns) to touch the current box of `asset_id`."""
         box = _parse_metadata_box(self.client, asset_id)
         if box is None:
             return 0, 0
         params = self._params()
         extra = _box_io_extra_resources(params.header_size + box.body.size)
-        budget = _hash_budget_txns(box.body.total_pages(params)) if hashing else 0
+        budget = 0
+        if hashing:
+            budget = _hash_budget_txns(box.body.total_pages(params))
+            budget += _tail_budget_txns(extra + other_calls)
         return extra, budget
 
     # ------------------------------------------------------------------
@@ -291,8 +302,15 @@ class AsaMetadataRegistryWrite:
             + opt.extra_resources  # optional extra resources
         )
 
-        # Opcode budget inner transactions: metadata hashing, native Asset URL check
+        # Opcode budget inner transactions: metadata hashing, native Asset URL check, tail
         base_txn_count += int(not metadata.is_empty) + int(metadata.is_arc89_native)
+        base_txn_count += _tail_budget_txns(
+            len(chunks)
+            - 1
+            + io_extra
+            + opt.extra_resources
+            + int(not metadata.is_empty)
+        )
 
         # Calculate total fee pool including padding
         app_args_sizes = [
@@ -389,6 +407,13 @@ class AsaMetadataRegistryWrite:
             + options.extra_resources  # optional extra resources
             + int(not metadata.is_empty)  # extra_resources call
             + int(not metadata.is_empty)  # hash-budget inner transaction
+            + _tail_budget_txns(
+                len(chunks)
+                - 1
+                + io_extra
+                + options.extra_resources
+                + int(not metadata.is_empty)
+            )
         )
 
         # MBR refund inner payment transaction (only when size is smaller, not equal)
@@ -462,6 +487,13 @@ class AsaMetadataRegistryWrite:
             + options.extra_resources  # optional extra resources
             + int(not metadata.is_empty)  # extra_resources call
             + int(not metadata.is_empty)  # hash-budget inner transaction
+            + _tail_budget_txns(
+                len(chunks)
+                - 1
+                + io_extra
+                + options.extra_resources
+                + int(not metadata.is_empty)
+            )
         )
 
         # Calculate total fee pool including padding
@@ -513,7 +545,9 @@ class AsaMetadataRegistryWrite:
         params = self._params()
 
         chunks = _chunks_for_slice(payload, params.replace_payload_max_size)
-        io_extra, budget = self._box_resources(asset_id, hashing=True)
+        io_extra, budget = self._box_resources(
+            asset_id, hashing=True, other_calls=len(chunks) - 1 + opt.extra_resources
+        )
         io_extra = max(0, io_extra - (len(chunks) - 1))
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
@@ -772,7 +806,9 @@ class AsaMetadataRegistryWrite:
                 )
 
         opt = options or WriteOptions()
-        io_extra, budget = self._box_resources(asset_id, hashing=True)
+        io_extra, budget = self._box_resources(
+            asset_id, hashing=True, other_calls=opt.extra_resources
+        )
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
         fee_pool = (
@@ -813,7 +849,9 @@ class AsaMetadataRegistryWrite:
             )
 
         opt = options or WriteOptions()
-        io_extra, budget = self._box_resources(asset_id, hashing=True)
+        io_extra, budget = self._box_resources(
+            asset_id, hashing=True, other_calls=opt.extra_resources
+        )
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
         fee_pool = (
@@ -847,7 +885,9 @@ class AsaMetadataRegistryWrite:
         send_params: SendParams | None = None,
     ) -> None:
         opt = options or WriteOptions()
-        io_extra, budget = self._box_resources(asset_id, hashing=True)
+        io_extra, budget = self._box_resources(
+            asset_id, hashing=True, other_calls=opt.extra_resources
+        )
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
         fee_pool = (

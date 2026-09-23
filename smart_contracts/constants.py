@@ -93,7 +93,8 @@ ARC90_URI_BOX_QUERY: Final[bytes] = b"?" + ARC90_URI_BOX_QUERY_NAME + b"="
 HEADER_HASH_OP_BUDGET: Final[int] = 110
 PAGE_HASH_OP_BUDGET: Final[int] = 230
 ASA_URL_CHECK_OP_BUDGET: Final[int] = 400
-GROUP_SCAN_OP_BUDGET_PER_TXN: Final[int] = 20
+# Reserved by the head call for each remaining Group txn (>= arc89_extra_payload cost)
+GROUP_TAIL_OP_BUDGET_PER_TXN: Final[int] = 150
 
 # (bool,uint64,byte[]), ABI tuple are encoded a head(...) || tail(...)
 ARC89_GET_METADATA_RETURN_FIXED_SIZE: Final[int] = (
@@ -109,6 +110,7 @@ ARC89_GET_METADATA_RETURN_FIXED_SIZE: Final[int] = (
 # arc89_extra_payload(asset_id, payload)
 ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID: Final[int] = 1
 ARC89_EXTRA_PAYLOAD_ARG_PAYLOAD: Final[int] = 2
+ARC89_HEAD_CALL_ARG_ASSET_ID: Final[int] = 1
 
 # Pagination
 # Fixed length arguments occupy separate ApplicationArgs entries. They count toward
