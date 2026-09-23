@@ -159,6 +159,9 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             )
         )
 
+    def _is_deprecated(self, asa: Asset) -> bool:
+        return self._get_deprecated_by(asa) != 0
+
     def _set_deprecated_by(self, asa: Asset, deprecated_by: UInt64) -> None:
         self.asset_metadata.box(asa).replace(
             start_index=const.IDX_DEPRECATED_BY,
@@ -370,12 +373,17 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         self._check_base_preconditions(asa, metadata_size)
         logged_assert(self._metadata_exists(asa), err.ASSET_METADATA_NOT_EXIST)
         logged_assert(not self._is_immutable(asa), err.IMMUTABLE)
+        logged_assert(not self._is_deprecated(asa), err.ASSET_METADATA_DEPRECATED)
 
     def _check_existence_preconditions(self, asa: Asset) -> None:
         logged_assert(self._asa_exists(asa), err.ASA_NOT_EXIST)
         logged_assert(self._metadata_exists(asa), err.ASSET_METADATA_NOT_EXIST)
 
     def _check_set_flag_preconditions(self, asa: Asset) -> None:
+        self._check_migrate_preconditions(asa)
+        logged_assert(not self._is_deprecated(asa), err.ASSET_METADATA_DEPRECATED)
+
+    def _check_migrate_preconditions(self, asa: Asset) -> None:
         self._check_existence_preconditions(asa)
         logged_assert(self._is_asa_manager(asa), err.UNAUTHORIZED)
         logged_assert(not self._is_immutable(asa), err.IMMUTABLE)
@@ -688,7 +696,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             new_registry_id: The Application ID of the new ASA Metadata Registry version
         """
         # Preconditions
-        self._check_set_flag_preconditions(asset_id)
+        self._check_migrate_preconditions(asset_id)
         logged_assert(
             new_registry_id != Global.current_application_id.id,
             err.NEW_REGISTRY_ID_INVALID,
@@ -1074,7 +1082,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
 
         Returns:
             Tuple of (total metadata byte size, PAGE_SIZE, total number of pages,
-            Metadata Revision)
+            Metadata Revision, Deprecated By)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
@@ -1084,6 +1092,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             page_size=arc4.UInt16(const.PAGE_SIZE),
             total_pages=arc4.UInt8(self._get_total_pages(asset_id)),
             revision=self._get_revision(asset_id),
+            deprecated_by=self._get_deprecated_by(asset_id),
         )
 
     @arc4.abimethod(readonly=True)

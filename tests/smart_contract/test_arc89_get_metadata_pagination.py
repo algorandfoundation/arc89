@@ -24,6 +24,7 @@ def _verify_metadata_pagination(
     assert pagination.page_size == const.PAGE_SIZE
     assert pagination.total_pages == metadata.body.total_pages()
     assert pagination.revision > 0
+    assert pagination.deprecated_by == 0
 
 
 @pytest.mark.parametrize(

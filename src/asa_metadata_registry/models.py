@@ -598,18 +598,20 @@ class Pagination:
     page_size: int
     total_pages: int
     revision: int
+    deprecated_by: int
 
     @staticmethod
     def from_tuple(value: Sequence[int]) -> Pagination:
-        if len(value) != 4:
+        if len(value) != 5:
             raise ValueError(
-                "Expected (metadata_size, page_size, total_pages, revision)"
+                "Expected (metadata_size, page_size, total_pages, revision, deprecated_by)"
             )
         return Pagination(
             metadata_size=int(value[0]),
             page_size=int(value[1]),
             total_pages=int(value[2]),
             revision=int(value[3]),
+            deprecated_by=int(value[4]),
         )
 
 

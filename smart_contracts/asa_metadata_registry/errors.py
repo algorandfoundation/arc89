@@ -33,6 +33,9 @@ ASSET_METADATA_EXIST: LiteralString = "assetMetadataExist"
 # Asset Metadata does not exist for the specified ASA
 ASSET_METADATA_NOT_EXIST: LiteralString = "assetMetadataNotExist"
 
+# Asset Metadata is deprecated (Deprecated By is not 0): body and Flags are frozen
+ASSET_METADATA_DEPRECATED: LiteralString = "assetMetadataDeprecated"
+
 # Metadata is empty
 EMPTY_METADATA: LiteralString = "emptyMetadata"
 

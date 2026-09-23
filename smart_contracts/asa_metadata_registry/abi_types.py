@@ -50,6 +50,7 @@ class Pagination(Struct, kw_only=True):
     page_size: arc4.UInt16
     total_pages: arc4.UInt8
     revision: UInt64
+    deprecated_by: UInt64
 
 
 class PaginatedMetadata(Struct, kw_only=True):

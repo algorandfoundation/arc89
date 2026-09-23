@@ -42,6 +42,7 @@ class Pagination(algopy.arc4.Struct):
     page_size: algopy.arc4.UIntN[typing.Literal[16]]
     total_pages: algopy.arc4.UIntN[typing.Literal[8]]
     revision: algopy.arc4.UIntN[typing.Literal[64]]
+    deprecated_by: algopy.arc4.UIntN[typing.Literal[64]]
 
 class PaginatedMetadata(algopy.arc4.Struct):
     has_next_page: algopy.arc4.Bool

@@ -354,7 +354,11 @@ class TestPagination:
     def test_basic_pagination(self) -> None:
         """Test basic pagination values."""
         pagination = Pagination(
-            metadata_size=5000, page_size=1000, total_pages=5, revision=42
+            deprecated_by=0,
+            metadata_size=5000,
+            page_size=1000,
+            total_pages=5,
+            revision=42,
         )
         assert pagination.metadata_size == 5000
         assert pagination.page_size == 1000
@@ -363,15 +367,16 @@ class TestPagination:
 
     def test_from_tuple(self) -> None:
         """Test from_tuple parsing."""
-        pagination = Pagination.from_tuple([3000, 1000, 3, 42])
+        pagination = Pagination.from_tuple([3000, 1000, 3, 42, 7])
         assert pagination.metadata_size == 3000
         assert pagination.page_size == 1000
         assert pagination.total_pages == 3
         assert pagination.revision == 42
+        assert pagination.deprecated_by == 7
 
     def test_from_tuple_zero_metadata(self) -> None:
         """Test from_tuple with zero metadata."""
-        pagination = Pagination.from_tuple([0, 1000, 0, 42])
+        pagination = Pagination.from_tuple([0, 1000, 0, 42, 0])
         assert pagination.metadata_size == 0
         assert pagination.page_size == 1000
         assert pagination.total_pages == 0
@@ -380,9 +385,9 @@ class TestPagination:
         """Test from_tuple with wrong number of elements."""
         with pytest.raises(
             ValueError,
-            match="Expected \\(metadata_size, page_size, total_pages, revision\\)",
+            match="Expected \\(metadata_size, page_size, total_pages, revision, deprecated_by\\)",
         ):
-            Pagination.from_tuple([1000, 100])
+            Pagination.from_tuple([1000, 100, 1, 42])
 
 
 class TestPaginatedMetadata:

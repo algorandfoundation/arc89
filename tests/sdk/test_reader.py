@@ -483,7 +483,11 @@ class TestGetAssetMetadata:
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=50, page_size=100, total_pages=1, revision=1000
+            deprecated_by=0,
+            metadata_size=50,
+            page_size=100,
+            total_pages=1,
+            revision=1000,
         )
         mock_avm.simulate_many.return_value = [
             (False, 1000, b'{"name": "test"}' + b"\x00" * 34)  # Pad to 50 bytes
@@ -515,7 +519,11 @@ class TestGetAssetMetadata:
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=20, page_size=100, total_pages=1, revision=1000
+            deprecated_by=0,
+            metadata_size=20,
+            page_size=100,
+            total_pages=1,
+            revision=1000,
         )
         mock_avm.simulate_many.return_value = [
             (False, 1000, b'{"name": "test"}' + b"\x00" * 4)  # Pad to 20 bytes
@@ -534,7 +542,11 @@ class TestGetAssetMetadata:
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=150, page_size=100, total_pages=2, revision=1000
+            deprecated_by=0,
+            metadata_size=150,
+            page_size=100,
+            total_pages=2,
+            revision=1000,
         )
         # Simulate two pages
         mock_avm.simulate_many.return_value = [
@@ -555,7 +567,11 @@ class TestGetAssetMetadata:
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=150, page_size=100, total_pages=2, revision=1000
+            deprecated_by=0,
+            metadata_size=150,
+            page_size=100,
+            total_pages=2,
+            revision=1000,
         )
         # Different revision indicates drift
         mock_avm.simulate_many.return_value = [
@@ -576,7 +592,11 @@ class TestGetAssetMetadata:
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=150, page_size=100, total_pages=2, revision=1001
+            deprecated_by=0,
+            metadata_size=150,
+            page_size=100,
+            total_pages=2,
+            revision=1001,
         )
 
         with pytest.raises(
@@ -950,7 +970,11 @@ class TestDispatcherGetMetadataPagination:
         reader = AsaMetadataRegistryRead(app_id=123, avm_factory=mock_avm_factory)
 
         pagination = Pagination(
-            metadata_size=150, page_size=100, total_pages=2, revision=1000
+            deprecated_by=0,
+            metadata_size=150,
+            page_size=100,
+            total_pages=2,
+            revision=1000,
         )
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_pagination.return_value = pagination
@@ -1272,7 +1296,11 @@ class TestEdgeCases:
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         # Zero pages
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=0, page_size=100, total_pages=0, revision=1000
+            deprecated_by=0,
+            metadata_size=0,
+            page_size=100,
+            total_pages=0,
+            revision=1000,
         )
         mock_avm.simulate_many.return_value = []
 

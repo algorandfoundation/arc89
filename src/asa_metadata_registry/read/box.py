@@ -81,6 +81,7 @@ class AsaMetadataRegistryBoxRead:
             page_size=page_size,
             total_pages=total_pages,
             revision=b.header.revision,
+            deprecated_by=b.header.deprecated_by,
         )
 
     def arc89_get_metadata(self, *, asset_id: int, page: int) -> PaginatedMetadata:
