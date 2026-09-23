@@ -172,6 +172,7 @@ class AsaMetadataRegistryBoxRead:
         v = self._short_json_value(asset_id=asset_id, key=key)
         if not isinstance(v, dict):
             raise MetadataKeyError(f"{key}: not a JSON Object")
+        # Compact reserialization; the AVM json_ref returns the raw bytes of the value.
         out = json.dumps(v, ensure_ascii=False, separators=(",", ":"))
         self._check_value_size(out.encode("utf-8"))
         return out

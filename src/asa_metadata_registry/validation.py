@@ -15,6 +15,13 @@ def _reject_non_finite(constant: str) -> object:
     raise ValueError(f"Non-finite JSON value {constant!r} is not allowed by RFC 8259")
 
 
+def _unique_names(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    obj = dict(pairs)
+    if len(obj) != len(pairs):
+        raise ValueError("Duplicate JSON object names are not allowed")
+    return obj
+
+
 def decode_metadata_json(metadata: bytes) -> dict[str, object]:
     """
     Decode ARC-89 metadata bytes into a Python dict.
@@ -34,9 +41,11 @@ def decode_metadata_json(metadata: bytes) -> dict[str, object]:
         raise MetadataEncodingError("Metadata is not valid UTF-8") from e
 
     try:
-        obj: object = json.loads(txt, parse_constant=_reject_non_finite)
+        obj: object = json.loads(
+            txt, parse_constant=_reject_non_finite, object_pairs_hook=_unique_names
+        )
     except (json.JSONDecodeError, ValueError) as e:
-        raise MetadataEncodingError("Metadata is not valid JSON") from e
+        raise MetadataEncodingError(f"Metadata is not valid JSON: {e}") from e
 
     if not isinstance(obj, dict):
         raise MetadataEncodingError("Metadata JSON MUST be an object")

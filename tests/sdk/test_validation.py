@@ -195,3 +195,19 @@ class TestValidateArc3Properties:
         """Test valid properties passes."""
         body = {"properties": {arc_key: {"application-id": 123456}}}
         validate_arc3_properties(body, arc_key)
+
+
+class TestDecodeMetadataJsonProfile:
+    def test_rejects_duplicate_top_level_names(self) -> None:
+        with pytest.raises(MetadataEncodingError, match="Duplicate"):
+            decode_metadata_json(b'{"a": 1, "a": 2}')
+
+    def test_rejects_duplicate_nested_names(self) -> None:
+        with pytest.raises(MetadataEncodingError, match="Duplicate"):
+            decode_metadata_json(b'{"a": {"b": 1, "b": 2}}')
+
+    def test_accepts_unique_names(self) -> None:
+        assert decode_metadata_json(b'{"a": {"b": 1}, "c": 2}') == {
+            "a": {"b": 1},
+            "c": 2,
+        }

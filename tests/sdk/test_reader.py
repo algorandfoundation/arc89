@@ -1197,6 +1197,26 @@ class TestDispatcherGetMetadataUint64ByKey:
         )
         assert result == 100
 
+    @pytest.mark.parametrize(
+        "value", [b"1.0", b"1e3", b"-1", b"true", b"18446744073709551616"]
+    )
+    def test_box_rejects_non_uint64(
+        self,
+        mock_algod_reader: AlgodBoxReader,
+        sample_metadata_header: MetadataHeader,
+        value: bytes,
+    ) -> None:
+        """JSON Uint64 is an integer literal in 0..2^64-1, as json_ref extracts it."""
+        from asa_metadata_registry import MetadataKeyError
+
+        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        box_value = sample_metadata_header.serialized + b'{"count": ' + value + b"}"
+        mock_box_response(mock_algod_reader, box_value)
+        with pytest.raises(MetadataKeyError):
+            reader.arc89_get_metadata_uint64_by_key(
+                asset_id=456, key="count", source=MetadataSource.BOX
+            )
+
 
 class TestDispatcherGetMetadataObjectByKey:
     """Test arc89_get_metadata_object_by_key dispatcher."""
