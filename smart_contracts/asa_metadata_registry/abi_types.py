@@ -36,6 +36,13 @@ class MutableFlag(Struct, kw_only=True):
     revision: UInt64
 
 
+class HashRevision(Struct, kw_only=True):
+    """Asset Metadata hash with the Metadata Revision"""
+
+    hash: Hash
+    revision: UInt64
+
+
 class MetadataExistence(Struct, kw_only=True):
     """Metadata Existence"""
 

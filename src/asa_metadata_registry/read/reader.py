@@ -519,7 +519,7 @@ class AsaMetadataRegistryRead:
         asset_id: int,
         source: MetadataSource = MetadataSource.AUTO,
         simulate: SimulateOptions | None = None,
-    ) -> bytes:
+    ) -> tuple[bytes, int]:
         if source == MetadataSource.BOX or (
             source == MetadataSource.AUTO and self.algod is not None
         ):
@@ -535,7 +535,7 @@ class AsaMetadataRegistryRead:
         page: int,
         source: MetadataSource = MetadataSource.AUTO,
         simulate: SimulateOptions | None = None,
-    ) -> bytes:
+    ) -> tuple[bytes, int]:
         if source == MetadataSource.BOX or (
             source == MetadataSource.AUTO and self.algod is not None
         ):
@@ -550,7 +550,7 @@ class AsaMetadataRegistryRead:
         asset_id: int,
         source: MetadataSource = MetadataSource.AUTO,
         simulate: SimulateOptions | None = None,
-    ) -> bytes:
+    ) -> tuple[bytes, int]:
         if source == MetadataSource.BOX or (
             source == MetadataSource.AUTO and self.algod is not None
         ):

@@ -16,6 +16,7 @@ from collections.abc import Callable
 from unittest.mock import Mock
 
 import pytest
+from algosdk.constants import ZERO_ADDRESS
 from algosdk.v2client.algod import AlgodClient
 
 from asa_metadata_registry import (
@@ -870,6 +871,36 @@ class TestDispatcherIsMetadataImmutable:
         )
         assert result is True
 
+    @pytest.mark.parametrize(
+        ("params", "expected"),
+        [
+            (
+                {
+                    "manager": "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q"
+                },
+                False,
+            ),
+            ({}, True),
+            ({"manager": ZERO_ADDRESS}, True),
+        ],
+    )
+    def test_box_applies_manager_rule(
+        self,
+        *,
+        mock_algod_reader: AlgodBoxReader,
+        sample_metadata_header: MetadataHeader,
+        params: dict[str, str],
+        expected: bool,
+    ) -> None:
+        """A mutable record is immutable once the ASA Manager Address is cleared."""
+        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        mock_box_response(mock_algod_reader, sample_metadata_header.serialized + b"{}")
+        mock_algod_reader.algod.asset_info = Mock(return_value={"params": params})
+        assert (
+            reader.arc89_is_metadata_immutable(asset_id=456, source=MetadataSource.BOX)
+            is expected
+        )
+
     def test_uses_avm_fallback(self, mock_avm_factory: Callable) -> None:
         """Test uses AVM when BOX not available."""
         reader = AsaMetadataRegistryRead(app_id=123, avm_factory=mock_avm_factory)
@@ -1064,7 +1095,8 @@ class TestDispatcherGetMetadataHeaderHash:
         result = reader.arc89_get_metadata_header_hash(
             asset_id=456, source=MetadataSource.BOX
         )
-        assert len(result) == 32
+        assert len(result[0]) == 32
+        assert result[1] == sample_metadata_header.revision
 
     def test_avm_source(self, mock_avm_factory: Callable) -> None:
         """Test AVM source."""
@@ -1093,7 +1125,8 @@ class TestDispatcherGetMetadataPageHash:
         result = reader.arc89_get_metadata_page_hash(
             asset_id=456, page=0, source=MetadataSource.BOX
         )
-        assert len(result) == 32
+        assert len(result[0]) == 32
+        assert result[1] == sample_metadata_header.revision
 
     def test_avm_source(self, mock_avm_factory: Callable) -> None:
         """Test AVM source."""
@@ -1122,7 +1155,8 @@ class TestDispatcherGetMetadataHash:
         mock_box_response(mock_algod_reader, box_value)
 
         result = reader.arc89_get_metadata_hash(asset_id=456, source=MetadataSource.BOX)
-        assert len(result) == 32
+        assert len(result[0]) == 32
+        assert result[1] == sample_metadata_header.revision
 
     def test_avm_source(self, mock_avm_factory: Callable) -> None:
         """Test AVM source."""

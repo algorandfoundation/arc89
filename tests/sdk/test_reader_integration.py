@@ -210,7 +210,8 @@ class TestReaderWithAlgod:
             source=MetadataSource.BOX,
         )
 
-        assert len(header_hash) == 32
+        assert len(header_hash[0]) == 32
+        assert header_hash[1] > 0
 
     def test_get_metadata_page_hash(
         self,
@@ -224,7 +225,8 @@ class TestReaderWithAlgod:
             source=MetadataSource.BOX,
         )
 
-        assert len(page_hash) == 32
+        assert len(page_hash[0]) == 32
+        assert page_hash[1] > 0
 
     def test_get_metadata_hash(
         self,
@@ -237,7 +239,8 @@ class TestReaderWithAlgod:
             source=MetadataSource.BOX,
         )
 
-        assert len(metadata_hash) == 32
+        assert len(metadata_hash[0]) == 32
+        assert metadata_hash[1] > 0
 
 
 class TestReaderWithAvm:

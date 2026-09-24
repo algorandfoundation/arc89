@@ -1039,7 +1039,7 @@ class TestMigrationIntegration:
         hash_result = registry_with_write.read.arc89_get_metadata_hash(
             asset_id=asset_id
         )
-        assert len(hash_result) == 32
+        assert len(hash_result[0]) == 32
 
     def test_migration_with_subsequent_updates(
         self,

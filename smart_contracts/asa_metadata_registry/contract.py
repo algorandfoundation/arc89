@@ -1176,7 +1176,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         self,
         *,
         asset_id: Asset,
-    ) -> abi.Hash:
+    ) -> abi.HashRevision:
         """
         Return the Metadata Header Hash for an ASA.
 
@@ -1184,12 +1184,15 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             asset_id: The Asset ID to get the Metadata Header Hash for
 
         Returns:
-            Asset Metadata Header Hash
+            Tuple of (Asset Metadata Header Hash, Metadata Revision)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
-        return abi.Hash(self._compute_header_hash(asset_id, UInt64(0)))
+        return abi.HashRevision(
+            hash=abi.Hash(self._compute_header_hash(asset_id, UInt64(0))),
+            revision=self._get_revision(asset_id),
+        )
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_page_hash(
@@ -1197,7 +1200,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
         *,
         asset_id: Asset,
         page: arc4.UInt8,
-    ) -> abi.Hash:
+    ) -> abi.HashRevision:
         """
         Return the SHA512-256 of a Metadata page for an ASA.
 
@@ -1206,7 +1209,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             page: The 0-based Metadata page number
 
         Returns:
-            The SHA512-256 of the Metadata page
+            Tuple of (SHA512-256 of the Metadata page, Metadata Revision)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
@@ -1218,14 +1221,16 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
 
         page_content = self._get_metadata_page(asset_id, page.as_uint64())
         page_hash = self._compute_page_hash(page.as_uint64(), page_content, UInt64(0))
-        return abi.Hash(page_hash)
+        return abi.HashRevision(
+            hash=abi.Hash(page_hash), revision=self._get_revision(asset_id)
+        )
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_hash(
         self,
         *,
         asset_id: Asset,
-    ) -> abi.Hash:
+    ) -> abi.HashRevision:
         """
         Return the Metadata Hash for an ASA.
 
@@ -1233,12 +1238,15 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
             asset_id: The Asset ID to get the Metadata Hash for
 
         Returns:
-            Asset Metadata Hash
+            Tuple of (Asset Metadata Hash, Metadata Revision)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
-        return abi.Hash(self._get_metadata_hash(asset_id))
+        return abi.HashRevision(
+            hash=abi.Hash(self._get_metadata_hash(asset_id)),
+            revision=self._get_revision(asset_id),
+        )
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_string_by_key(

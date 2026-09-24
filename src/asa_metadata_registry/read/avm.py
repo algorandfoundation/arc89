@@ -254,12 +254,12 @@ class AsaMetadataRegistryAvmRead:
         asset_id: int,
         simulate: SimulateOptions | None = None,
         params: Any | None = None,
-    ) -> bytes:
+    ) -> tuple[bytes, int]:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_header_hash(args=(asset_id,), params=params),
             simulate=simulate,
         )
-        return bytes(value)
+        return bytes(value[0]), int(value[1])
 
     def arc89_get_metadata_page_hash(
         self,
@@ -268,14 +268,14 @@ class AsaMetadataRegistryAvmRead:
         page: int,
         simulate: SimulateOptions | None = None,
         params: Any | None = None,
-    ) -> bytes:
+    ) -> tuple[bytes, int]:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_page_hash(
                 args=(asset_id, page), params=params
             ),
             simulate=simulate,
         )
-        return bytes(value)
+        return bytes(value[0]), int(value[1])
 
     def arc89_get_metadata_hash(
         self,
@@ -283,12 +283,12 @@ class AsaMetadataRegistryAvmRead:
         asset_id: int,
         simulate: SimulateOptions | None = None,
         params: Any | None = None,
-    ) -> bytes:
+    ) -> tuple[bytes, int]:
         value = self.simulate_one(
             lambda c: c.arc89_get_metadata_hash(args=(asset_id,), params=params),
             simulate=simulate,
         )
-        return bytes(value)
+        return bytes(value[0]), int(value[1])
 
     def arc89_get_metadata_string_by_key(
         self,

@@ -4,6 +4,8 @@ import base64
 import json
 from dataclasses import dataclass
 
+from algosdk.constants import ZERO_ADDRESS
+
 from .. import enums
 from ..algod import AlgodBoxReader
 from ..codec import b64url_decode
@@ -62,7 +64,11 @@ class AsaMetadataRegistryBoxRead:
         return asa_exists, metadata_exists
 
     def arc89_is_metadata_immutable(self, *, asset_id: int) -> bool:
-        return self._box(asset_id).header.is_immutable
+        # Same rule as the AVM getter: immutable flag, or ASA Manager Address cleared.
+        if self._box(asset_id).header.is_immutable:
+            return True
+        manager = self.algod.get_asset_info(asset_id).get("params", {}).get("manager")
+        return not manager or manager == ZERO_ADDRESS
 
     def arc89_is_metadata_short(self, *, asset_id: int) -> tuple[bool, int]:
         h = self._box(asset_id).header
@@ -107,27 +113,34 @@ class AsaMetadataRegistryBoxRead:
             content=b.body.raw_bytes[offset : offset + size],
         )
 
-    def arc89_get_metadata_header_hash(self, *, asset_id: int) -> bytes:
+    def arc89_get_metadata_header_hash(self, *, asset_id: int) -> tuple[bytes, int]:
         b = self._box(asset_id)
-        return compute_header_hash(
+        hh = compute_header_hash(
             metadata_identifiers=b.header.identifiers,
             reversible_flags=b.header.flags.reversible_byte,
             irreversible_flags=b.header.flags.irreversible_byte,
             metadata_size=b.body.size,
         )
+        return hh, b.header.revision
 
-    def arc89_get_metadata_page_hash(self, *, asset_id: int, page: int) -> bytes:
+    def arc89_get_metadata_page_hash(
+        self, *, asset_id: int, page: int
+    ) -> tuple[bytes, int]:
         b = self._box(asset_id)
         pages = paginate(b.body.raw_bytes, self.params.page_size)
         if page < 0 or page >= len(pages):
             raise InvalidPageIndexError(
                 f"Page {page} out of range ({len(pages)} pages)"
             )
-        return compute_page_hash(page_index=page, page_content=pages[page])
+        return (
+            compute_page_hash(page_index=page, page_content=pages[page]),
+            b.header.revision,
+        )
 
-    def arc89_get_metadata_hash(self, *, asset_id: int) -> bytes:
+    def arc89_get_metadata_hash(self, *, asset_id: int) -> tuple[bytes, int]:
         # On-chain method returns the header's stored metadata_hash.
-        return self._box(asset_id).header.metadata_hash
+        b = self._box(asset_id)
+        return b.header.metadata_hash, b.header.revision
 
     # ------------------------------------------------------------------
     # Practical off-chain helpers

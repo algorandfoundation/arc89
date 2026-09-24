@@ -53,6 +53,10 @@ class MetadataSlice(algopy.arc4.Struct):
     revision: algopy.arc4.UIntN[typing.Literal[64]]
     content: algopy.arc4.DynamicBytes
 
+class HashRevision(algopy.arc4.Struct):
+    hash: algopy.arc4.StaticArray[algopy.arc4.Byte, typing.Literal[32]]
+    revision: algopy.arc4.UIntN[typing.Literal[64]]
+
 class AsaMetadataRegistry(algopy.arc4.ARC4Client, typing.Protocol):
     """
 
@@ -267,7 +271,7 @@ class AsaMetadataRegistry(algopy.arc4.ARC4Client, typing.Protocol):
     def arc89_get_metadata_header_hash(
         self,
         asset_id: algopy.arc4.UIntN[typing.Literal[64]],
-    ) -> algopy.arc4.StaticArray[algopy.arc4.Byte, typing.Literal[32]]:
+    ) -> HashRevision:
         """
         Return the Metadata Header Hash for an ASA.
         """
@@ -277,7 +281,7 @@ class AsaMetadataRegistry(algopy.arc4.ARC4Client, typing.Protocol):
         self,
         asset_id: algopy.arc4.UIntN[typing.Literal[64]],
         page: algopy.arc4.UIntN[typing.Literal[8]],
-    ) -> algopy.arc4.StaticArray[algopy.arc4.Byte, typing.Literal[32]]:
+    ) -> HashRevision:
         """
         Return the SHA512-256 of a Metadata page for an ASA.
         """
@@ -286,7 +290,7 @@ class AsaMetadataRegistry(algopy.arc4.ARC4Client, typing.Protocol):
     def arc89_get_metadata_hash(
         self,
         asset_id: algopy.arc4.UIntN[typing.Literal[64]],
-    ) -> algopy.arc4.StaticArray[algopy.arc4.Byte, typing.Literal[32]]:
+    ) -> HashRevision:
         """
         Return the Metadata Hash for an ASA.
         """
