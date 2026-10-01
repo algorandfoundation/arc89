@@ -379,9 +379,15 @@ class TestSubReaders:
 class TestResolveArc90Uri:
     """Test resolve_arc90_uri method."""
 
+    def test_explicit_uri_without_trusted_registry_raises(self) -> None:
+        """An explicit URI is never its own trust anchor."""
+        reader = AsaMetadataRegistryRead(app_id=None)
+        with pytest.raises(RegistryResolutionError, match="No trusted registry"):
+            reader.resolve_arc90_uri(metadata_uri="algorand://app/123?box=AAAAAAAAAcg")
+
     def test_resolve_from_explicit_uri(self) -> None:
         """Test resolution from explicit metadata_uri parameter."""
-        reader = AsaMetadataRegistryRead(app_id=None)
+        reader = AsaMetadataRegistryRead(app_id=123)
         uri = reader.resolve_arc90_uri(
             metadata_uri="algorand://app/123?box=AAAAAAAAAcg"  # b64url of asset ID 456
         )
@@ -612,7 +618,9 @@ class TestGetAssetMetadata:
         mock_algod_reader: AlgodBoxReader,
     ) -> None:
         """Test metadata follows deprecation chain."""
-        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        reader = AsaMetadataRegistryRead(
+            app_id=123, algod=mock_algod_reader, trusted_versions=(789,)
+        )
 
         # First record points to deprecated_by=789
         deprecated_header = MetadataHeader(
@@ -644,12 +652,9 @@ class TestGetAssetMetadata:
             body=MetadataBody(b'{"new": "metadata"}'),
         )
 
-        # Mock to return different records on subsequent calls
-        call_count = [0]
-
+        # Mock returns the record of the requested registry
         def box_response(app_id: int, box_name: bytes) -> dict[str, str]:
-            record = deprecated_record if call_count[0] == 0 else current_record
-            call_count[0] += 1
+            record = deprecated_record if app_id == 123 else current_record
             box_value = record.header.serialized + record.body.raw_bytes
             return {"value": b64_encode(box_value)}
 
@@ -666,7 +671,9 @@ class TestGetAssetMetadata:
         mock_algod_reader: AlgodBoxReader,
     ) -> None:
         """Test deprecation following stops after max hops."""
-        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        reader = AsaMetadataRegistryRead(
+            app_id=123, algod=mock_algod_reader, trusted_versions=(999,)
+        )
 
         # Circular deprecation: 123 -> 999 -> 123 -> ...
         def box_for(app_id: int, _box_name: bytes) -> dict[str, str]:
@@ -686,6 +693,59 @@ class TestGetAssetMetadata:
             reader.get_asset_metadata(
                 asset_id=456, follow_deprecation=True, max_deprecation_hops=3
             )
+
+    def test_get_asset_metadata_untrusted_deprecation_raises(
+        self,
+        mock_algod_reader: AlgodBoxReader,
+    ) -> None:
+        """A Deprecated By pointer outside the trusted versions is never followed."""
+        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        header = MetadataHeader(
+            identifiers=0x00,
+            flags=MetadataFlags.empty(),
+            deprecated_by=789,
+            revision=1000,
+            metadata_hash=b"\x00" * 32,
+        )
+        mock_box_response(mock_algod_reader, header.serialized + b"{}")
+        mock_algod_reader.algod.asset_info = Mock(return_value={"params": {}})
+        with pytest.raises(RegistryResolutionError, match="untrusted registry 789"):
+            reader.get_asset_metadata(asset_id=456, follow_deprecation=True)
+
+    def test_get_asset_metadata_searches_trusted_versions(
+        self,
+        mock_algod_reader: AlgodBoxReader,
+    ) -> None:
+        """Absent from the oldest trusted version, the record is found in a newer one."""
+        reader = AsaMetadataRegistryRead(
+            app_id=123, algod=mock_algod_reader, trusted_versions=(789,)
+        )
+        header = MetadataHeader(
+            identifiers=0x00,
+            flags=MetadataFlags.empty(),
+            deprecated_by=0,
+            revision=7,
+            metadata_hash=b"\x00" * 32,
+        )
+
+        def box_for(app_id: int, _box_name: bytes) -> dict[str, str]:
+            if app_id == 123:
+                raise Exception("HTTP 404: box not found")
+            return {"value": b64_encode(header.serialized + b'{"v": 2}')}
+
+        mock_algod_reader.algod.application_box_by_name = Mock(side_effect=box_for)
+        mock_algod_reader.algod.asset_info = Mock(return_value={"params": {}})
+        assert reader.get_asset_metadata(asset_id=456).app_id == 789
+
+    @pytest.mark.parametrize(
+        "kwargs", [{"drift_retries": -1}, {"max_deprecation_hops": -1}]
+    )
+    def test_get_asset_metadata_rejects_negative_limits(
+        self, kwargs: dict[str, int]
+    ) -> None:
+        reader = AsaMetadataRegistryRead(app_id=123)
+        with pytest.raises(ValueError, match=">= 0"):
+            reader.get_asset_metadata(asset_id=456, **kwargs)
 
     def test_get_asset_metadata_no_deprecation_follow(
         self,

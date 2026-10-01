@@ -671,3 +671,10 @@ class TestCompletePartialAssetUrl:
 
         parsed = Arc90Uri.parse(result)
         assert parsed.asset_id == asset_id
+
+
+def test_parse_rejects_app_id_above_uint64() -> None:
+    with pytest.raises(InvalidArc90UriError, match="Invalid app id"):
+        Arc90Uri.parse(f"algorand://app/{2**64}?box=AAAAAAAAAAE")
+    uri = Arc90Uri.parse(f"algorand://app/{2**64 - 1}?box=AAAAAAAAAAE")
+    assert uri.app_id == 2**64 - 1

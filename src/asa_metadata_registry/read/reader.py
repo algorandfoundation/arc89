@@ -63,6 +63,8 @@ class AsaMetadataRegistryRead:
     algod: AlgodBoxReader | None = None
     avm_factory: Callable[[int], AsaMetadataRegistryAvmRead] | None = None
     netauth: str | None = None
+    # Newer trusted ASA Metadata Registry versions, oldest first, after the trusted one
+    trusted_versions: tuple[int, ...] = ()
 
     _params_cache: RegistryParameters | None = None
 
@@ -133,15 +135,22 @@ class AsaMetadataRegistryRead:
         deployment = deployment_for_genesis(gh) if gh is not None else None
         return deployment.app_id if deployment is not None else None
 
-    def _check_trusted(self, uri: Arc90Uri, trusted_app_id: int | None) -> None:
-        """Reject a URI naming another registry or another network than the trusted one."""
-        if trusted_app_id is None:
+    def _trusted_versions(self, app_id: int | None) -> tuple[int, ...]:
+        """Trusted registry versions, oldest first: the trusted one, then `trusted_versions`."""
+        trusted = self._trusted_app_id(app_id)
+        head = () if trusted is None else (trusted,)
+        return head + tuple(v for v in self.trusted_versions if v != trusted)
+
+    def _check_trusted(self, uri: Arc90Uri, versions: tuple[int, ...]) -> None:
+        """Reject a URI naming a registry or a network other than the trusted ones."""
+        if not versions:
             raise RegistryResolutionError(
                 "No trusted registry for this network: configure or pass app_id"
             )
-        if uri.app_id != trusted_app_id:
+        if uri.app_id not in versions:
             raise RegistryResolutionError(
-                f"URI names registry {uri.app_id}, trusted registry is {trusted_app_id}"
+                f"URI names registry {uri.app_id}, trusted registry is "
+                + ", ".join(map(str, versions))
             )
         if self.netauth is not None:
             if uri.netauth != self.netauth:
@@ -169,7 +178,8 @@ class AsaMetadataRegistryRead:
         configured one, or the known deployment of the connected network): an explicit URI
         naming another registry or network is rejected; the ASA's Asset URL is not read.
         """
-        trusted = self._trusted_app_id(app_id)
+        versions = self._trusted_versions(app_id)
+        trusted = versions[0] if versions else None
 
         if metadata_uri:
             parsed = Arc90Uri.parse(metadata_uri)
@@ -177,8 +187,7 @@ class AsaMetadataRegistryRead:
                 raise InvalidArc90UriError(
                     "Metadata URI is partial; missing box value (asset id)"
                 )
-            if trusted is not None:
-                self._check_trusted(parsed, trusted)
+            self._check_trusted(parsed, versions)
             return parsed
 
         if asset_id is None:
@@ -212,7 +221,7 @@ class AsaMetadataRegistryRead:
             uri = Arc90Uri.parse(complete_partial_asset_url(asset_url, asset_id))
         except InvalidArc90UriError:
             return None
-        self._check_trusted(uri, self._trusted_app_id(app_id))
+        self._check_trusted(uri, self._trusted_versions(app_id))
         return uri
 
     # ------------------------------------------------------------------
@@ -236,15 +245,34 @@ class AsaMetadataRegistryRead:
 
         When `source=AUTO`, the SDK prefers BOX reads (fast) if algod is available; otherwise AVM.
         Non-atomic reads that observe a Revision change are retried up to `drift_retries` times.
+        The look-up and Deprecated By pointers stay within the trusted registry versions.
         """
+        if drift_retries < 0 or max_deprecation_hops < 0:
+            raise ValueError("drift_retries and max_deprecation_hops must be >= 0")
         uri = self.resolve_arc90_uri(
             asset_id=asset_id, metadata_uri=metadata_uri, app_id=app_id
         )
         if uri.asset_id is None:
             raise RegistryResolutionError("Resolved URI is partial (no asset id)")
 
+        versions = self._trusted_versions(app_id)
         current_app_id = uri.app_id
         current_asset_id = uri.asset_id
+        if metadata_uri is None and len(versions) > 1:
+            # Canonical look-up: the oldest trusted version holding the record
+            current_app_id = next(
+                (
+                    v
+                    for v in versions
+                    if self._holds_record(
+                        app_id=v,
+                        asset_id=current_asset_id,
+                        source=source,
+                        simulate=simulate,
+                    )
+                ),
+                current_app_id,
+            )
 
         for _ in range(max_deprecation_hops + 1):
             for attempt in range(drift_retries + 1):
@@ -259,17 +287,37 @@ class AsaMetadataRegistryRead:
                 except MetadataDriftError:
                     if attempt == drift_retries:
                         raise
-            if follow_deprecation and record.header.deprecated_by not in (
-                0,
-                current_app_id,
-            ):
-                current_app_id = int(record.header.deprecated_by)
+            target = int(record.header.deprecated_by)
+            if follow_deprecation and target not in (0, current_app_id):
+                if target not in versions:
+                    raise RegistryResolutionError(
+                        f"Deprecated By names untrusted registry {target}"
+                    )
+                current_app_id = target
                 continue
             return record
 
         raise RegistryResolutionError(
             f"Deprecation chain exceeded {max_deprecation_hops} hops (last registry {current_app_id})"
         )
+
+    def _holds_record(
+        self,
+        *,
+        app_id: int,
+        asset_id: int,
+        source: MetadataSource,
+        simulate: SimulateOptions | None,
+    ) -> bool:
+        if self.algod is not None and source != MetadataSource.AVM:
+            box = self.algod.try_get_metadata_box(
+                app_id=app_id, asset_id=asset_id, params=self._get_params()
+            )
+            return box is not None
+        existence = self.avm(app_id=app_id).arc89_check_metadata_exists(
+            asset_id=asset_id, simulate=simulate
+        )
+        return existence.metadata_exists
 
     def _get_asset_metadata_once(
         self,

@@ -206,6 +206,21 @@ class TestDecodeMetadataJsonProfile:
         with pytest.raises(MetadataEncodingError, match="Duplicate"):
             decode_metadata_json(b'{"a": {"b": 1, "b": 2}}')
 
+    @pytest.mark.parametrize(
+        "raw",
+        [b'{"x":"\\ud800"}', b'{"\\udc00":1}', b'{"a":["ok","\\ud800"]}'],
+    )
+    def test_rejects_lone_surrogates(self, raw: bytes) -> None:
+        with pytest.raises(MetadataEncodingError, match="lone surrogate"):
+            decode_metadata_json(raw)
+
+    def test_accepts_surrogate_pairs(self) -> None:
+        assert decode_metadata_json(b'{"x":"\\ud83d\\ude00"}') == {"x": "\U0001f600"}
+
+    def test_encoder_rejects_lone_surrogates(self) -> None:
+        with pytest.raises(MetadataEncodingError):
+            encode_metadata_json({"x": "\ud800"})
+
     def test_accepts_unique_names(self) -> None:
         assert decode_metadata_json(b'{"a": {"b": 1}, "c": 2}') == {
             "a": {"b": 1},

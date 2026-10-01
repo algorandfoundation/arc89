@@ -196,7 +196,7 @@ class Arc90Uri:
                 raise InvalidArc90UriError(f"Expected path '/{app_path}<app_id>'")
             netauth = authority
         app_id_str = path[len(app_path) :]
-        if not _APP_ID_RE.match(app_id_str):
+        if not _APP_ID_RE.match(app_id_str) or int(app_id_str) >= 2**64:
             raise InvalidArc90UriError("Invalid app id in path")
 
         box_name: bytes | None = None

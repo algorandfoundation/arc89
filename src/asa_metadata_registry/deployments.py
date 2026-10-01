@@ -89,7 +89,6 @@ def netauth_matches_genesis(netauth: str | None, genesis_hash_b64: str) -> bool:
             return b64url_decode(netauth[3:]) == b64_decode(genesis_hash_b64)
         except Exception:
             return False
+    # A label denotes only a known deployment; unknown networks need `gh:` or a configured netauth
     d = deployment_for_genesis(genesis_hash_b64)
-    if d is None:  # unknown network (e.g. LocalNet): a label cannot be verified
-        return netauth.startswith("net:")
-    return d.arc90_uri_netauth == netauth
+    return d is not None and d.arc90_uri_netauth == netauth

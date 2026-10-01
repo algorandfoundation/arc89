@@ -15,6 +15,18 @@ def _reject_non_finite(constant: str) -> object:
     raise ValueError(f"Non-finite JSON value {constant!r} is not allowed by RFC 8259")
 
 
+def _has_lone_surrogate(value: object) -> bool:
+    if isinstance(value, str):
+        return any(0xD800 <= ord(c) <= 0xDFFF for c in value)
+    if isinstance(value, dict):
+        return any(
+            _has_lone_surrogate(k) or _has_lone_surrogate(v) for k, v in value.items()
+        )
+    if isinstance(value, list):
+        return any(_has_lone_surrogate(v) for v in value)
+    return False
+
+
 def _unique_names(pairs: list[tuple[str, object]]) -> dict[str, object]:
     obj = dict(pairs)
     if len(obj) != len(pairs):
@@ -46,6 +58,8 @@ def decode_metadata_json(metadata: bytes) -> dict[str, object]:
         )
     except (json.JSONDecodeError, ValueError) as e:
         raise MetadataEncodingError(f"Metadata is not valid JSON: {e}") from e
+    if _has_lone_surrogate(obj):
+        raise MetadataEncodingError("Metadata MUST NOT contain lone surrogate escapes")
 
     if not isinstance(obj, dict):
         raise MetadataEncodingError("Metadata JSON MUST be an object")
@@ -62,9 +76,9 @@ def encode_metadata_json(obj: Mapping[str, object]) -> bytes:
         txt = json.dumps(
             obj, ensure_ascii=False, separators=(",", ":"), allow_nan=False
         )
+        data = txt.encode("utf-8")  # fails on lone surrogates
     except (TypeError, ValueError) as e:
         raise MetadataEncodingError("Object is not JSON-serializable") from e
-    data = txt.encode("utf-8")
     if data.startswith(b"\xef\xbb\xbf"):
         raise MetadataEncodingError("Produced UTF-8 BOM; this should not happen")
     return data
