@@ -70,7 +70,7 @@ ARC4_DYNAMIC_LENGTH_SIZE: Final[int] = 2
 #   algorand://<netauth>/app/<app_id>?box=<base64url_box_name>#<fragment>
 #
 # Examples:
-#   - TestNet:  algorand://net:testnet/app/753324084?box=AAAAAAAAAAE#arc89
+#   - TestNet:  algorand://net:testnet/app/772968354?box=AAAAAAAAAAE#arc89
 #   - LocalNet: algorand://net:localnet/app/1002?box=AAAAAAAAA-w#arc3
 #   - MainNet:  algorand://app/123456789?box=AAAAAAAAAAE#arc89
 

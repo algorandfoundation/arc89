@@ -226,10 +226,10 @@ def complete_partial_asset_url(asset_url: str, asset_id: int) -> str:
     not the box value itself.
 
     Example (partial):
-        algorand://net:testnet/app/752790676?box=#arc89
+        algorand://net:testnet/app/772968354?box=#arc89
 
     Output (complete):
-        algorand://net:testnet/app/752790676?box=<base64url(asset_id_bytes)>#arc89
+        algorand://net:testnet/app/772968354?box=<base64url(asset_id_bytes)>#arc89
     """
     parsed = Arc90Uri.parse(asset_url)
     if not parsed.is_partial:
