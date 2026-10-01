@@ -196,7 +196,7 @@ class Arc89Interface(ARC4Contract, ABC):
         asset_id: Asset,
         offset: arc4.UInt16,
         size: arc4.UInt16,
-    ) -> Bytes:
+    ) -> abi.MetadataSlice:
         pass
 
     @abstractmethod
@@ -205,7 +205,7 @@ class Arc89Interface(ARC4Contract, ABC):
         self,
         *,
         asset_id: Asset,
-    ) -> abi.Hash:
+    ) -> abi.HashRevision:
         pass
 
     @abstractmethod
@@ -215,7 +215,7 @@ class Arc89Interface(ARC4Contract, ABC):
         *,
         asset_id: Asset,
         page: arc4.UInt8,
-    ) -> abi.Hash:
+    ) -> abi.HashRevision:
         pass
 
     @abstractmethod
@@ -224,7 +224,7 @@ class Arc89Interface(ARC4Contract, ABC):
         self,
         *,
         asset_id: Asset,
-    ) -> abi.Hash:
+    ) -> abi.HashRevision:
         pass
 
     @abstractmethod

@@ -31,7 +31,8 @@ def test_get_metadata_header_hash(
         args=Arc89GetMetadataHeaderHashArgs(asset_id=metadata.asset_id),
     ).abi_return
     assert hh is not None
-    assert bytes(hh) == metadata.compute_header_hash()
+    assert bytes(hh.hash) == metadata.compute_header_hash()
+    assert hh.revision > 0
 
 
 def test_fail_asa_not_exists(

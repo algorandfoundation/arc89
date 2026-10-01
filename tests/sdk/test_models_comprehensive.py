@@ -46,7 +46,7 @@ class TestMetadataHeaderAdvanced:
             identifiers=bitmasks.MASK_ID_SHORT,
             flags=flags,
             metadata_hash=b"\xaa" * 32,
-            last_modified_round=12345,
+            revision=12345,
             deprecated_by=67890,
         )
         serialized = header.serialized
@@ -66,7 +66,7 @@ class TestMetadataHeaderAdvanced:
             identifiers=0,  # Not set initially
             flags=MetadataFlags.empty(),
             metadata_hash=b"\x00" * 32,
-            last_modified_round=0,
+            revision=0,
             deprecated_by=0,
         )
         body = MetadataBody(b'{"name":"Test"}')
@@ -79,7 +79,7 @@ class TestMetadataHeaderAdvanced:
             identifiers=bitmasks.MASK_ID_SHORT,  # Set initially
             flags=MetadataFlags.empty(),
             metadata_hash=b"\x00" * 32,
-            last_modified_round=0,
+            revision=0,
             deprecated_by=0,
         )
         # Create body larger than SHORT_METADATA_SIZE
@@ -94,7 +94,7 @@ class TestMetadataHeaderAdvanced:
             identifiers=0b11110000,  # Reserved bits set
             flags=MetadataFlags.empty(),
             metadata_hash=b"\x00" * 32,
-            last_modified_round=0,
+            revision=0,
             deprecated_by=0,
         )
         body = MetadataBody(b'{"name":"Test"}')
@@ -134,9 +134,9 @@ class TestMetadataHeaderAdvanced:
         header = MetadataHeader.from_tuple([0, 0, 0, hash_list, 100, 200])
         assert header.metadata_hash == b"\x00" * 32
 
-    def test_from_tuple_invalid_last_modified_round_type(self) -> None:
-        """Test from_tuple with non-int last_modified_round."""
-        with pytest.raises(TypeError, match="last_modified_round must be int"):
+    def test_from_tuple_invalid_revision_type(self) -> None:
+        """Test from_tuple with non-int revision."""
+        with pytest.raises(TypeError, match="revision must be int"):
             MetadataHeader.from_tuple([0, 0, 0, b"\x00" * 32, "not int", 0])
 
     def test_from_tuple_invalid_deprecated_by_type(self) -> None:
@@ -150,7 +150,7 @@ class TestMetadataHeaderAdvanced:
             identifiers=0,
             flags=MetadataFlags.empty(),
             metadata_hash=b"\x00" * 32,
-            last_modified_round=0,
+            revision=0,
             deprecated_by=0,
         )
         assert header_not_deprecated.is_deprecated is False
@@ -159,7 +159,7 @@ class TestMetadataHeaderAdvanced:
             identifiers=0,
             flags=MetadataFlags.empty(),
             metadata_hash=b"\x00" * 32,
-            last_modified_round=0,
+            revision=0,
             deprecated_by=5000,
         )
         assert header_deprecated.is_deprecated is True
@@ -234,7 +234,7 @@ class TestAssetMetadataRecordAdvanced:
             identifiers=bitmasks.MASK_ID_SHORT,
             flags=MetadataFlags.empty(),
             metadata_hash=b"\x00" * 32,
-            last_modified_round=0,
+            revision=0,
             deprecated_by=0,
         )
         body = MetadataBody(b'{"name":"Test"}')
@@ -255,7 +255,6 @@ class TestAssetMetadataRecordAdvanced:
         params = get_default_registry_params()
 
         correct_hash = compute_metadata_hash(
-            asset_id=200,
             metadata_identifiers=bitmasks.MASK_ID_SHORT,
             reversible_flags=0,
             irreversible_flags=0,
@@ -267,7 +266,7 @@ class TestAssetMetadataRecordAdvanced:
             identifiers=bitmasks.MASK_ID_SHORT,
             flags=MetadataFlags.empty(),
             metadata_hash=correct_hash,
-            last_modified_round=0,
+            revision=0,
             deprecated_by=0,
         )
         body = MetadataBody(metadata)
@@ -286,7 +285,7 @@ class TestAssetMetadataRecordAdvanced:
             identifiers=0,
             flags=MetadataFlags.empty(),
             metadata_hash=b"\x00" * 32,
-            last_modified_round=0,
+            revision=0,
             deprecated_by=0,
         )
         body = MetadataBody(b'{"name":"Test","count":42}')

@@ -38,7 +38,7 @@ def itoa(i: UInt64) -> Bytes:
 
     while i > 0:
         d = i % UInt64(10)
-        acc = digits[d : d + UInt64(1)] + acc
+        acc = op.extract(digits, d, 1) + acc
         i //= UInt64(10)
 
     return acc or Bytes(b"0")

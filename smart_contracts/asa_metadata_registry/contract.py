@@ -37,12 +37,15 @@ from . import flags as flg
 from .arc89_interface import Arc89Interface
 
 
-class AsaMetadataRegistry(Arc89Interface, AsaValidation):
+class AsaMetadataRegistry(Arc89Interface, AsaValidation, avm_version=13):
     """
     Singleton Application providing ASA metadata via Algod API and AVM
     """
 
     def __init__(self) -> None:
+        self.revision = UInt64(0)
+
+        op.AppParamsSet.app_foreign_box_reads(True)  # noqa: FBT003
         self.asset_metadata = BoxMap(Asset, Bytes, key_prefix="")
 
     def _metadata_exists(self, asa: Asset) -> bool:
@@ -130,19 +133,23 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             start_index=const.IDX_METADATA_HASH, value=metadata_hash
         )
 
-    def _get_last_modified_round(self, asa: Asset) -> UInt64:
+    def _get_revision(self, asa: Asset) -> UInt64:
         return op.btoi(
             self.asset_metadata.box(asa).extract(
-                start_index=const.IDX_LAST_MODIFIED_ROUND,
-                length=const.LAST_MODIFIED_ROUND_SIZE,
+                start_index=const.IDX_REVISION,
+                length=const.REVISION_SIZE,
             )
         )
 
-    def _set_last_modified_round(self, asa: Asset, last_modified_round: UInt64) -> None:
+    def _set_revision(self, asa: Asset, revision: UInt64) -> None:
         self.asset_metadata.box(asa).replace(
-            start_index=const.IDX_LAST_MODIFIED_ROUND,
-            value=op.itob(last_modified_round),
+            start_index=const.IDX_REVISION,
+            value=op.itob(revision),
         )
+
+    def _next_revision(self) -> UInt64:
+        self.revision += 1
+        return self.revision
 
     def _get_deprecated_by(self, asa: Asset) -> UInt64:
         return op.btoi(
@@ -151,6 +158,9 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
                 length=const.DEPRECATED_BY_SIZE,
             )
         )
+
+    def _is_deprecated(self, asa: Asset) -> bool:
+        return self._get_deprecated_by(asa) != 0
 
     def _set_deprecated_by(self, asa: Asset, deprecated_by: UInt64) -> None:
         self.asset_metadata.box(asa).replace(
@@ -169,6 +179,9 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self.asset_metadata.box(asa).replace(
             start_index=old_asset_metadata_box_size, value=payload
         )
+
+    def _is_arc20_smart_asa(self, asa: Asset) -> bool:
+        return self._get_reversible_flag_value(asa, UInt64(flg.REV_FLG_ARC20))
 
     def _is_arc3_metadata(self, asa: Asset) -> bool:
         return self._get_irreversible_flag_value(asa, UInt64(flg.IRR_FLG_ARC3))
@@ -197,6 +210,17 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             and txn.app_args(const.ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID) == op.itob(asa.id)
         )
 
+    def _is_head_call(self, asa: Asset, txn: gtxn.Transaction) -> bool:
+        if not self._is_registry_call(txn):
+            return False
+        selector = txn.app_args(const.ARC4_METHOD_SELECTOR_ARG)
+        return (
+            selector == arc4.arc4_signature(Arc89Interface.arc89_create_metadata)
+            or selector == arc4.arc4_signature(Arc89Interface.arc89_replace_metadata)
+            or selector
+            == arc4.arc4_signature(Arc89Interface.arc89_replace_metadata_larger)
+        ) and txn.app_args(const.ARC89_HEAD_CALL_ARG_ASSET_ID) == op.itob(asa.id)
+
     def _read_extra_payload(self, txn: gtxn.Transaction) -> Bytes:
         # This subroutine assumes txn is already validated as an extra payload txn
         return arc4.DynamicBytes.from_bytes(
@@ -215,23 +239,22 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             self._get_metadata_size(asa) <= metadata_size, err.PAYLOAD_OVERFLOW
         )
 
-        # Append staged extra payload (in the same Group, if any)
+        # Append the contiguous extra payload calls following this head call (if any)
         group_size = Global.group_size
         group_index = Txn.group_index
         for idx in urange(group_index + 1, group_size):
             txn = gtxn.Transaction(idx)
-            if self._is_extra_payload_call(asa, txn):
-                extra_payload = self._read_extra_payload(txn)
-                logged_assert(
-                    self._get_metadata_size(asa) + extra_payload.length
-                    <= metadata_size,
-                    err.PAYLOAD_OVERFLOW,
-                )
-                self._append_payload(asa, extra_payload)
-                logged_assert(
-                    self._get_metadata_size(asa) <= metadata_size,
-                    err.PAYLOAD_OVERFLOW,
-                )
+            if not self._is_extra_payload_call(asa, txn):
+                break
+            extra_payload = self._read_extra_payload(txn)
+            logged_assert(
+                self._get_metadata_size(asa) + extra_payload.length <= metadata_size,
+                err.PAYLOAD_OVERFLOW,
+            )
+            self._append_payload(asa, extra_payload)
+            logged_assert(
+                self._get_metadata_size(asa) <= metadata_size, err.PAYLOAD_OVERFLOW
+            )
         logged_assert(
             self._get_metadata_size(asa) == metadata_size,
             err.METADATA_SIZE_MISMATCH,
@@ -285,12 +308,11 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         )
         self._set_metadata_identifiers(asa, identifiers)
 
-    def _compute_header_hash(self, asa: Asset) -> Bytes:
-        # hh = SHA-512/256("arc0089/header" || Asset ID || Metadata Identifiers
-        # || Reversible Flags || Irreversible Flags || Metadata Size)
-        ensure_budget(required_budget=const.HEADER_HASH_OP_BUDGET)
+    def _compute_header_hash(self, asa: Asset, extra_budget: UInt64) -> Bytes:
+        # hh = SHA-512/256("arc0089/header" || Metadata Identifiers || Reversible Flags
+        # || Irreversible Flags || Metadata Size)
+        ensure_budget(required_budget=const.HEADER_HASH_OP_BUDGET + extra_budget)
         domain = Bytes(const.HASH_DOMAIN_HEADER)
-        asset_id = op.itob(asa.id)
         metadata_identifiers = self._get_metadata_identifiers(asa)
         reversible_flags = self._get_reversible_flags(asa)
         irreversible_flags = self._get_irreversible_flags(asa)
@@ -300,7 +322,6 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         )
         return op.sha512_256(
             domain
-            + asset_id
             + metadata_identifiers
             + reversible_flags
             + irreversible_flags
@@ -308,29 +329,35 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         )
 
     def _compute_page_hash(
-        self, asa: Asset, page_index: UInt64, page_content: Bytes
+        self, page_index: UInt64, page_content: Bytes, extra_budget: UInt64
     ) -> Bytes:
-        # ph[i] = SHA-512/256("arc0089/page" || Asset ID || Page Index || Page Size || Page Content)
-        ensure_budget(required_budget=const.PAGE_HASH_OP_BUDGET)
+        # ph[i] = SHA-512/256("arc0089/page" || Page Index || Page Size || Page Content)
+        ensure_budget(required_budget=const.PAGE_HASH_OP_BUDGET + extra_budget)
         domain = Bytes(const.HASH_DOMAIN_PAGE)
-        asset_id = op.itob(asa.id)
         page_idx = trimmed_itob(uint=page_index, size=UInt64(const.UINT8_SIZE))
         page_size = trimmed_itob(
             uint=page_content.length, size=UInt64(const.UINT16_SIZE)
         )
-        return op.sha512_256(domain + asset_id + page_idx + page_size + page_content)
+        return op.sha512_256(domain + page_idx + page_size + page_content)
+
+    def _tail_budget(self) -> UInt64:
+        # Budget to leave for the calls after this head call in the Group
+        return (
+            Global.group_size - Txn.group_index - 1
+        ) * const.GROUP_TAIL_OP_BUDGET_PER_TXN
 
     def _compute_metadata_hash(self, asa: Asset) -> Bytes:
         # am = SHA-512/256("arc0089/am" || hh || ph[0] || ph[1] || ... || ph[total_pages - 1]) or
         # am = SHA-512/256("arc0089/am" || hh), if no pages
         domain = Bytes(const.HASH_DOMAIN_METADATA)
-        hh = self._compute_header_hash(asa)
+        tail_budget = self._tail_budget()
+        hh = self._compute_header_hash(asa, tail_budget)
         total_pages = self._get_total_pages(asa)
         concatenated_ph = Bytes()
         if total_pages > 0:
             for page_index in urange(0, total_pages):
                 page_content = self._get_metadata_page(asa, page_index)
-                ph = self._compute_page_hash(asa, page_index, page_content)
+                ph = self._compute_page_hash(page_index, page_content, tail_budget)
                 concatenated_ph += ph
         return op.sha512_256(domain + hh + concatenated_ph)
 
@@ -346,12 +373,17 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self._check_base_preconditions(asa, metadata_size)
         logged_assert(self._metadata_exists(asa), err.ASSET_METADATA_NOT_EXIST)
         logged_assert(not self._is_immutable(asa), err.IMMUTABLE)
+        logged_assert(not self._is_deprecated(asa), err.ASSET_METADATA_DEPRECATED)
 
     def _check_existence_preconditions(self, asa: Asset) -> None:
         logged_assert(self._asa_exists(asa), err.ASA_NOT_EXIST)
         logged_assert(self._metadata_exists(asa), err.ASSET_METADATA_NOT_EXIST)
 
     def _check_set_flag_preconditions(self, asa: Asset) -> None:
+        self._check_migrate_preconditions(asa)
+        logged_assert(not self._is_deprecated(asa), err.ASSET_METADATA_DEPRECATED)
+
+    def _check_migrate_preconditions(self, asa: Asset) -> None:
         self._check_existence_preconditions(asa)
         logged_assert(self._is_asa_manager(asa), err.UNAUTHORIZED)
         logged_assert(not self._is_immutable(asa), err.IMMUTABLE)
@@ -362,6 +394,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
                 asset_id=asa.id,
                 round=Global.round,
                 timestamp=Global.latest_timestamp,
+                revision=self._get_revision(asa),
                 reversible_flags=arc4.Byte(op.btoi(self._get_reversible_flags(asa))),
                 irreversible_flags=arc4.Byte(
                     op.btoi(self._get_irreversible_flags(asa))
@@ -376,7 +409,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         self._identify_metadata(asa)
         metadata_hash = self._compute_metadata_hash(asa)
         self._set_metadata_hash(asa, metadata_hash)
-        self._set_last_modified_round(asa, Global.round)
+        self._set_revision(asa, self._next_revision())
         self._emit_updated_event(asa, metadata_hash)
 
     @arc4.baremethod(create="require")
@@ -406,8 +439,9 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
         Args:
             asset_id: The Asset ID to create the Asset Metadata for
-            reversible_flags: The Reversible Flags. WARNING: LSB and 1 can by set only at creation time
-            irreversible_flags: The Irreversible Flags. WARNING: if the MSB is True the Asset Metadata is IMMUTABLE
+            reversible_flags: The Reversible Flags
+            irreversible_flags: The Irreversible Flags. WARNING: LSB and 1 can be set only at creation
+                                time; if the MSB is True the Asset Metadata is IMMUTABLE
             metadata_size: The Metadata byte size to be created
             payload: The Metadata payload (without Header). WARNING: Payload larger than args capacity
                      must be provided with arc89_extra_payload calls in the Group
@@ -456,7 +490,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         else:
             metadata_hash = self._compute_metadata_hash(asset_id)
         self._set_metadata_hash(asset_id, metadata_hash)
-        self._set_last_modified_round(asset_id, Global.round)
+        self._set_revision(asset_id, self._next_revision())
         self._set_deprecated_by(asset_id, UInt64(0))
 
         # Postconditions
@@ -466,10 +500,23 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             logged_assert(
                 self._is_arc54_compliant(asset_id), err.ASA_NOT_ARC54_COMPLIANT
             )
-        if self._is_arc89_native(asset_id):
+        if self._is_arc20_smart_asa(asset_id):
             logged_assert(
-                self._is_arc89_compliant(asset_id), err.ASA_NOT_ARC89_COMPLIANT
+                self._is_arc20_compliant(asset_id), err.ASA_NOT_ARC20_COMPLIANT
             )
+        if self._is_arc89_native(asset_id):
+            ensure_budget(
+                required_budget=const.ASA_URL_CHECK_OP_BUDGET + self._tail_budget()
+            )
+            arc89_partial_uri = arc90_box_query(
+                Global.current_application_id.id, Bytes()
+            )
+            logged_assert(
+                self._is_arc89_compliant(asset_id, arc89_partial_uri),
+                err.ASA_NOT_ARC89_COMPLIANT,
+            )
+            if self._is_arc89_arc3_url(asset_id, arc89_partial_uri):
+                logged_assert(self._is_arc3_metadata(asset_id), err.REQUIRES_ARC3)
             if has_am and not self._is_arc3_metadata(asset_id):
                 logged_assert(
                     asa_metadata_hash == self._compute_metadata_hash(asset_id),
@@ -650,23 +697,25 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             new_registry_id: The Application ID of the new ASA Metadata Registry version
         """
         # Preconditions
-        self._check_set_flag_preconditions(asset_id)
+        self._check_migrate_preconditions(asset_id)
         logged_assert(
             new_registry_id != Global.current_application_id.id,
             err.NEW_REGISTRY_ID_INVALID,
         )
 
-        # Update Deprecated By
-        self._set_deprecated_by(asset_id, new_registry_id)
+        if new_registry_id != self._get_deprecated_by(asset_id):
+            self._set_deprecated_by(asset_id, new_registry_id)
+            self._set_revision(asset_id, self._next_revision())
 
-        arc4.emit(
-            abi.Arc89MetadataMigrated(
-                asset_id=asset_id.id,
-                round=Global.round,
-                timestamp=Global.latest_timestamp,
-                new_registry_id=self._get_deprecated_by(asset_id),
+            arc4.emit(
+                abi.Arc89MetadataMigrated(
+                    asset_id=asset_id.id,
+                    round=Global.round,
+                    timestamp=Global.latest_timestamp,
+                    revision=self._get_revision(asset_id),
+                    new_registry_id=self._get_deprecated_by(asset_id),
+                )
             )
-        )
 
     @arc4.abimethod
     def arc89_delete_metadata(
@@ -685,11 +734,13 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         """
         # Preconditions
         logged_assert(self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST)
-        if self._asa_exists(asset_id):
+        asa_exists = self._asa_exists(asset_id)
+        if asa_exists:
             logged_assert(not self._is_immutable(asset_id), err.IMMUTABLE)
             logged_assert(self._is_asa_manager(asset_id), err.UNAUTHORIZED)
 
         # Delete Metadata and refund MBR
+        revision = self._get_revision(asset_id)
         mbr_i = Global.current_application_address.min_balance
         del self.asset_metadata[asset_id]
         mbr_delta_amount = mbr_i - Global.current_application_address.min_balance
@@ -700,6 +751,8 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
                 asset_id=asset_id.id,
                 round=Global.round,
                 timestamp=Global.latest_timestamp,
+                revision=revision,
+                asa_exists=asa_exists,
             )
         )
 
@@ -722,10 +775,16 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             payload: The Metadata extra payload to concatenate
         """
         # Preconditions
-        logged_assert(Global.group_size >= 2, err.NO_PAYLOAD_HEAD_CALL)
+        logged_assert(Txn.group_index > 0, err.NO_PAYLOAD_HEAD_CALL)
         logged_assert(self._asa_exists(asset_id), err.ASA_NOT_EXIST)
         logged_assert(self._metadata_exists(asset_id), err.ASSET_METADATA_NOT_EXIST)
         logged_assert(self._is_asa_manager(asset_id), err.UNAUTHORIZED)
+        previous = gtxn.Transaction(Txn.group_index - 1)
+        logged_assert(
+            self._is_head_call(asset_id, previous)
+            or self._is_extra_payload_call(asset_id, previous),
+            err.NO_PAYLOAD_HEAD_CALL,
+        )
 
     @arc4.abimethod
     def arc89_set_reversible_flag(
@@ -758,6 +817,12 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
             # Update Metadata Header
             self._update_header_excluding_flags_and_emit(asset_id)
+
+            # Postconditions
+            if self._is_arc20_smart_asa(asset_id):
+                logged_assert(
+                    self._is_arc20_compliant(asset_id), err.ASA_NOT_ARC20_COMPLIANT
+                )
 
     @arc4.abimethod
     def arc89_set_irreversible_flag(
@@ -862,6 +927,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         """
         Return the Asset Metadata Box MBR Delta for an ASA, given a new Asset Metadata byte size.
         If the Asset Metadata Box does not exist, the creation MBR Delta is returned.
+        If new_metadata_size is DELETE_METADATA_SIZE (0xFFFF), the deletion MBR Delta is returned.
 
         Args:
             asset_id: The Asset ID to calculate the Asset Metadata MBR Delta for
@@ -870,6 +936,21 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         Returns:
             MBR Delta: tuple of (sign enum, amount in microALGO)
         """
+        if new_metadata_size.as_uint64() == const.DELETE_METADATA_SIZE:
+            if not self._metadata_exists(asset_id):
+                return abi.MbrDelta(
+                    sign=arc4.UInt8(enums.MBR_DELTA_NULL), amount=UInt64(0)
+                )
+            box_size = (
+                const.ASSET_METADATA_BOX_KEY_SIZE
+                + const.HEADER_SIZE
+                + self._get_metadata_size(asset_id)
+            )
+            return abi.MbrDelta(
+                sign=arc4.UInt8(enums.MBR_DELTA_NEG),
+                amount=const.FLAT_MBR + const.BYTE_MBR * box_size,
+            )
+
         # Preconditions
         logged_assert(
             new_metadata_size.as_uint64() <= const.MAX_METADATA_SIZE,
@@ -954,14 +1035,14 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             asset_id: The Asset ID to check the Asset Metadata size classification for
 
         Returns:
-            Tuple of (is short metadata, Metadata Last Modified Round)
+            Tuple of (is short metadata, Metadata Revision)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
         return abi.MutableFlag(
             flag=self._is_short(asset_id),
-            last_modified_round=self._get_last_modified_round(asset_id),
+            revision=self._get_revision(asset_id),
         )
 
     @arc4.abimethod(readonly=True)
@@ -978,7 +1059,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
         Returns:
             Asset Metadata Header: (Identifiers, Reversible Flags, Irreversible Flags,
-            Hash, Last Modified Round, Deprecated By)
+            Hash, Revision, Deprecated By)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
@@ -990,7 +1071,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
                 self._get_irreversible_flags(asset_id)
             ),
             hash=abi.Hash(self._get_metadata_hash(asset_id)),
-            last_modified_round=self._get_last_modified_round(asset_id),
+            revision=self._get_revision(asset_id),
             deprecated_by=self._get_deprecated_by(asset_id),
         )
 
@@ -1006,7 +1087,8 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             asset_id: The Asset ID to get the Asset Metadata pagination for
 
         Returns:
-            Tuple of (total metadata byte size, PAGE_SIZE, total number of pages)
+            Tuple of (total metadata byte size, PAGE_SIZE, total number of pages,
+            Metadata Revision, Deprecated By)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
@@ -1015,6 +1097,8 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             metadata_size=arc4.UInt16(self._get_metadata_size(asset_id)),
             page_size=arc4.UInt16(const.PAGE_SIZE),
             total_pages=arc4.UInt8(self._get_total_pages(asset_id)),
+            revision=self._get_revision(asset_id),
+            deprecated_by=self._get_deprecated_by(asset_id),
         )
 
     @arc4.abimethod(readonly=True)
@@ -1032,7 +1116,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             page: The 0-based Metadata page number
 
         Returns:
-            Tuple of (has next page, Metadata Last Modified Round, page content)
+            Tuple of (has next page, Metadata Revision, page content)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
@@ -1048,7 +1132,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
 
         return abi.PaginatedMetadata(
             has_next_page=has_next_page,
-            last_modified_round=self._get_last_modified_round(asset_id),
+            revision=self._get_revision(asset_id),
             page_content=page_content,
         )
 
@@ -1059,7 +1143,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         asset_id: Asset,
         offset: arc4.UInt16,
         size: arc4.UInt16,
-    ) -> Bytes:
+    ) -> abi.MetadataSlice:
         """
         Return a slice of the Asset Metadata for an ASA.
 
@@ -1082,14 +1166,17 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         metadata_slice = self.asset_metadata.box(asset_id).extract(
             start_index=const.IDX_METADATA + offset.as_uint64(), length=size.as_uint64()
         )
-        return metadata_slice
+        return abi.MetadataSlice(
+            revision=self._get_revision(asset_id),
+            content=metadata_slice,
+        )
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_header_hash(
         self,
         *,
         asset_id: Asset,
-    ) -> abi.Hash:
+    ) -> abi.HashRevision:
         """
         Return the Metadata Header Hash for an ASA.
 
@@ -1097,12 +1184,15 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             asset_id: The Asset ID to get the Metadata Header Hash for
 
         Returns:
-            Asset Metadata Header Hash
+            Tuple of (Asset Metadata Header Hash, Metadata Revision)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
-        return abi.Hash(self._compute_header_hash(asset_id))
+        return abi.HashRevision(
+            hash=abi.Hash(self._compute_header_hash(asset_id, UInt64(0))),
+            revision=self._get_revision(asset_id),
+        )
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_page_hash(
@@ -1110,7 +1200,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
         *,
         asset_id: Asset,
         page: arc4.UInt8,
-    ) -> abi.Hash:
+    ) -> abi.HashRevision:
         """
         Return the SHA512-256 of a Metadata page for an ASA.
 
@@ -1119,7 +1209,7 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             page: The 0-based Metadata page number
 
         Returns:
-            The SHA512-256 of the Metadata page
+            Tuple of (SHA512-256 of the Metadata page, Metadata Revision)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
@@ -1130,15 +1220,17 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             logged_err(err.EMPTY_METADATA)
 
         page_content = self._get_metadata_page(asset_id, page.as_uint64())
-        page_hash = self._compute_page_hash(asset_id, page.as_uint64(), page_content)
-        return abi.Hash(page_hash)
+        page_hash = self._compute_page_hash(page.as_uint64(), page_content, UInt64(0))
+        return abi.HashRevision(
+            hash=abi.Hash(page_hash), revision=self._get_revision(asset_id)
+        )
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_hash(
         self,
         *,
         asset_id: Asset,
-    ) -> abi.Hash:
+    ) -> abi.HashRevision:
         """
         Return the Metadata Hash for an ASA.
 
@@ -1146,12 +1238,15 @@ class AsaMetadataRegistry(Arc89Interface, AsaValidation):
             asset_id: The Asset ID to get the Metadata Hash for
 
         Returns:
-            Asset Metadata Hash
+            Tuple of (Asset Metadata Hash, Metadata Revision)
         """
         # Preconditions
         self._check_existence_preconditions(asset_id)
 
-        return abi.Hash(self._get_metadata_hash(asset_id))
+        return abi.HashRevision(
+            hash=abi.Hash(self._get_metadata_hash(asset_id)),
+            revision=self._get_revision(asset_id),
+        )
 
     @arc4.abimethod(readonly=True)
     def arc89_get_metadata_string_by_key(

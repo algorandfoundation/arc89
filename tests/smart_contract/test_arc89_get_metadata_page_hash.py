@@ -30,7 +30,8 @@ def test_not_empty_metadata(
             args=Arc89GetMetadataPageHashArgs(asset_id=metadata.asset_id, page=p)
         ).abi_return
         assert page_hash is not None
-        assert bytes(page_hash) == metadata.compute_page_hash(page_index=p)
+        assert bytes(page_hash.hash) == metadata.compute_page_hash(page_index=p)
+        assert page_hash.revision > 0
 
 
 def test_fail_asa_not_exists(

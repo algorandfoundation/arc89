@@ -8,7 +8,43 @@ from asa_metadata_registry.generated.asa_metadata_registry_client import (
 )
 from smart_contracts.asa_metadata_registry import errors as err
 from smart_contracts.asa_metadata_registry.enums import MBR_DELTA_NEG
-from tests.helpers.utils import delete_metadata
+from tests.helpers.utils import (
+    create_metadata,
+    delete_metadata,
+    get_metadata_from_state,
+)
+
+
+def test_revision_does_not_repeat_after_recreation(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    mutable_short_metadata: AssetMetadata,
+) -> None:
+    asset_id = mutable_short_metadata.asset_id
+    previous_revision = get_metadata_from_state(
+        asa_metadata_registry_client, asset_id
+    ).header.revision
+
+    delete_metadata(
+        caller=asset_manager,
+        asa_metadata_registry_client=asa_metadata_registry_client,
+        asset_id=asset_id,
+        extra_resources=1,
+    )
+    create_metadata(
+        asset_manager=asset_manager,
+        asa_metadata_registry_client=asa_metadata_registry_client,
+        asset_id=asset_id,
+        metadata=mutable_short_metadata,
+    )
+
+    recreated_revision = get_metadata_from_state(
+        asa_metadata_registry_client, asset_id
+    ).header.revision
+    assert recreated_revision > previous_revision
+    assert (
+        asa_metadata_registry_client.state.global_state.revision == recreated_revision
+    )
 
 
 def test_delete_metadata_existing_asa(
@@ -24,7 +60,7 @@ def test_delete_metadata_existing_asa(
         caller=asset_manager,
         asa_metadata_registry_client=asa_metadata_registry_client,
         asset_id=mutable_maxed_metadata.asset_id,
-        extra_resources=1,
+        extra_resources=2,
     )
     post_delete_balance = asa_metadata_registry_client.algorand.account.get_information(
         asset_manager.address
@@ -62,7 +98,7 @@ def test_delete_metadata_nonexistent_asa(
         caller=untrusted_account,
         asa_metadata_registry_client=asa_metadata_registry_client,
         asset_id=mutable_maxed_metadata.asset_id,
-        extra_resources=1,
+        extra_resources=2,
     )
     post_delete_balance = asa_metadata_registry_client.algorand.account.get_information(
         untrusted_account.address

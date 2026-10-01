@@ -9,10 +9,12 @@ from algosdk.transaction import Transaction
 
 from . import bitmasks
 from . import constants as const
-from .codec import Arc90Compliance, Arc90Uri
-from .errors import MissingAppClientError
-from .models import AssetMetadata, MetadataFlags
+from .codec import Arc90Compliance, Arc90Uri, b64_decode
+from .errors import MetadataHashMismatchError, MissingAppClientError
+from .hashing import compute_arc3_metadata_hash
+from .models import AssetMetadata, MetadataBody, MetadataFlags
 from .registry import AsaMetadataRegistry
+from .validation import decode_metadata_json
 
 # ---------------------------------------------------------------------------
 # ARC-2 migration message helpers (JSON only)
@@ -82,6 +84,13 @@ def build_arc2_migration_message_txn(
 # ---------------------------------------------------------------------------
 
 
+def _asa_metadata_hash(value: object) -> bytes:
+    """Normalize the ASA `am` (AlgoKit Utils returns algod's base64 string) to bytes."""
+    if isinstance(value, str):
+        return b64_decode(value)
+    return bytes(value) if isinstance(value, bytes | bytearray) else b""
+
+
 def _ensure_exists_and_not_already_migrated(
     *, registry: AsaMetadataRegistry, asset_id: int
 ) -> None:
@@ -121,13 +130,20 @@ def migrate_legacy_metadata_to_registry(
     registry: AsaMetadataRegistry,
     asset_manager: SigningAccount,
     asset_id: int,
-    metadata: Mapping[str, object],
+    metadata: Mapping[str, object] | bytes,
     arc3_compliant: bool,
     flags: MetadataFlags | None = None,
+    verify_am: bool = True,
+    publish_arc2_message: bool = False,
 ) -> None:
     """
     Migrate a legacy ASA (e.g., ARC-3 / ARC-19 / ARC-69) metadata by replicating it
-    in the ASA Metadata Registry, then emitting an ARC-2 migration message.
+    in the ASA Metadata Registry, where it takes precedence over the Asset URL. The
+    informational ARC-2 announcement is sent only if `publish_arc2_message` is True.
+
+    Pass the original file `bytes` to store them verbatim (a `Mapping` is re-encoded
+    compactly). When the ASA has a nonzero `am` and is ARC-3 compliant, the ARC-3 hash
+    of the stored bytes MUST equal `am` (checked unless `verify_am=False`).
 
     Flow:
     1) Error if metadata already exists in the Registry for the given ASA; error if the ASA does not exist.
@@ -135,7 +151,7 @@ def migrate_legacy_metadata_to_registry(
     3) If the ASA has a non-zero on-chain am: auto-set immutable when no flags provided,
        or error early if flags are provided without immutable=True.
     4) Validate metadata size <= MAX_METADATA_SIZE (raw bytes after JSON encoding).
-    5) Create metadata on the registry and emit the ARC-2 migration message.
+    5) Create metadata on the registry (and, on request, emit the ARC-2 message).
     """
 
     _ensure_exists_and_not_already_migrated(registry=registry, asset_id=asset_id)
@@ -145,8 +161,8 @@ def migrate_legacy_metadata_to_registry(
 
     # Pre-flight: fetch ASA info to check metadata hash and decide on flags
     asset_info = registry.write.client.algorand.asset.get_by_id(asset_id=asset_id)
-    zero_hash = bytes(32)
-    has_on_chain_am = asset_info.metadata_hash not in (None, zero_hash)
+    on_chain_am = _asa_metadata_hash(asset_info.metadata_hash)
+    has_on_chain_am = on_chain_am not in (b"", bytes(32))
     if has_on_chain_am and flags is not None and not flags.irreversible.immutable:
         raise ValueError(
             f"ASA {asset_id} has a metadata hash (am) set on-chain, hence the registry requires "
@@ -155,13 +171,23 @@ def migrate_legacy_metadata_to_registry(
         )
 
     # Build AssetMetadata, resolve flags if not provided and enforce size bounds.
+    raw: bytes | None
+    json_obj: Mapping[str, object]
+    if isinstance(metadata, bytes | bytearray):
+        raw = bytes(metadata)
+        json_obj = decode_metadata_json(raw)
+    else:
+        raw, json_obj = None, metadata
     try:
         asset_md = AssetMetadata.from_json(
             asset_id=asset_id,
-            json_obj=metadata,
+            json_obj=json_obj,
             flags=flags,
             arc3_compliant=arc3_compliant,
         )
+        if raw is not None:
+            asset_md = dataclasses.replace(asset_md, body=MetadataBody(raw))
+            asset_md.body.validate_size()
     except ValueError as e:
         if type(e) is ValueError:
             raise ValueError(
@@ -180,22 +206,29 @@ def migrate_legacy_metadata_to_registry(
             ),
         )
 
-    migration_uri = _derive_migration_uri(
-        registry=registry,
-        asset_id=asset_id,
-        arc3=arc3_compliant,
+    if has_on_chain_am and verify_am and arc3_compliant:
+        expected_am = compute_arc3_metadata_hash(asset_md.body.raw_bytes)
+        if expected_am != on_chain_am:
+            raise MetadataHashMismatchError(
+                f"ASA {asset_id} am does not match the ARC-3 hash of the metadata bytes to "
+                "migrate; pass the original file bytes, or verify_am=False."
+            )
+
+    migrate_group = registry.write.build_create_metadata_group(
+        asset_manager=asset_manager, metadata=asset_md
     )
+    if not publish_arc2_message:
+        migrate_group.send()
+        return
 
     txn = build_arc2_migration_message_txn(
         registry=registry,
         asset_id=asset_id,
         asset_manager=asset_manager,
-        metadata_uri=migration_uri,
+        metadata_uri=_derive_migration_uri(
+            registry=registry, asset_id=asset_id, arc3=arc3_compliant
+        ),
     )
-    migrate_group = registry.write.build_create_metadata_group(
-        asset_manager=asset_manager, metadata=asset_md
-    )
-
     if migrate_group.composer().count() < const.MAX_GROUP_SIZE:
         # We migrate and emit the ARC-2 message atomically.
         migrate_group.add_transaction(txn)

@@ -27,25 +27,35 @@ class MetadataExistence(algopy.arc4.Struct):
 
 class MutableFlag(algopy.arc4.Struct):
     flag: algopy.arc4.Bool
-    last_modified_round: algopy.arc4.UIntN[typing.Literal[64]]
+    revision: algopy.arc4.UIntN[typing.Literal[64]]
 
 class MetadataHeader(algopy.arc4.Struct):
     identifiers: algopy.arc4.Byte
     reversible_flags: algopy.arc4.Byte
     irreversible_flags: algopy.arc4.Byte
     hash: algopy.arc4.StaticArray[algopy.arc4.Byte, typing.Literal[32]]
-    last_modified_round: algopy.arc4.UIntN[typing.Literal[64]]
+    revision: algopy.arc4.UIntN[typing.Literal[64]]
     deprecated_by: algopy.arc4.UIntN[typing.Literal[64]]
 
 class Pagination(algopy.arc4.Struct):
     metadata_size: algopy.arc4.UIntN[typing.Literal[16]]
     page_size: algopy.arc4.UIntN[typing.Literal[16]]
     total_pages: algopy.arc4.UIntN[typing.Literal[8]]
+    revision: algopy.arc4.UIntN[typing.Literal[64]]
+    deprecated_by: algopy.arc4.UIntN[typing.Literal[64]]
 
 class PaginatedMetadata(algopy.arc4.Struct):
     has_next_page: algopy.arc4.Bool
-    last_modified_round: algopy.arc4.UIntN[typing.Literal[64]]
+    revision: algopy.arc4.UIntN[typing.Literal[64]]
     page_content: algopy.arc4.DynamicBytes
+
+class MetadataSlice(algopy.arc4.Struct):
+    revision: algopy.arc4.UIntN[typing.Literal[64]]
+    content: algopy.arc4.DynamicBytes
+
+class HashRevision(algopy.arc4.Struct):
+    hash: algopy.arc4.StaticArray[algopy.arc4.Byte, typing.Literal[32]]
+    revision: algopy.arc4.UIntN[typing.Literal[64]]
 
 class AsaMetadataRegistry(algopy.arc4.ARC4Client, typing.Protocol):
     """
@@ -188,7 +198,7 @@ class AsaMetadataRegistry(algopy.arc4.ARC4Client, typing.Protocol):
     ) -> MbrDelta:
         """
         Return the Asset Metadata Box MBR Delta for an ASA, given a new Asset Metadata byte size.
-        If the Asset Metadata Box does not exist, the creation MBR Delta is returned.
+        If the Asset Metadata Box does not exist, the creation MBR Delta is returned. If new_metadata_size is DELETE_METADATA_SIZE (0xFFFF), the deletion MBR Delta is returned.
         """
 
     @algopy.arc4.abimethod(readonly=True)
@@ -252,7 +262,7 @@ class AsaMetadataRegistry(algopy.arc4.ARC4Client, typing.Protocol):
         asset_id: algopy.arc4.UIntN[typing.Literal[64]],
         offset: algopy.arc4.UIntN[typing.Literal[16]],
         size: algopy.arc4.UIntN[typing.Literal[16]],
-    ) -> algopy.arc4.DynamicBytes:
+    ) -> MetadataSlice:
         """
         Return a slice of the Asset Metadata for an ASA.
         """
@@ -261,7 +271,7 @@ class AsaMetadataRegistry(algopy.arc4.ARC4Client, typing.Protocol):
     def arc89_get_metadata_header_hash(
         self,
         asset_id: algopy.arc4.UIntN[typing.Literal[64]],
-    ) -> algopy.arc4.StaticArray[algopy.arc4.Byte, typing.Literal[32]]:
+    ) -> HashRevision:
         """
         Return the Metadata Header Hash for an ASA.
         """
@@ -271,7 +281,7 @@ class AsaMetadataRegistry(algopy.arc4.ARC4Client, typing.Protocol):
         self,
         asset_id: algopy.arc4.UIntN[typing.Literal[64]],
         page: algopy.arc4.UIntN[typing.Literal[8]],
-    ) -> algopy.arc4.StaticArray[algopy.arc4.Byte, typing.Literal[32]]:
+    ) -> HashRevision:
         """
         Return the SHA512-256 of a Metadata page for an ASA.
         """
@@ -280,7 +290,7 @@ class AsaMetadataRegistry(algopy.arc4.ARC4Client, typing.Protocol):
     def arc89_get_metadata_hash(
         self,
         asset_id: algopy.arc4.UIntN[typing.Literal[64]],
-    ) -> algopy.arc4.StaticArray[algopy.arc4.Byte, typing.Literal[32]]:
+    ) -> HashRevision:
         """
         Return the Metadata Hash for an ASA.
         """

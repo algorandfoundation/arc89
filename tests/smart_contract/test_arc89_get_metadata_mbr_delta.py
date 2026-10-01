@@ -7,6 +7,7 @@ from asa_metadata_registry.generated.asa_metadata_registry_client import (
     Arc89GetMetadataMbrDeltaArgs,
     AsaMetadataRegistryClient,
 )
+from smart_contracts.asa_metadata_registry import enums
 from smart_contracts.asa_metadata_registry import errors as err
 
 
@@ -91,3 +92,35 @@ def test_fail_exceeds_max_metadata_size(
                 new_metadata_size=const.MAX_METADATA_SIZE + 1,
             ),
         )
+
+
+def test_get_metadata_mbr_delta_for_deletion(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    mutable_short_metadata: AssetMetadata,
+) -> None:
+    expected = mutable_short_metadata.get_delete_mbr_delta()
+    mbr_delta = asa_metadata_registry_client.send.arc89_get_metadata_mbr_delta(
+        args=Arc89GetMetadataMbrDeltaArgs(
+            asset_id=mutable_short_metadata.asset_id,
+            new_metadata_size=const.DELETE_METADATA_SIZE,
+        ),
+    ).abi_return
+    assert mbr_delta is not None
+    assert mbr_delta.sign == expected.sign
+    assert mbr_delta.amount == expected.amount
+
+
+def test_get_metadata_mbr_delta_for_deletion_without_metadata(
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    arc_89_asa: int,
+) -> None:
+    # No box to delete: nothing to refund
+    mbr_delta = asa_metadata_registry_client.send.arc89_get_metadata_mbr_delta(
+        args=Arc89GetMetadataMbrDeltaArgs(
+            asset_id=arc_89_asa,
+            new_metadata_size=const.DELETE_METADATA_SIZE,
+        ),
+    ).abi_return
+    assert mbr_delta is not None
+    assert mbr_delta.sign == enums.MBR_DELTA_NULL
+    assert mbr_delta.amount == 0

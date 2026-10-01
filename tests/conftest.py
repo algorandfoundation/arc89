@@ -330,6 +330,7 @@ def reader_with_algod(
     algod_reader = AlgodBoxReader(algod=algorand_client.client.algod)
     return AsaMetadataRegistryRead(
         app_id=asa_metadata_registry_client.app_id,
+        netauth=os.environ[ARC90_NETAUTH],
         algod=algod_reader,
     )
 
@@ -346,6 +347,7 @@ def reader_with_avm(
 
     return AsaMetadataRegistryRead(
         app_id=asa_metadata_registry_client.app_id,
+        netauth=os.environ[ARC90_NETAUTH],
         avm_factory=avm_factory,
     )
 
@@ -364,6 +366,7 @@ def reader_full(
 
     return AsaMetadataRegistryRead(
         app_id=asa_metadata_registry_client.app_id,
+        netauth=os.environ[ARC90_NETAUTH],
         algod=algod_reader,
         avm_factory=avm_factory,
     )

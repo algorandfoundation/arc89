@@ -150,6 +150,11 @@ class AlgodBoxReader:
     # ASA lookups (optional)
     # ---------------------------------------------------------------------
 
+    def get_genesis_hash_b64(self) -> str | None:
+        """Genesis hash (base64) of the connected network, or None if unavailable."""
+        gh = getattr(self.algod.suggested_params(), "gh", None)
+        return gh if isinstance(gh, str) else None
+
     def get_asset_info(self, asset_id: int) -> Mapping[str, Any]:
         try:
             resp = self.algod.asset_info(asset_id)

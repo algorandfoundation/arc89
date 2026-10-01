@@ -37,6 +37,7 @@ def test_get_metadata_header(
     assert header.reversible_flags == metadata.flags.reversible_byte
     assert header.irreversible_flags == metadata.flags.irreversible_byte
     assert bytes(header.hash) == metadata.compute_metadata_hash()
+    assert header.revision > 0
     assert header.deprecated_by == metadata.deprecated_by
 
 

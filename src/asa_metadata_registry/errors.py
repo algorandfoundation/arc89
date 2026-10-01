@@ -33,6 +33,14 @@ class InvalidFlagIndexError(AsaMetadataRegistryError, ValueError):
     """Raised when a flag index (reversible/irreversible) is out of bounds."""
 
 
+class InvalidSliceError(AsaMetadataRegistryError, ValueError):
+    """Raised when a slice offset/size is out of the Metadata bounds or exceeds PAGE_SIZE."""
+
+
+class MetadataKeyError(AsaMetadataRegistryError, KeyError):
+    """Raised when a JSON key is missing or its value has an unexpected JSON type."""
+
+
 class InvalidPageIndexError(AsaMetadataRegistryError, ValueError):
     """Raised when a page index is out of bounds."""
 
@@ -51,7 +59,7 @@ class MetadataArc3Error(AsaMetadataRegistryError, ValueError):
 class MetadataDriftError(AsaMetadataRegistryError, RuntimeError):
     """
     Raised when paginated metadata reads detect that metadata changed between pages
-    (last_modified_round mismatch).
+    (revision mismatch).
     """
 
 

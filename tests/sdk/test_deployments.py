@@ -132,3 +132,23 @@ class TestDefaultDeployments:
 
         assert DEFAULT_DEPLOYMENTS["testnet"] == expected_testnet
         assert DEFAULT_DEPLOYMENTS["mainnet"] == expected_mainnet
+
+
+class TestNetauthMatchesGenesis:
+    def test_unknown_network_rejects_labels(self) -> None:
+        import base64
+
+        from asa_metadata_registry.codec import b64url_encode
+        from asa_metadata_registry.deployments import netauth_matches_genesis
+
+        gh = base64.b64encode(bytes(32)).decode()
+        assert not netauth_matches_genesis("net:testnet", gh)
+        assert not netauth_matches_genesis("net:localnet", gh)
+        assert netauth_matches_genesis("gh:" + b64url_encode(bytes(32)), gh)
+
+    def test_known_network_label(self) -> None:
+        from asa_metadata_registry.constants import TESTNET_GH_B64
+        from asa_metadata_registry.deployments import netauth_matches_genesis
+
+        assert netauth_matches_genesis("net:testnet", TESTNET_GH_B64)
+        assert not netauth_matches_genesis("net:mainnet", TESTNET_GH_B64)

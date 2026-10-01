@@ -60,7 +60,7 @@ def test_replace_metadata_slice(
         updated_metadata.flags.irreversible_byte
         == mutable_short_metadata.flags.irreversible_byte
     )
-    # Note: last_modified_round is in the header, not in AssetMetadata
+    # Note: revision is in the header, not in AssetMetadata
     assert updated_metadata.deprecated_by == mutable_short_metadata.deprecated_by
     assert updated_metadata.body.raw_bytes != mutable_short_metadata.body.raw_bytes
 

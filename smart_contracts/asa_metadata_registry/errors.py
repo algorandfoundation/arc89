@@ -17,6 +17,9 @@ ASA_NOT_ARC3_COMPLIANT: LiteralString = "asaNotArc3Compliant"
 # The ASA must not have a clawback address
 ASA_NOT_ARC54_COMPLIANT: LiteralString = "asaNotArc54Compliant"
 
+# The ASA must be DefaultFrozen with a Clawback Address
+ASA_NOT_ARC20_COMPLIANT: LiteralString = "asaNotArc20Compliant"
+
 # Invalid ARC-89 partial URI
 ASA_NOT_ARC89_COMPLIANT: LiteralString = "asaNotArc89Compliant"
 
@@ -30,6 +33,9 @@ ASSET_METADATA_EXIST: LiteralString = "assetMetadataExist"
 # Asset Metadata does not exist for the specified ASA
 ASSET_METADATA_NOT_EXIST: LiteralString = "assetMetadataNotExist"
 
+# Asset Metadata is deprecated (Deprecated By is not 0): body and Flags are frozen
+ASSET_METADATA_DEPRECATED: LiteralString = "assetMetadataDeprecated"
+
 # Metadata is empty
 EMPTY_METADATA: LiteralString = "emptyMetadata"
 
@@ -41,6 +47,9 @@ METADATA_NOT_SHORT: LiteralString = "metadataNotShort"
 
 # Must be flagged as immutable
 REQUIRES_IMMUTABLE: LiteralString = "requiresImmutable"
+
+# Must be flagged as ARC-3 compliant (Asset URL declares #arc3)
+REQUIRES_ARC3: LiteralString = "requiresArc3"
 
 # Metadata is immutable
 IMMUTABLE: LiteralString = "immutable"

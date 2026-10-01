@@ -472,7 +472,7 @@ class TestMetadataHeaderIntegration:
             identifiers=0,
             flags=MetadataFlags.from_bytes(3, 129),  # arc3 + arc20 + arc62 + immutable
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
 
@@ -490,7 +490,7 @@ class TestMetadataHeaderIntegration:
             identifiers=0,
             flags=MetadataFlags.from_bytes(3, 129),  # arc3 + arc20 + arc62 + immutable
             metadata_hash=b"\x00" * 32,
-            last_modified_round=1000,
+            revision=1000,
             deprecated_by=0,
         )
 

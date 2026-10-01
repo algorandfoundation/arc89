@@ -11,6 +11,29 @@ def is_positive_uint64(value: object) -> bool:
     return isinstance(value, int) and 0 < value <= 2**64 - 1
 
 
+def _reject_non_finite(constant: str) -> object:
+    raise ValueError(f"Non-finite JSON value {constant!r} is not allowed by RFC 8259")
+
+
+def _has_lone_surrogate(value: object) -> bool:
+    if isinstance(value, str):
+        return any(0xD800 <= ord(c) <= 0xDFFF for c in value)
+    if isinstance(value, dict):
+        return any(
+            _has_lone_surrogate(k) or _has_lone_surrogate(v) for k, v in value.items()
+        )
+    if isinstance(value, list):
+        return any(_has_lone_surrogate(v) for v in value)
+    return False
+
+
+def _unique_names(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    obj = dict(pairs)
+    if len(obj) != len(pairs):
+        raise ValueError("Duplicate JSON object names are not allowed")
+    return obj
+
+
 def decode_metadata_json(metadata: bytes) -> dict[str, object]:
     """
     Decode ARC-89 metadata bytes into a Python dict.
@@ -30,9 +53,13 @@ def decode_metadata_json(metadata: bytes) -> dict[str, object]:
         raise MetadataEncodingError("Metadata is not valid UTF-8") from e
 
     try:
-        obj: object = json.loads(txt)
-    except json.JSONDecodeError as e:
-        raise MetadataEncodingError("Metadata is not valid JSON") from e
+        obj: object = json.loads(
+            txt, parse_constant=_reject_non_finite, object_pairs_hook=_unique_names
+        )
+    except (json.JSONDecodeError, ValueError) as e:
+        raise MetadataEncodingError(f"Metadata is not valid JSON: {e}") from e
+    if _has_lone_surrogate(obj):
+        raise MetadataEncodingError("Metadata MUST NOT contain lone surrogate escapes")
 
     if not isinstance(obj, dict):
         raise MetadataEncodingError("Metadata JSON MUST be an object")
@@ -46,10 +73,12 @@ def encode_metadata_json(obj: Mapping[str, object]) -> bytes:
     The encoding is not canonicalized beyond `json.dumps` defaults; ARC-89 hashing uses raw bytes.
     """
     try:
-        txt = json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
+        txt = json.dumps(
+            obj, ensure_ascii=False, separators=(",", ":"), allow_nan=False
+        )
+        data = txt.encode("utf-8")  # fails on lone surrogates
     except (TypeError, ValueError) as e:
         raise MetadataEncodingError("Object is not JSON-serializable") from e
-    data = txt.encode("utf-8")
     if data.startswith(b"\xef\xbb\xbf"):
         raise MetadataEncodingError("Produced UTF-8 BOM; this should not happen")
     return data

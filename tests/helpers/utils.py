@@ -35,6 +35,12 @@ from asa_metadata_registry.generated.asa_metadata_registry_client import (
     AsaMetadataRegistryComposer,
     MbrDelta,
 )
+from asa_metadata_registry.write.writer import (
+    _ARC89_CREATE_METADATA_FIXED_SIZE,
+    _ARC89_EXTRA_PAYLOAD_FIXED_SIZE,
+    _ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE,
+    _app_args_surcharge_fee,
+)
 
 # =============================================================================
 # Test Constants
@@ -42,6 +48,9 @@ from asa_metadata_registry.generated.asa_metadata_registry_client import (
 
 # Non-existent asset ID for testing ASA_NOT_EXIST errors
 NON_EXISTENT_ASA_ID = 420
+
+_BOX_REFERENCE_SIZE = 2_048
+_BOX_REFERENCES_PER_APP_CALL = 8
 
 # =============================================================================
 # Common Helper Functions
@@ -56,21 +65,32 @@ def _get_min_fee(client: AsaMetadataRegistryClient) -> int:
 def _get_chunks_and_fee(
     client: AsaMetadataRegistryClient,
     metadata: AssetMetadata,
+    head_fixed_size: int,
     extra_txns: int = 0,
+    trailing_extra: int = 0,
 ) -> tuple[list[bytes], int]:
     """Get metadata chunks and calculate the total fee.
 
     Args:
         client: The ASA Metadata Registry Client
         metadata: The metadata to chunk
+        head_fixed_size: Aggregate encoded size of the head call's non-payload arguments
         extra_txns: Additional transactions to include in fee calculation
+        trailing_extra: Extra resources calls appended after the extra payload calls
 
     Returns:
         Tuple of (chunks list, total fee in microAlgos)
     """
     min_fee = _get_min_fee(client)
     chunks = metadata.body.chunked_payload()
-    return chunks, (len(chunks) + extra_txns) * min_fee
+    app_args_sizes = [
+        head_fixed_size + len(chunks[0]),
+        *(_ARC89_EXTRA_PAYLOAD_FIXED_SIZE + len(chunk) for chunk in chunks[1:]),
+    ]
+    tail_txns = tail_budget_txns(len(chunks) - 1 + trailing_extra)
+    fee = (len(chunks) + extra_txns + tail_txns) * min_fee
+    fee += _app_args_surcharge_fee(min_fee, app_args_sizes)
+    return chunks, fee
 
 
 def _extract_mbr_delta_from_response(
@@ -171,56 +191,32 @@ def add_extra_resources(composer: AsaMetadataRegistryComposer, count: int = 1) -
         )
 
 
-def pages_min_fee(algorand_client: AlgorandClient, metadata: AssetMetadata) -> int:
-    """
-    Estimate the total minimum fee in microAlgos for operations that scale with
-    the number of metadata pages.
-
-    The `ensure_budget(PAGE_HASH_OP_BUDGET)` call inside the per-page hash
-    loop may issue inner app-call transactions (each consuming one `min_fee`
-    from the pooled fee) whenever the remaining opcode budget drops below the
-    requested threshold.
-
-    With `PAGE_HASH_OP_BUDGET = 230` and real per-page cost of ~230 ops,
-    each 700-budget inner transaction covers roughly 3 page iterations after
-    accounting for the ensure_budget overhead itself (~29 ops when an inner
-    txn is issued). The fee must also cover the `ensure_budget` inner txn
-    for the header hash. The formula therefore is::
-
-        min_fee * (1 + (total_pages + 1) // 3)
-
-    which allocates one extra fee unit for every ~3 pages, plus one unit for
-    the base transaction.
-
-    Args:
-        algorand_client: AlgorandClient to use for fetching the current params
-        metadata: AssetMetadata whose `total_pages` attribute determines how
-            many minimum-fee units are required.
-
-    Returns:
-        int: The estimated total minimum fee, in microAlgos.
-    """
-    min_fee: int = algorand_client.get_suggested_params().min_fee
-    total_pages = metadata.body.total_pages()
-    return min_fee * (1 + (total_pages + 1) // 3)
-
-
 def total_extra_resources(
     algorand_client: AlgorandClient, metadata: AssetMetadata
 ) -> tuple[int, int]:
-    # FIXME: Add extra resources based on page count to avoid opcode budget issues
-    #  in populate resources simulation
-    total_pages = metadata.body.total_pages()
-    extra_count = 0
-    if total_pages > 15:
-        # Scale: 1 extra resource per 2 pages, starting from page 16
-        extra_count = ((total_pages - 15) // 2) + 1
+    box_size = const.HEADER_SIZE + metadata.body.size
+    # The asset reference leaves seven box references on the main call.
+    first_call_capacity = (_BOX_REFERENCES_PER_APP_CALL - 1) * _BOX_REFERENCE_SIZE
+    extra_call_capacity = _BOX_REFERENCES_PER_APP_CALL * _BOX_REFERENCE_SIZE
+    extra_count = max(
+        0,
+        (box_size - first_call_capacity + extra_call_capacity - 1)
+        // extra_call_capacity,
+    )
 
+    total_pages = metadata.body.total_pages()
     min_fee = algorand_client.get_suggested_params().min_fee
-    base_fee = pages_min_fee(algorand_client, metadata)
-    # Account for extra resource transactions in total fee
-    total_fee = base_fee + (extra_count * min_fee)
+    # The first inner budget call is needed at two pages, then every five pages, plus
+    # the head call reservation for the extra resources calls after it.
+    tail_txns = tail_budget_txns(extra_count)
+    total_fee = (1 + (total_pages + 3) // 5 + tail_txns) * min_fee
     return extra_count, total_fee
+
+
+def tail_budget_txns(trailing_calls: int) -> int:
+    """Budget inner transactions the head call issues for the calls after it."""
+    reserved = trailing_calls * const.GROUP_TAIL_OP_BUDGET_PER_TXN
+    return reserved // const.APP_CALL_OP_BUDGET + int(trailing_calls > 0)
 
 
 def set_flag_and_verify(
@@ -309,14 +305,14 @@ def assert_metadata_replaced(
     asa_metadata_registry_client: AsaMetadataRegistryClient,
     old_metadata: AssetMetadata,
     new_metadata: AssetMetadata,
-    prev_last_modified_round: int,
+    prev_revision: int,
 ) -> None:
     """Verify that metadata was replaced correctly in the box storage.
 
     Checks that:
     - Body was replaced with new metadata body
     - Identifiers and hash were automatically recomputed
-    - Last modified round was incremented
+    - Revision was incremented
     - Flags and deprecated_by remain unchanged from previous metadata
     """
     assert old_metadata.asset_id == new_metadata.asset_id, "Asset IDs do not match"
@@ -328,7 +324,7 @@ def assert_metadata_replaced(
     assert updated_metadata.header.identifiers == new_metadata.identifiers_byte
     assert updated_metadata.header.flags == old_metadata.flags
     assert updated_metadata.header.deprecated_by == old_metadata.deprecated_by
-    assert updated_metadata.header.last_modified_round > prev_last_modified_round
+    assert updated_metadata.header.revision > prev_revision
 
     expected_metadata = AssetMetadata(
         asset_id=old_metadata.asset_id,
@@ -369,7 +365,11 @@ def create_metadata(
     )
 
     chunks, fee = _get_chunks_and_fee(
-        asa_metadata_registry_client, metadata, extra_txns=2
+        asa_metadata_registry_client,
+        metadata,
+        _ARC89_CREATE_METADATA_FIXED_SIZE,
+        extra_txns=2 + int(metadata.is_arc89_native),
+        trailing_extra=int(not metadata.is_empty),
     )
 
     create_metadata_composer = asa_metadata_registry_client.new_group()
@@ -388,6 +388,8 @@ def create_metadata(
         ),
     )
     _append_extra_payload(create_metadata_composer, asset_manager, metadata)
+    if not metadata.is_empty:
+        add_extra_resources(create_metadata_composer)
     response = create_metadata_composer.send(
         send_params=SendParams(cover_app_call_inner_transaction_fees=True)
     )
@@ -416,8 +418,13 @@ def replace_metadata(
     Returns:
         MBR Delta
     """
+    extra_resources = max(extra_resources, int(not new_metadata.is_empty))
     chunks, base_fee = _get_chunks_and_fee(
-        asa_metadata_registry_client, new_metadata, extra_txns=1
+        asa_metadata_registry_client,
+        new_metadata,
+        _ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE,
+        extra_txns=1 + int(not new_metadata.is_empty),
+        trailing_extra=extra_resources,
     )
     min_fee = _get_min_fee(asa_metadata_registry_client)
     replace_metadata_composer = asa_metadata_registry_client.new_group()
@@ -614,8 +621,14 @@ def get_create_metadata_fee(
     metadata: AssetMetadata,
 ) -> int:
     """Calculate the fee for create_metadata call."""
-    chunks = metadata.body.chunked_payload()
-    return (len(chunks) + 2) * _get_min_fee(client)
+    _, fee = _get_chunks_and_fee(
+        client,
+        metadata,
+        _ARC89_CREATE_METADATA_FIXED_SIZE,
+        extra_txns=2 + int(metadata.is_arc89_native),
+        trailing_extra=int(not metadata.is_empty),
+    )
+    return fee
 
 
 def build_create_metadata_composer(
@@ -684,7 +697,12 @@ def build_replace_metadata_composer(
 ) -> AsaMetadataRegistryComposer:
     """Build a composer for arc89_replace_metadata with common parameters."""
     chunks = metadata.body.chunked_payload()
+    head_payload = payload_override if payload_override is not None else chunks[0]
     min_fee = _get_min_fee(client)
+    surcharge = _app_args_surcharge_fee(
+        min_fee,
+        [_ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE + len(head_payload)],
+    )
 
     composer = client.new_group()
     composer.arc89_replace_metadata(
@@ -695,11 +713,15 @@ def build_replace_metadata_composer(
                 if metadata_size_override is not None
                 else metadata.body.size
             ),
-            payload=payload_override if payload_override is not None else chunks[0],
+            payload=head_payload,
         ),
         params=CommonAppCallParams(
             sender=sender.address,
-            static_fee=AlgoAmount(micro_algo=(len(chunks) + 1) * min_fee),
+            static_fee=AlgoAmount(
+                micro_algo=(len(chunks) + 1 + tail_budget_txns(len(chunks) - 1))
+                * min_fee
+                + surcharge
+            ),
         ),
     )
     return composer
@@ -717,7 +739,12 @@ def build_replace_metadata_larger_composer(
 ) -> AsaMetadataRegistryComposer:
     """Build a composer for arc89_replace_metadata_larger with common parameters."""
     chunks = metadata.body.chunked_payload()
+    head_payload = payload_override if payload_override is not None else chunks[0]
     min_fee = _get_min_fee(client)
+    surcharge = _app_args_surcharge_fee(
+        min_fee,
+        [_ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE + len(head_payload)],
+    )
 
     composer = client.new_group()
     composer.arc89_replace_metadata_larger(
@@ -728,12 +755,16 @@ def build_replace_metadata_larger_composer(
                 if metadata_size_override is not None
                 else metadata.body.size
             ),
-            payload=payload_override if payload_override is not None else chunks[0],
+            payload=head_payload,
             mbr_delta_payment=mbr_payment,
         ),
         params=CommonAppCallParams(
             sender=sender.address,
-            static_fee=AlgoAmount(micro_algo=(len(chunks) + 1) * min_fee),
+            static_fee=AlgoAmount(
+                micro_algo=(len(chunks) + 1 + tail_budget_txns(len(chunks) - 1))
+                * min_fee
+                + surcharge
+            ),
         ),
     )
     return composer
@@ -747,6 +778,11 @@ def build_replace_metadata_slice_composer(
     payload: bytes,
 ) -> AsaMetadataRegistryComposer:
     """Build a composer for arc89_replace_metadata_slice with common parameters."""
+    min_fee = _get_min_fee(client)
+    surcharge = _app_args_surcharge_fee(
+        min_fee,
+        [_ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE + len(payload)],
+    )
     composer = client.new_group()
     composer.arc89_replace_metadata_slice(
         args=Arc89ReplaceMetadataSliceArgs(
@@ -754,6 +790,9 @@ def build_replace_metadata_slice_composer(
             offset=offset,
             payload=payload,
         ),
-        params=CommonAppCallParams(sender=sender.address),
+        params=CommonAppCallParams(
+            sender=sender.address,
+            static_fee=AlgoAmount(micro_algo=min_fee + surcharge),
+        ),
     )
     return composer

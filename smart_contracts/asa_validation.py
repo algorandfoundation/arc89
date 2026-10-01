@@ -1,10 +1,11 @@
 from algopy import ARC4Contract, Asset, Bytes, Global, Txn, op
 
-from .avm_library import arc90_box_query, endswith, startswith
+from .avm_library import endswith, startswith
 from .constants import (
     ARC3_NAME,
     ARC3_NAME_SUFFIX,
     ARC3_URL_SUFFIX,
+    ARC90_URI_FRAGMENT_SEP,
 )
 
 
@@ -41,12 +42,23 @@ class AsaValidation(ARC4Contract):
         clawback, exists = op.AssetParamsGet.asset_clawback(asa)
         return exists and clawback == Global.zero_address
 
-    def _is_arc89_compliant(self, asa: Asset) -> bool:
-        # This validation does not enforce ARC-90 compliance fragments (optional)
-        arc89_partial_uri = arc90_box_query(Global.current_application_id.id, Bytes())
+    def _is_arc20_compliant(self, asa: Asset) -> bool:
+        default_frozen, _exists = op.AssetParamsGet.asset_default_frozen(asa)
+        return default_frozen and asa.clawback != Global.zero_address
+
+    def _is_arc89_compliant(self, asa: Asset, arc89_partial_uri: Bytes) -> bool:
+        # au == partial URI, optionally followed by an ARC-90 fragment ("#...")
         asa_url = asa.url
 
         if asa_url.length < arc89_partial_uri.length:
             return False
+        if not startswith(asa_url, arc89_partial_uri):
+            return False
+        if asa_url.length == arc89_partial_uri.length:
+            return True
+        return asa_url[
+            arc89_partial_uri.length : arc89_partial_uri.length + 1
+        ] == Bytes(ARC90_URI_FRAGMENT_SEP)
 
-        return startswith(asa_url, arc89_partial_uri)
+    def _is_arc89_arc3_url(self, asa: Asset, arc89_partial_uri: Bytes) -> bool:
+        return asa.url == arc89_partial_uri + Bytes(ARC3_URL_SUFFIX)

@@ -14,6 +14,7 @@ from .errors import (
 )
 from .hashing import (
     MAX_UINT8,
+    compute_arc3_metadata_hash,
     compute_header_hash,
     compute_metadata_hash,
     compute_page_hash,
@@ -404,7 +405,7 @@ class MetadataHeader:
     identifiers: int
     flags: MetadataFlags
     metadata_hash: bytes  # 32 bytes
-    last_modified_round: int
+    revision: int
     deprecated_by: int
 
     @property
@@ -450,9 +451,7 @@ class MetadataHeader:
         result.append(self.flags.reversible_byte & 0xFF)
         result.append(self.flags.irreversible_byte & 0xFF)
         result.extend(self.metadata_hash)
-        result.extend(
-            self.last_modified_round.to_bytes(const.UINT64_SIZE, "big", signed=False)
-        )
+        result.extend(self.revision.to_bytes(const.UINT64_SIZE, "big", signed=False))
         result.extend(
             self.deprecated_by.to_bytes(const.UINT64_SIZE, "big", signed=False)
         )
@@ -475,7 +474,7 @@ class MetadataHeader:
     @staticmethod
     def from_tuple(value: Sequence[AbiValue]) -> MetadataHeader:
         """
-        Parse from ABI tuple (identifiers, rev_flags, irr_flags, hash, last_modified_round, deprecated_by).
+        Parse from ABI tuple (identifiers, rev_flags, irr_flags, hash, revision, deprecated_by).
         """
         if len(value) != 6:
             raise ValueError("Expected 6-tuple for metadata header")
@@ -503,7 +502,7 @@ class MetadataHeader:
             raise ValueError("metadata_hash must be 32 bytes")
 
         if not isinstance(v4, int):
-            raise TypeError("last_modified_round must be int")
+            raise TypeError("revision must be int")
         if not isinstance(v5, int):
             raise TypeError("deprecated_by must be int")
 
@@ -511,7 +510,7 @@ class MetadataHeader:
             identifiers=v0,
             flags=MetadataFlags.from_bytes(v1, v2),
             metadata_hash=metadata_hash,
-            last_modified_round=v4,
+            revision=v4,
             deprecated_by=v5,
         )
 
@@ -599,40 +598,60 @@ class Pagination:
     metadata_size: int
     page_size: int
     total_pages: int
+    revision: int
+    deprecated_by: int
 
     @staticmethod
     def from_tuple(value: Sequence[int]) -> Pagination:
-        if len(value) != 3:
-            raise ValueError("Expected (metadata_size, page_size, total_pages)")
+        if len(value) != 5:
+            raise ValueError(
+                "Expected (metadata_size, page_size, total_pages, revision, deprecated_by)"
+            )
         return Pagination(
             metadata_size=int(value[0]),
             page_size=int(value[1]),
             total_pages=int(value[2]),
+            revision=int(value[3]),
+            deprecated_by=int(value[4]),
         )
 
 
 @dataclass(frozen=True, slots=True)
 class PaginatedMetadata:
     has_next_page: bool
-    last_modified_round: int
+    revision: int
     page_content: bytes
 
     @staticmethod
     def from_tuple(value: Sequence[AbiValue]) -> PaginatedMetadata:
         if len(value) != 3:
-            raise ValueError(
-                "Expected (has_next_page, last_modified_round, page_content)"
-            )
+            raise ValueError("Expected (has_next_page, revision, page_content)")
         v0, v1, v2 = value[0], value[1], value[2]
         if not isinstance(v0, bool):
             raise TypeError("has_next_page must be bool")
         if not isinstance(v1, int):
-            raise TypeError("last_modified_round must be int")
+            raise TypeError("revision must be int")
         page_content = _coerce_bytes(v2, name="page_content")
         return PaginatedMetadata(
             has_next_page=v0,
-            last_modified_round=v1,
+            revision=v1,
             page_content=page_content,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class MetadataSlice:
+    revision: int
+    content: bytes
+
+    @staticmethod
+    def from_tuple(value: Sequence[AbiValue]) -> MetadataSlice:
+        if len(value) != 2:
+            raise ValueError("Expected (revision, content)")
+        if not isinstance(value[0], int):
+            raise TypeError("revision must be int")
+        return MetadataSlice(
+            revision=value[0], content=_coerce_bytes(value[1], name="content")
         )
 
 
@@ -646,7 +665,7 @@ class AssetMetadataBox:
     - reversible_flags: byte
     - irreversible_flags: byte
     - metadata_hash: byte[32]
-    - last_modified_round: uint64
+    - revision: uint64
     - deprecated_by: uint64
     - metadata: byte[]
     """
@@ -682,11 +701,9 @@ class AssetMetadataBox:
             identifiers = int(value[const.IDX_METADATA_IDENTIFIERS])
             rev_flags = int(value[const.IDX_REVERSIBLE_FLAGS])
             irr_flags = int(value[const.IDX_IRREVERSIBLE_FLAGS])
-            metadata_hash = value[
-                const.IDX_METADATA_HASH : const.IDX_LAST_MODIFIED_ROUND
-            ]
-            last_modified_round = int.from_bytes(
-                value[const.IDX_LAST_MODIFIED_ROUND : const.IDX_DEPRECATED_BY],
+            metadata_hash = value[const.IDX_METADATA_HASH : const.IDX_REVISION]
+            revision = int.from_bytes(
+                value[const.IDX_REVISION : const.IDX_DEPRECATED_BY],
                 "big",
                 signed=False,
             )
@@ -712,7 +729,7 @@ class AssetMetadataBox:
             identifiers=identifiers,
             flags=MetadataFlags.from_bytes(rev_flags, irr_flags),
             metadata_hash=bytes(metadata_hash),
-            last_modified_round=last_modified_round,
+            revision=revision,
             deprecated_by=deprecated_by,
         )
         body = MetadataBody(raw_bytes=body_bytes)
@@ -737,7 +754,6 @@ class AssetMetadataBox:
 
         identifiers = self.header.expected_identifiers(body=self.body, params=p)
         computed_hash = compute_metadata_hash(
-            asset_id=self.asset_id,
             metadata_identifiers=identifiers,
             reversible_flags=self.header.flags.reversible_byte,
             irreversible_flags=self.header.flags.irreversible_byte,
@@ -771,20 +787,24 @@ class AssetMetadataBox:
         *,
         params: RegistryParameters | None = None,
         asa_am: bytes | None = None,
-        skip_validation_on_override: bool = True,
+        skip_validation_on_override: bool = False,
     ) -> bool:
         """
         Compare observed on-chain hash to the locally computed effective hash.
 
-        If `asa_am` is set and non-zero and skip_validation_on_override=True, this returns True
-        unconditionally (because spec says not to validate `am` overrides).
+        With a nonzero `asa_am`, ARC-3 Metadata must also hash to it under ARC-3, since the
+        registry copies `am` without checking it; `skip_validation_on_override=True` skips
+        the `am` checks.
         """
-        if (
-            asa_am is not None
-            and _is_nonzero_32(asa_am)
-            and skip_validation_on_override
-        ):
-            return True
+        if asa_am is not None and _is_nonzero_32(asa_am):
+            if skip_validation_on_override:
+                return True
+            if self.header.is_arc3_compliant:
+                try:
+                    if compute_arc3_metadata_hash(self.body.raw_bytes) != asa_am:
+                        return False
+                except ValueError:
+                    return False
         expected = self.expected_metadata_hash(params=params, asa_am=asa_am)
         return expected == self.header.metadata_hash
 
@@ -931,7 +951,6 @@ class AssetMetadata:
 
     def compute_header_hash(self) -> bytes:
         return compute_header_hash(
-            asset_id=self.asset_id,
             metadata_identifiers=self.identifiers_byte,
             reversible_flags=self.flags.reversible_byte,
             irreversible_flags=self.flags.irreversible_byte,
@@ -940,7 +959,6 @@ class AssetMetadata:
 
     def compute_page_hash(self, *, page_index: int) -> bytes:
         return compute_page_hash(
-            asset_id=self.asset_id,
             page_index=page_index,
             page_content=self.body.get_page(page_index),
         )
@@ -953,7 +971,6 @@ class AssetMetadata:
         """
         p = get_default_registry_params()
         return compute_metadata_hash(
-            asset_id=self.asset_id,
             metadata_identifiers=self.identifiers_byte,
             reversible_flags=self.flags.reversible.byte_value,
             irreversible_flags=self.flags.irreversible.byte_value,

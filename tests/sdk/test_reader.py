@@ -16,11 +16,13 @@ from collections.abc import Callable
 from unittest.mock import Mock
 
 import pytest
+from algosdk.constants import ZERO_ADDRESS
 from algosdk.v2client.algod import AlgodClient
 
 from asa_metadata_registry import (
     Arc90Uri,
     AsaMetadataRegistryRead,
+    AsaNotFoundError,
     AssetMetadataRecord,
     InvalidArc90UriError,
     IrreversibleFlags,
@@ -31,6 +33,7 @@ from asa_metadata_registry import (
     MetadataExistence,
     MetadataFlags,
     MetadataHeader,
+    MetadataSlice,
     MetadataSource,
     MissingAppClientError,
     PaginatedMetadata,
@@ -129,7 +132,7 @@ def sample_metadata_header() -> MetadataHeader:
         identifiers=0x00,
         flags=MetadataFlags.empty(),
         deprecated_by=0,
-        last_modified_round=1000,
+        revision=1000,
         metadata_hash=b"\x00" * 32,
     )
 
@@ -376,11 +379,17 @@ class TestSubReaders:
 class TestResolveArc90Uri:
     """Test resolve_arc90_uri method."""
 
+    def test_explicit_uri_without_trusted_registry_raises(self) -> None:
+        """An explicit URI is never its own trust anchor."""
+        reader = AsaMetadataRegistryRead(app_id=None)
+        with pytest.raises(RegistryResolutionError, match="No trusted registry"):
+            reader.resolve_arc90_uri(metadata_uri="algorand://app/123?box=AAAAAAAAAcg")
+
     def test_resolve_from_explicit_uri(self) -> None:
         """Test resolution from explicit metadata_uri parameter."""
-        reader = AsaMetadataRegistryRead(app_id=None)
+        reader = AsaMetadataRegistryRead(app_id=123)
         uri = reader.resolve_arc90_uri(
-            metadata_uri="algorand://app/123?box=AAAAAAAAAcg%3D"  # b64url of asset ID 456
+            metadata_uri="algorand://app/123?box=AAAAAAAAAcg"  # b64url of asset ID 456
         )
         assert uri.app_id == 123
         assert uri.asset_id == 456
@@ -482,10 +491,14 @@ class TestGetAssetMetadata:
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=50, page_size=100, total_pages=1
+            deprecated_by=0,
+            metadata_size=50,
+            page_size=100,
+            total_pages=1,
+            revision=1000,
         )
         mock_avm.simulate_many.return_value = [
-            (False, 1000, b'{"name": "test"}' + b"\x00" * 33)  # Pad to 50 bytes
+            (False, 1000, b'{"name": "test"}' + b"\x00" * 34)  # Pad to 50 bytes
         ]
 
         result = reader.get_asset_metadata(asset_id=456, source=MetadataSource.AVM)
@@ -514,10 +527,14 @@ class TestGetAssetMetadata:
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=20, page_size=100, total_pages=1
+            deprecated_by=0,
+            metadata_size=20,
+            page_size=100,
+            total_pages=1,
+            revision=1000,
         )
         mock_avm.simulate_many.return_value = [
-            (False, 1000, b'{"name": "test"}' + b"\x00" * 2)  # Pad to 20 bytes
+            (False, 1000, b'{"name": "test"}' + b"\x00" * 4)  # Pad to 20 bytes
         ]
 
         result = reader.get_asset_metadata(asset_id=456, source=MetadataSource.AVM)
@@ -533,7 +550,11 @@ class TestGetAssetMetadata:
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=150, page_size=100, total_pages=2
+            deprecated_by=0,
+            metadata_size=150,
+            page_size=100,
+            total_pages=2,
+            revision=1000,
         )
         # Simulate two pages
         mock_avm.simulate_many.return_value = [
@@ -554,12 +575,16 @@ class TestGetAssetMetadata:
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=150, page_size=100, total_pages=2
+            deprecated_by=0,
+            metadata_size=150,
+            page_size=100,
+            total_pages=2,
+            revision=1000,
         )
-        # Different last_modified_round indicates drift
+        # Different revision indicates drift
         mock_avm.simulate_many.return_value = [
             (False, 1000, b"page1"),
-            (False, 1001, b"page2"),  # Different round!
+            (False, 1001, b"page2"),  # Different revision
         ]
 
         with pytest.raises(
@@ -568,19 +593,41 @@ class TestGetAssetMetadata:
         ):
             reader.get_asset_metadata(asset_id=456, source=MetadataSource.AVM)
 
+    def test_get_asset_metadata_avm_detects_pagination_drift(
+        self, mock_avm_factory: Callable, sample_metadata_header: MetadataHeader
+    ) -> None:
+        reader = AsaMetadataRegistryRead(app_id=123, avm_factory=mock_avm_factory)
+        mock_avm = mock_avm_factory(123)
+        mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
+        mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
+            deprecated_by=0,
+            metadata_size=150,
+            page_size=100,
+            total_pages=2,
+            revision=1001,
+        )
+
+        with pytest.raises(
+            MetadataDriftError,
+            match="Metadata changed between header and pagination reads",
+        ):
+            reader.get_asset_metadata(asset_id=456, source=MetadataSource.AVM)
+
     def test_get_asset_metadata_follows_deprecation(
         self,
         mock_algod_reader: AlgodBoxReader,
     ) -> None:
         """Test metadata follows deprecation chain."""
-        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        reader = AsaMetadataRegistryRead(
+            app_id=123, algod=mock_algod_reader, trusted_versions=(789,)
+        )
 
         # First record points to deprecated_by=789
         deprecated_header = MetadataHeader(
             identifiers=0x00,
             flags=MetadataFlags.empty(),
             deprecated_by=789,
-            last_modified_round=1000,
+            revision=1000,
             metadata_hash=b"\x00" * 32,
         )
         deprecated_record = AssetMetadataRecord(
@@ -595,7 +642,7 @@ class TestGetAssetMetadata:
             identifiers=0x00,
             flags=MetadataFlags.empty(),
             deprecated_by=0,
-            last_modified_round=2000,
+            revision=2000,
             metadata_hash=b"\x00" * 32,
         )
         current_record = AssetMetadataRecord(
@@ -605,12 +652,9 @@ class TestGetAssetMetadata:
             body=MetadataBody(b'{"new": "metadata"}'),
         )
 
-        # Mock to return different records on subsequent calls
-        call_count = [0]
-
+        # Mock returns the record of the requested registry
         def box_response(app_id: int, box_name: bytes) -> dict[str, str]:
-            record = deprecated_record if call_count[0] == 0 else current_record
-            call_count[0] += 1
+            record = deprecated_record if app_id == 123 else current_record
             box_value = record.header.serialized + record.body.raw_bytes
             return {"value": b64_encode(box_value)}
 
@@ -620,44 +664,88 @@ class TestGetAssetMetadata:
         result = reader.get_asset_metadata(asset_id=456, follow_deprecation=True)
 
         assert result.app_id == 789
-        assert result.header.last_modified_round == 2000
+        assert result.header.revision == 2000
 
     def test_get_asset_metadata_stops_deprecation_loop(
         self,
         mock_algod_reader: AlgodBoxReader,
     ) -> None:
         """Test deprecation following stops after max hops."""
-        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
-
-        # Create circular deprecation
-        looping_header = MetadataHeader(
-            identifiers=0x00,
-            flags=MetadataFlags.empty(),
-            deprecated_by=999,  # Always points elsewhere
-            last_modified_round=1000,
-            metadata_hash=b"\x00" * 32,
-        )
-        looping_record = AssetMetadataRecord(
-            app_id=123,
-            asset_id=456,
-            header=looping_header,
-            body=MetadataBody(b'{"loop": true}'),
+        reader = AsaMetadataRegistryRead(
+            app_id=123, algod=mock_algod_reader, trusted_versions=(999,)
         )
 
-        # Mock always returns the same looping record
-        box_value = looping_record.header.serialized + looping_record.body.raw_bytes
-        mock_algod_reader.algod.application_box_by_name = Mock(
-            return_value={"value": b64_encode(box_value)}
-        )
+        # Circular deprecation: 123 -> 999 -> 123 -> ...
+        def box_for(app_id: int, _box_name: bytes) -> dict[str, str]:
+            header = MetadataHeader(
+                identifiers=0x00,
+                flags=MetadataFlags.empty(),
+                deprecated_by=999 if app_id == 123 else 123,
+                revision=1000,
+                metadata_hash=b"\x00" * 32,
+            )
+            return {"value": b64_encode(header.serialized + b'{"loop": true}')}
+
+        mock_algod_reader.algod.application_box_by_name = Mock(side_effect=box_for)
         mock_algod_reader.algod.asset_info = Mock(return_value={"params": {"url": ""}})
 
-        result = reader.get_asset_metadata(
-            asset_id=456, follow_deprecation=True, max_deprecation_hops=3
+        with pytest.raises(RegistryResolutionError, match="exceeded 3 hops"):
+            reader.get_asset_metadata(
+                asset_id=456, follow_deprecation=True, max_deprecation_hops=3
+            )
+
+    def test_get_asset_metadata_untrusted_deprecation_raises(
+        self,
+        mock_algod_reader: AlgodBoxReader,
+    ) -> None:
+        """A Deprecated By pointer outside the trusted versions is never followed."""
+        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        header = MetadataHeader(
+            identifiers=0x00,
+            flags=MetadataFlags.empty(),
+            deprecated_by=789,
+            revision=1000,
+            metadata_hash=b"\x00" * 32,
+        )
+        mock_box_response(mock_algod_reader, header.serialized + b"{}")
+        mock_algod_reader.algod.asset_info = Mock(return_value={"params": {}})
+        with pytest.raises(RegistryResolutionError, match="untrusted registry 789"):
+            reader.get_asset_metadata(asset_id=456, follow_deprecation=True)
+
+    def test_get_asset_metadata_searches_trusted_versions(
+        self,
+        mock_algod_reader: AlgodBoxReader,
+    ) -> None:
+        """Absent from the oldest trusted version, the record is found in a newer one."""
+        reader = AsaMetadataRegistryRead(
+            app_id=123, algod=mock_algod_reader, trusted_versions=(789,)
+        )
+        header = MetadataHeader(
+            identifiers=0x00,
+            flags=MetadataFlags.empty(),
+            deprecated_by=0,
+            revision=7,
+            metadata_hash=b"\x00" * 32,
         )
 
-        # Should stop after max hops and return last result
-        # Since deprecated_by=999, it follows to app_id 999
-        assert result.app_id == 999
+        def box_for(app_id: int, _box_name: bytes) -> dict[str, str]:
+            if app_id == 123:
+                raise Exception("HTTP 404: box not found")
+            return {"value": b64_encode(header.serialized + b'{"v": 2}')}
+
+        mock_algod_reader.algod.application_box_by_name = Mock(side_effect=box_for)
+        mock_algod_reader.algod.asset_info = Mock(return_value={"params": {}})
+        assert reader.get_asset_metadata(asset_id=456).app_id == 789
+
+    @pytest.mark.parametrize(
+        "kwargs", [{"drift_retries": -1}, {"max_deprecation_hops": -1}]
+    )
+    def test_get_asset_metadata_rejects_negative_limits(
+        self, kwargs: dict[str, int]
+    ) -> None:
+        reader = AsaMetadataRegistryRead(app_id=123)
+        with pytest.raises(ValueError, match=">= 0"):
+            reader.get_asset_metadata(asset_id=456, **kwargs)
 
     def test_get_asset_metadata_no_deprecation_follow(
         self,
@@ -670,7 +758,7 @@ class TestGetAssetMetadata:
             identifiers=0x00,
             flags=MetadataFlags.empty(),
             deprecated_by=789,
-            last_modified_round=1000,
+            revision=1000,
             metadata_hash=b"\x00" * 32,
         )
         deprecated_record = AssetMetadataRecord(
@@ -833,7 +921,7 @@ class TestDispatcherIsMetadataImmutable:
             identifiers=0x00,
             flags=flags,
             deprecated_by=0,
-            last_modified_round=1000,
+            revision=1000,
             metadata_hash=b"\x00" * 32,
         )
         box_value = header.serialized + b'{"test": "data"}'
@@ -843,6 +931,36 @@ class TestDispatcherIsMetadataImmutable:
             asset_id=456, source=MetadataSource.BOX
         )
         assert result is True
+
+    @pytest.mark.parametrize(
+        ("params", "expected"),
+        [
+            (
+                {
+                    "manager": "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q"
+                },
+                False,
+            ),
+            ({}, True),
+            ({"manager": ZERO_ADDRESS}, True),
+        ],
+    )
+    def test_box_applies_manager_rule(
+        self,
+        *,
+        mock_algod_reader: AlgodBoxReader,
+        sample_metadata_header: MetadataHeader,
+        params: dict[str, str],
+        expected: bool,
+    ) -> None:
+        """A mutable record is immutable once the ASA Manager Address is cleared."""
+        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        mock_box_response(mock_algod_reader, sample_metadata_header.serialized + b"{}")
+        mock_algod_reader.algod.asset_info = Mock(return_value={"params": params})
+        assert (
+            reader.arc89_is_metadata_immutable(asset_id=456, source=MetadataSource.BOX)
+            is expected
+        )
 
     def test_uses_avm_fallback(self, mock_avm_factory: Callable) -> None:
         """Test uses AVM when BOX not available."""
@@ -866,7 +984,7 @@ class TestDispatcherIsMetadataShort:
             identifiers=bitmasks.MASK_ID_SHORT,  # short flag
             flags=MetadataFlags.empty(),
             deprecated_by=0,
-            last_modified_round=1000,
+            revision=1000,
             metadata_hash=b"\x00" * 32,
         )
         box_value = header.serialized + b'{"small": "data"}'
@@ -904,7 +1022,7 @@ class TestDispatcherGetMetadataHeader:
         result = reader.arc89_get_metadata_header(
             asset_id=456, source=MetadataSource.BOX
         )
-        assert result.last_modified_round == sample_metadata_header.last_modified_round
+        assert result.revision == sample_metadata_header.revision
 
     def test_avm_source(
         self, mock_avm_factory: Callable, sample_metadata_header: MetadataHeader
@@ -943,7 +1061,13 @@ class TestDispatcherGetMetadataPagination:
         """Test AVM source."""
         reader = AsaMetadataRegistryRead(app_id=123, avm_factory=mock_avm_factory)
 
-        pagination = Pagination(metadata_size=150, page_size=100, total_pages=2)
+        pagination = Pagination(
+            deprecated_by=0,
+            metadata_size=150,
+            page_size=100,
+            total_pages=2,
+            revision=1000,
+        )
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata_pagination.return_value = pagination
 
@@ -974,7 +1098,7 @@ class TestDispatcherGetMetadata:
         reader = AsaMetadataRegistryRead(app_id=123, avm_factory=mock_avm_factory)
 
         page_data = PaginatedMetadata(
-            has_next_page=False, last_modified_round=2000, page_content=b"page1"
+            has_next_page=False, revision=2000, page_content=b"page1"
         )
         mock_avm = mock_avm_factory(123)
         mock_avm.arc89_get_metadata.return_value = page_data
@@ -999,14 +1123,17 @@ class TestDispatcherGetMetadataSlice:
         result = reader.arc89_get_metadata_slice(
             asset_id=456, offset=10, size=20, source=MetadataSource.BOX
         )
-        assert result == metadata_content[10:30]
+        assert result.revision == sample_metadata_header.revision
+        assert result.content == metadata_content[10:30]
 
     def test_avm_source(self, mock_avm_factory: Callable) -> None:
         """Test AVM source."""
         reader = AsaMetadataRegistryRead(app_id=123, avm_factory=mock_avm_factory)
 
         mock_avm = mock_avm_factory(123)
-        mock_avm.arc89_get_metadata_slice.return_value = b"avm_slice"
+        mock_avm.arc89_get_metadata_slice.return_value = MetadataSlice(
+            revision=1000, content=b"avm_slice"
+        )
 
         reader.arc89_get_metadata_slice(
             asset_id=456, offset=5, size=15, source=MetadataSource.AVM
@@ -1029,7 +1156,8 @@ class TestDispatcherGetMetadataHeaderHash:
         result = reader.arc89_get_metadata_header_hash(
             asset_id=456, source=MetadataSource.BOX
         )
-        assert len(result) == 32
+        assert len(result[0]) == 32
+        assert result[1] == sample_metadata_header.revision
 
     def test_avm_source(self, mock_avm_factory: Callable) -> None:
         """Test AVM source."""
@@ -1058,7 +1186,8 @@ class TestDispatcherGetMetadataPageHash:
         result = reader.arc89_get_metadata_page_hash(
             asset_id=456, page=0, source=MetadataSource.BOX
         )
-        assert len(result) == 32
+        assert len(result[0]) == 32
+        assert result[1] == sample_metadata_header.revision
 
     def test_avm_source(self, mock_avm_factory: Callable) -> None:
         """Test AVM source."""
@@ -1087,7 +1216,8 @@ class TestDispatcherGetMetadataHash:
         mock_box_response(mock_algod_reader, box_value)
 
         result = reader.arc89_get_metadata_hash(asset_id=456, source=MetadataSource.BOX)
-        assert len(result) == 32
+        assert len(result[0]) == 32
+        assert result[1] == sample_metadata_header.revision
 
     def test_avm_source(self, mock_avm_factory: Callable) -> None:
         """Test AVM source."""
@@ -1161,6 +1291,26 @@ class TestDispatcherGetMetadataUint64ByKey:
             asset_id=456, key="count", source=MetadataSource.BOX
         )
         assert result == 100
+
+    @pytest.mark.parametrize(
+        "value", [b"1.0", b"1e3", b"-1", b"true", b"18446744073709551616"]
+    )
+    def test_box_rejects_non_uint64(
+        self,
+        mock_algod_reader: AlgodBoxReader,
+        sample_metadata_header: MetadataHeader,
+        value: bytes,
+    ) -> None:
+        """JSON Uint64 is an integer literal in 0..2^64-1, as json_ref extracts it."""
+        from asa_metadata_registry import MetadataKeyError
+
+        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        box_value = sample_metadata_header.serialized + b'{"count": ' + value + b"}"
+        mock_box_response(mock_algod_reader, box_value)
+        with pytest.raises(MetadataKeyError):
+            reader.arc89_get_metadata_uint64_by_key(
+                asset_id=456, key="count", source=MetadataSource.BOX
+            )
 
 
 class TestDispatcherGetMetadataObjectByKey:
@@ -1261,7 +1411,11 @@ class TestEdgeCases:
         mock_avm.arc89_get_metadata_header.return_value = sample_metadata_header
         # Zero pages
         mock_avm.arc89_get_metadata_pagination.return_value = Pagination(
-            metadata_size=0, page_size=100, total_pages=0
+            deprecated_by=0,
+            metadata_size=0,
+            page_size=100,
+            total_pages=0,
+            revision=1000,
         )
         mock_avm.simulate_many.return_value = []
 
@@ -1297,7 +1451,7 @@ class TestEdgeCases:
             identifiers=0x00,
             flags=MetadataFlags.empty(),
             deprecated_by=123,  # Same as app_id
-            last_modified_round=1000,
+            revision=1000,
             metadata_hash=b"\x00" * 32,
         )
         record = AssetMetadataRecord(
@@ -1323,8 +1477,78 @@ class TestEdgeCases:
         # Even if asset_id is provided, URI should be used
         uri = reader.resolve_arc90_uri(
             asset_id=999,  # This should be ignored
-            metadata_uri="algorand://app/789?box=AAAAAAAAAcg%3D",  # b64url of asset ID 456
+            metadata_uri="algorand://app/123?box=AAAAAAAAAcg",  # b64url of asset ID 456
         )
 
-        assert uri.app_id == 789
+        assert uri.app_id == 123
         assert uri.asset_id == 456
+
+    def test_metadata_uri_naming_another_registry_raises(
+        self, mock_algod_reader: AlgodBoxReader
+    ) -> None:
+        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        with pytest.raises(RegistryResolutionError, match="trusted registry is 123"):
+            reader.resolve_arc90_uri(metadata_uri="algorand://app/789?box=AAAAAAAAAcg")
+
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "algorand://app/4242?box=#arc89",  # another registry
+            "algorand://app/123?box=AAAAAAAAMDk#arc89",  # pre-filled box
+            "algorand://app/123?box=#arc89",  # another network
+            "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi#arc3",
+        ],
+    )
+    def test_asset_url_is_informational(
+        self, mock_algod_reader: AlgodBoxReader, url: str
+    ) -> None:
+        """Discovery is the look-up on the trusted registry; the Asset URL is never followed."""
+        reader = AsaMetadataRegistryRead(
+            app_id=123, algod=mock_algod_reader, netauth="net:testnet"
+        )
+        mock_algod_reader.algod.asset_info = Mock(return_value={"params": {"url": url}})
+        uri = reader.resolve_arc90_uri(asset_id=999)
+        assert (uri.netauth, uri.app_id, uri.asset_id) == ("net:testnet", 123, 999)
+
+    def test_resolve_from_held_asset_url(
+        self, mock_algod_reader: AlgodBoxReader
+    ) -> None:
+        """A held native Asset URL is completed and trust-checked without fetching the ASA."""
+        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        mock_algod_reader.algod.asset_info = Mock()
+        uri = reader.resolve_arc90_uri_from_asset_url(
+            asset_id=999, asset_url="algorand://app/123?box=#arc89"
+        )
+        assert uri is not None
+        assert (uri.app_id, uri.asset_id) == (123, 999)
+        mock_algod_reader.algod.asset_info.assert_not_called()
+
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi#arc3",
+            "algorand://app/123?box=AAAAAAAAMDk#arc89",  # pre-filled box
+            "",
+        ],
+    )
+    def test_held_asset_url_not_arc89_returns_none(self, url: str) -> None:
+        reader = AsaMetadataRegistryRead(app_id=123)
+        assert (
+            reader.resolve_arc90_uri_from_asset_url(asset_id=999, asset_url=url) is None
+        )
+
+    def test_held_asset_url_naming_another_registry_raises(self) -> None:
+        reader = AsaMetadataRegistryRead(app_id=123)
+        with pytest.raises(RegistryResolutionError, match="trusted registry is 123"):
+            reader.resolve_arc90_uri_from_asset_url(
+                asset_id=999, asset_url="algorand://app/4242?box=#arc89"
+            )
+
+    def test_missing_asa_raises(self, mock_algod_reader: AlgodBoxReader) -> None:
+        """A record of a destroyed or unknown ASA is not discovered."""
+        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        mock_algod_reader.algod.asset_info = Mock(
+            side_effect=Exception("asset does not exist")
+        )
+        with pytest.raises(AsaNotFoundError):
+            reader.resolve_arc90_uri(asset_id=999)

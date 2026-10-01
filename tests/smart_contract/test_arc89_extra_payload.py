@@ -12,11 +12,15 @@ from asa_metadata_registry import constants as const
 from asa_metadata_registry.generated.asa_metadata_registry_client import (
     Arc89CreateMetadataArgs,
     Arc89ExtraPayloadArgs,
+    Arc89ReplaceMetadataArgs,
+    Arc89ReplaceMetadataSliceArgs,
     AsaMetadataRegistryClient,
+    AsaMetadataRegistryComposer,
 )
 from smart_contracts.asa_metadata_registry import errors as err
 from tests.helpers.utils import (
     NON_EXISTENT_ASA_ID,
+    add_extra_resources,
     create_mbr_payment,
     get_create_metadata_fee,
 )
@@ -97,6 +101,8 @@ def send_create_metadata_with_chunks(
             ),
         )
 
+    if not metadata.is_empty:
+        add_extra_resources(composer)
     composer.send()
 
 
@@ -114,6 +120,42 @@ def verify_metadata_box(
         == expected_pattern_byte * 10
     )
     assert len(box_value) == const.HEADER_SIZE + len(expected_payload)
+
+
+def add_create_head(
+    client: AsaMetadataRegistryClient,
+    composer: AsaMetadataRegistryComposer,
+    sender: SigningAccount,
+    metadata: AssetMetadata,
+) -> None:
+    composer.arc89_create_metadata(
+        args=Arc89CreateMetadataArgs(
+            asset_id=metadata.asset_id,
+            reversible_flags=metadata.flags.reversible_byte,
+            irreversible_flags=metadata.flags.irreversible_byte,
+            metadata_size=metadata.body.size,
+            payload=metadata.body.chunked_payload()[0],
+            mbr_delta_payment=create_mbr_payment(client, sender, metadata),
+        ),
+        params=CommonAppCallParams(
+            sender=sender.address,
+            static_fee=AlgoAmount(micro_algo=get_create_metadata_fee(client, metadata)),
+        ),
+    )
+
+
+def add_extra_payload(
+    composer: AsaMetadataRegistryComposer,
+    sender: SigningAccount,
+    asset_id: int,
+    payload: bytes,
+) -> None:
+    composer.arc89_extra_payload(
+        args=Arc89ExtraPayloadArgs(asset_id=asset_id, payload=payload),
+        params=CommonAppCallParams(
+            sender=sender.address, static_fee=AlgoAmount(micro_algo=0)
+        ),
+    )
 
 
 def test_fail_no_payload_head_call(
@@ -198,8 +240,71 @@ def test_fail_unauthorized(
         composer.send()
 
 
-class TestInterleavedExtraPayload:
-    """Test extra_payload calls with multiple chunks for different assets."""
+def test_fail_stray_extra_payload(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    mutable_short_metadata: AssetMetadata,
+) -> None:
+    # Existing record and manager sender: only the missing head call can fail the chunk
+    composer = asa_metadata_registry_client.new_group()
+    composer.extra_resources(params=CommonAppCallParams(sender=asset_manager.address))
+    add_extra_payload(
+        composer, asset_manager, mutable_short_metadata.asset_id, b"stray"
+    )
+    with pytest.raises(LogicError, match=err.NO_PAYLOAD_HEAD_CALL):
+        composer.send()
+
+
+def test_fail_extra_payload_after_slice(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    mutable_short_metadata: AssetMetadata,
+) -> None:
+    # A slice is not a head call: the trailing chunk fails instead of being dropped
+    composer = asa_metadata_registry_client.new_group()
+    composer.arc89_replace_metadata_slice(
+        args=Arc89ReplaceMetadataSliceArgs(
+            asset_id=mutable_short_metadata.asset_id, offset=0, payload=b"patch"
+        ),
+        params=CommonAppCallParams(
+            sender=asset_manager.address, static_fee=AlgoAmount(micro_algo=5_000)
+        ),
+    )
+    add_extra_payload(
+        composer, asset_manager, mutable_short_metadata.asset_id, b"dropped"
+    )
+    with pytest.raises(LogicError, match=err.NO_PAYLOAD_HEAD_CALL):
+        composer.send()
+
+
+def test_fail_extra_payload_before_head(
+    asset_manager: SigningAccount,
+    asa_metadata_registry_client: AsaMetadataRegistryClient,
+    mutable_short_metadata: AssetMetadata,
+) -> None:
+    # The head scans forward only: a chunk placed before it has no head call
+    size = mutable_short_metadata.body.size
+    composer = asa_metadata_registry_client.new_group()
+    composer.extra_resources(params=CommonAppCallParams(sender=asset_manager.address))
+    add_extra_payload(
+        composer, asset_manager, mutable_short_metadata.asset_id, b"early"
+    )
+    composer.arc89_replace_metadata(
+        args=Arc89ReplaceMetadataArgs(
+            asset_id=mutable_short_metadata.asset_id,
+            metadata_size=size,
+            payload=b"Q" * size,
+        ),
+        params=CommonAppCallParams(
+            sender=asset_manager.address, static_fee=AlgoAmount(micro_algo=5_000)
+        ),
+    )
+    with pytest.raises(LogicError, match=err.NO_PAYLOAD_HEAD_CALL):
+        composer.send()
+
+
+class TestExtraPayloadGroups:
+    """Extra payload chunks in groups with several head calls."""
 
     def test_create_metadata_with_multiple_extra_payloads(
         self,
@@ -259,126 +364,108 @@ class TestInterleavedExtraPayload:
         verify_metadata_box(asa_metadata_registry_client, asset_1, payload_1, b"A")
         verify_metadata_box(asa_metadata_registry_client, asset_2, payload_2, b"B")
 
-    def test_interleaved_extra_payloads_wrong_order_still_works(
+    def _two_assets(
+        self,
+        client: AsaMetadataRegistryClient,
+        sender: SigningAccount,
+        partial_uri: str,
+    ) -> tuple[AssetMetadata, AssetMetadata]:
+        asset_1 = create_test_asa(client, sender, "Group ASA 1", "GRP1", partial_uri)
+        asset_2 = create_test_asa(client, sender, "Group ASA 2", "GRP2", partial_uri)
+        metadata_1 = create_metadata_for_asset(
+            asset_1, b"X" * (const.FIRST_PAYLOAD_MAX_SIZE + 50)
+        )
+        metadata_2 = create_metadata_for_asset(
+            asset_2, b"Y" * (const.FIRST_PAYLOAD_MAX_SIZE + 100)
+        )
+        return metadata_1, metadata_2
+
+    def test_contiguous_extra_payloads_two_assets(
         self,
         asset_manager: SigningAccount,
         asa_metadata_registry_client: AsaMetadataRegistryClient,
         arc89_partial_uri: str,
     ) -> None:
-        """Test that extra_payload calls work even when completely out of order.
-
-        Group structure (maximally interleaved):
-        - [0] MBR Payment for asset_1
-        - [1] create_metadata for asset_1
-        - [2] MBR Payment for asset_2
-        - [3] create_metadata for asset_2
-        - [4] extra_payload for asset_2 (first chunk for asset_2)
-        - [5] extra_payload for asset_1 (first chunk for asset_1)
-        """
-        # Create two test ASAs
-        asset_1 = create_test_asa(
-            asa_metadata_registry_client,
-            asset_manager,
-            "Reverse Order ASA 1",
-            "REV1",
-            arc89_partial_uri,
+        """[pay1, create1, chunk1, pay2, create2, chunk2]: each head gets its own run."""
+        client = asa_metadata_registry_client
+        metadata_1, metadata_2 = self._two_assets(
+            client, asset_manager, arc89_partial_uri
         )
-        asset_2 = create_test_asa(
-            asa_metadata_registry_client,
-            asset_manager,
-            "Reverse Order ASA 2",
-            "REV2",
-            arc89_partial_uri,
-        )
-
-        # Create metadata that requires exactly one extra_payload call
-        payload_1 = b"X" * (const.FIRST_PAYLOAD_MAX_SIZE + 50)
-        payload_2 = b"Y" * (const.FIRST_PAYLOAD_MAX_SIZE + 100)
-
-        metadata_1 = create_metadata_for_asset(asset_1, payload_1)
-        metadata_2 = create_metadata_for_asset(asset_2, payload_2)
-
-        chunks_1 = list(metadata_1.body.chunked_payload())
-        chunks_2 = list(metadata_2.body.chunked_payload())
-
-        assert len(chunks_1) == 2, "Metadata 1 should require exactly 2 chunks"
-        assert len(chunks_2) == 2, "Metadata 2 should require exactly 2 chunks"
-
-        # Create MBR payments
-        mbr_payment_1 = create_mbr_payment(
-            asa_metadata_registry_client, asset_manager, metadata_1
-        )
-        mbr_payment_2 = create_mbr_payment(
-            asa_metadata_registry_client, asset_manager, metadata_2
-        )
-
-        # Calculate fees - create_metadata needs to cover its extra_payload calls
-        fee_1 = get_create_metadata_fee(asa_metadata_registry_client, metadata_1)
-        fee_2 = get_create_metadata_fee(asa_metadata_registry_client, metadata_2)
-
-        composer = asa_metadata_registry_client.new_group()
-
-        # Add create_metadata for asset_1
-        composer.arc89_create_metadata(
-            args=Arc89CreateMetadataArgs(
-                asset_id=asset_1,
-                reversible_flags=metadata_1.flags.reversible_byte,
-                irreversible_flags=metadata_1.flags.irreversible_byte,
-                metadata_size=metadata_1.body.size,
-                payload=chunks_1[0],
-                mbr_delta_payment=mbr_payment_1,
-            ),
-            params=CommonAppCallParams(
-                sender=asset_manager.address,
-                static_fee=AlgoAmount(micro_algo=fee_1),
-            ),
-        )
-
-        # Add create_metadata for asset_2
-        composer.arc89_create_metadata(
-            args=Arc89CreateMetadataArgs(
-                asset_id=asset_2,
-                reversible_flags=metadata_2.flags.reversible_byte,
-                irreversible_flags=metadata_2.flags.irreversible_byte,
-                metadata_size=metadata_2.body.size,
-                payload=chunks_2[0],
-                mbr_delta_payment=mbr_payment_2,
-            ),
-            params=CommonAppCallParams(
-                sender=asset_manager.address,
-                static_fee=AlgoAmount(micro_algo=fee_2),
-            ),
-        )
-
-        # Add extra_payload for asset_2 FIRST (reverse order!)
-        composer.arc89_extra_payload(
-            args=Arc89ExtraPayloadArgs(
-                asset_id=asset_2,
-                payload=chunks_2[1],
-            ),
-            params=CommonAppCallParams(
-                sender=asset_manager.address,
-                static_fee=AlgoAmount(micro_algo=0),
-                note=b"extra_payload_asset_2",
-            ),
-        )
-
-        # Add extra_payload for asset_1 SECOND (reverse order!)
-        composer.arc89_extra_payload(
-            args=Arc89ExtraPayloadArgs(
-                asset_id=asset_1,
-                payload=chunks_1[1],
-            ),
-            params=CommonAppCallParams(
-                sender=asset_manager.address,
-                static_fee=AlgoAmount(micro_algo=0),
-                note=b"extra_payload_asset_1",
-            ),
-        )
-
-        # Send the group
+        composer = client.new_group()
+        for metadata in (metadata_1, metadata_2):
+            add_create_head(client, composer, asset_manager, metadata)
+            add_extra_payload(
+                composer,
+                asset_manager,
+                metadata.asset_id,
+                metadata.body.chunked_payload()[1],
+            )
+        add_extra_resources(composer, 2)
         composer.send()
+        verify_metadata_box(
+            client, metadata_1.asset_id, metadata_1.body.raw_bytes, b"X"
+        )
+        verify_metadata_box(
+            client, metadata_2.asset_id, metadata_2.body.raw_bytes, b"Y"
+        )
 
-        # Verify both metadata entries were created correctly
-        verify_metadata_box(asa_metadata_registry_client, asset_1, payload_1, b"X")
-        verify_metadata_box(asa_metadata_registry_client, asset_2, payload_2, b"Y")
+    def test_fail_interleaved_extra_payloads(
+        self,
+        asset_manager: SigningAccount,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        arc89_partial_uri: str,
+    ) -> None:
+        """[pay1, create1, pay2, create2, chunk2, chunk1]: create1 stops at pay2."""
+        client = asa_metadata_registry_client
+        metadata_1, metadata_2 = self._two_assets(
+            client, asset_manager, arc89_partial_uri
+        )
+        composer = client.new_group()
+        add_create_head(client, composer, asset_manager, metadata_1)
+        add_create_head(client, composer, asset_manager, metadata_2)
+        for metadata in (metadata_2, metadata_1):
+            add_extra_payload(
+                composer,
+                asset_manager,
+                metadata.asset_id,
+                metadata.body.chunked_payload()[1],
+            )
+        add_extra_resources(composer, 2)
+        with pytest.raises(LogicError, match=err.METADATA_SIZE_MISMATCH):
+            composer.send()
+
+    def test_two_heads_same_asset(
+        self,
+        asset_manager: SigningAccount,
+        asa_metadata_registry_client: AsaMetadataRegistryClient,
+        arc89_partial_uri: str,
+    ) -> None:
+        """[pay, create, chunk, replace, chunk]: the create head stops at the replace."""
+        client = asa_metadata_registry_client
+        asset_id = create_test_asa(
+            client, asset_manager, "Two Heads ASA", "TWOH", arc89_partial_uri
+        )
+        size = const.FIRST_PAYLOAD_MAX_SIZE + 10
+        created = create_metadata_for_asset(asset_id, b"C" * size)
+        replaced = create_metadata_for_asset(asset_id, b"R" * size)
+        composer = client.new_group()
+        add_create_head(client, composer, asset_manager, created)
+        add_extra_payload(
+            composer, asset_manager, asset_id, created.body.chunked_payload()[1]
+        )
+        composer.arc89_replace_metadata(
+            args=Arc89ReplaceMetadataArgs(
+                asset_id=asset_id,
+                metadata_size=size,
+                payload=replaced.body.chunked_payload()[0],
+            ),
+            params=CommonAppCallParams(
+                sender=asset_manager.address, static_fee=AlgoAmount(micro_algo=12_000)
+            ),
+        )
+        add_extra_payload(
+            composer, asset_manager, asset_id, replaced.body.chunked_payload()[1]
+        )
+        add_extra_resources(composer, 2)
+        composer.send()
+        verify_metadata_box(client, asset_id, replaced.body.raw_bytes, b"R")

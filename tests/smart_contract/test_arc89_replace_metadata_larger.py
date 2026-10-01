@@ -30,7 +30,7 @@ def _assert_metadata_replaced_with_larger(
     metadata_before = get_metadata_from_state(
         asa_metadata_registry_client, old_metadata.asset_id
     )
-    last_modified_round_before = metadata_before.header.last_modified_round
+    revision_before = metadata_before.header.revision
 
     mbr_delta = replace_metadata(
         asset_manager=asset_manager,
@@ -46,7 +46,7 @@ def _assert_metadata_replaced_with_larger(
         asa_metadata_registry_client,
         old_metadata,
         new_metadata,
-        last_modified_round_before,
+        revision_before,
     )
 
 

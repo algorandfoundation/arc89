@@ -48,7 +48,7 @@ def test_replace_with_empty_metadata(
         asa_metadata_registry_client,
         mutable_short_metadata,
         empty_metadata,
-        prev_metadata.header.last_modified_round,
+        prev_metadata.header.revision,
     )
 
 
@@ -70,7 +70,7 @@ def test_replace_with_smaller_metadata_size(
         asa_metadata_registry_client=asa_metadata_registry_client,
         asset_id=mutable_maxed_metadata.asset_id,
         new_metadata=short_metadata,
-        extra_resources=1,
+        extra_resources=2,
     )
     assert -mbr_delta.amount == replace_mbr_delta.signed_amount
     assert mbr_delta.amount == replace_mbr_delta.amount
@@ -80,7 +80,7 @@ def test_replace_with_smaller_metadata_size(
         asa_metadata_registry_client,
         mutable_maxed_metadata,
         short_metadata,
-        prev_metadata.header.last_modified_round,
+        prev_metadata.header.revision,
     )
 
 
@@ -111,7 +111,7 @@ def test_replace_with_equal_metadata_size(
         asa_metadata_registry_client,
         mutable_maxed_metadata,
         maxed_metadata,
-        prev_metadata.header.last_modified_round,
+        prev_metadata.header.revision,
     )
 
 

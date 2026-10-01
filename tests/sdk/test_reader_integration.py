@@ -150,7 +150,7 @@ class TestReaderWithAlgod:
             source=MetadataSource.BOX,
         )
 
-        assert header.last_modified_round > 0
+        assert header.revision > 0
         assert len(header.metadata_hash) == 32
 
     def test_get_metadata_pagination(
@@ -180,7 +180,7 @@ class TestReaderWithAlgod:
         )
 
         assert len(page.page_content) > 0
-        assert page.last_modified_round > 0
+        assert page.revision > 0
 
     def test_get_metadata_slice(
         self,
@@ -188,15 +188,16 @@ class TestReaderWithAlgod:
         mutable_short_metadata: AssetMetadata,
     ) -> None:
         """Test getting a slice of metadata."""
-        slice_data = reader_with_algod.arc89_get_metadata_slice(
+        metadata_slice = reader_with_algod.arc89_get_metadata_slice(
             asset_id=mutable_short_metadata.asset_id,
             offset=0,
             size=10,
             source=MetadataSource.BOX,
         )
 
-        assert len(slice_data) <= 10
-        assert slice_data == mutable_short_metadata.body.raw_bytes[:10]
+        assert metadata_slice.revision > 0
+        assert len(metadata_slice.content) <= 10
+        assert metadata_slice.content == mutable_short_metadata.body.raw_bytes[:10]
 
     def test_get_metadata_header_hash(
         self,
@@ -209,7 +210,8 @@ class TestReaderWithAlgod:
             source=MetadataSource.BOX,
         )
 
-        assert len(header_hash) == 32
+        assert len(header_hash[0]) == 32
+        assert header_hash[1] > 0
 
     def test_get_metadata_page_hash(
         self,
@@ -223,7 +225,8 @@ class TestReaderWithAlgod:
             source=MetadataSource.BOX,
         )
 
-        assert len(page_hash) == 32
+        assert len(page_hash[0]) == 32
+        assert page_hash[1] > 0
 
     def test_get_metadata_hash(
         self,
@@ -236,7 +239,8 @@ class TestReaderWithAlgod:
             source=MetadataSource.BOX,
         )
 
-        assert len(metadata_hash) == 32
+        assert len(metadata_hash[0]) == 32
+        assert metadata_hash[1] > 0
 
 
 class TestReaderWithAvm:
@@ -309,7 +313,7 @@ class TestReaderWithAvm:
             source=MetadataSource.AVM,
         )
 
-        assert header.last_modified_round > 0
+        assert header.revision > 0
         assert len(header.metadata_hash) == 32
 
     def test_get_metadata_pagination_avm(
@@ -518,11 +522,30 @@ class TestReaderArc90Uri:
         reader_with_algod: AsaMetadataRegistryRead,
         arc_89_asa: int,
     ) -> None:
-        """Test resolving URI from ASA's url field."""
+        """Test the canonical look-up by asset id (the Asset URL is not read)."""
         uri = reader_with_algod.resolve_arc90_uri(asset_id=arc_89_asa)
 
         assert uri.asset_id == arc_89_asa
         assert uri.app_id is not None
+
+    def test_held_asset_url_matches_canonical_look_up(
+        self,
+        reader_with_algod: AsaMetadataRegistryRead,
+        arc_89_asa: int,
+    ) -> None:
+        """The URL helper and the canonical look-up name the same box."""
+        assert reader_with_algod.algod is not None
+        asset_url = reader_with_algod.algod.get_asset_url(arc_89_asa)
+        assert asset_url
+        from_url = reader_with_algod.resolve_arc90_uri_from_asset_url(
+            asset_id=arc_89_asa, asset_url=asset_url
+        )
+        canonical = reader_with_algod.resolve_arc90_uri(asset_id=arc_89_asa)
+        assert from_url is not None
+        assert (from_url.app_id, from_url.asset_id) == (
+            canonical.app_id,
+            canonical.asset_id,
+        )
 
     def test_resolve_from_explicit_uri(
         self,

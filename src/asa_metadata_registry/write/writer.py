@@ -13,10 +13,13 @@ from algokit_utils import (
     SigningAccount,
 )
 
+from .. import constants as const
 from .. import flags
 from ..errors import (
     AsaNotFoundError,
     InvalidFlagIndexError,
+    InvalidSliceError,
+    MetadataNotFoundError,
     MissingAppClientError,
 )
 from ..generated.asa_metadata_registry_client import (
@@ -27,17 +30,74 @@ from ..models import AssetMetadata, AssetMetadataBox, MbrDelta, RegistryParamete
 from ..read.avm import AsaMetadataRegistryAvmRead, SimulateOptions
 from ..validation import (
     ARC3_PROPERTIES_FLAG_TO_KEY,
+    decode_metadata_json,
     validate_arc3_properties,
+    validate_arc3_schema,
     validate_arc3_values,
 )
 
+_APP_ARGS_FREE_SIZE = 2048
+_APP_ARG_BYTE_SURCHARGE_FACTOR = 100  # millionths of the min fee
+_FEE_FACTOR_SCALE = 1_000_000
 
-def _chunks_for_create(metadata: AssetMetadata) -> list[bytes]:
-    return metadata.body.chunked_payload()
+_ARC89_CREATE_METADATA_FIXED_SIZE = (
+    const.ARC4_METHOD_SELECTOR_SIZE
+    + const.UINT64_SIZE
+    + const.BYTE_SIZE
+    + const.BYTE_SIZE
+    + const.UINT16_SIZE
+    + const.ARC4_DYNAMIC_LENGTH_SIZE
+)
+_ARC89_EXTRA_PAYLOAD_FIXED_SIZE = (
+    const.ARC4_METHOD_SELECTOR_SIZE + const.UINT64_SIZE + const.ARC4_DYNAMIC_LENGTH_SIZE
+)
+_ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE = (
+    const.ARC4_METHOD_SELECTOR_SIZE
+    + const.UINT64_SIZE
+    + const.UINT16_SIZE
+    + const.ARC4_DYNAMIC_LENGTH_SIZE
+)
 
 
-def _chunks_for_replace(metadata: AssetMetadata) -> list[bytes]:
-    return metadata.body.chunked_payload()
+_BOX_REFERENCE_BYTES = 2048  # Box I/O budget per box reference (consensus v41)
+_BOX_REFERENCES_PER_APP_CALL = 8
+
+
+def _chunks_for_create(
+    metadata: AssetMetadata, params: RegistryParameters | None = None
+) -> list[bytes]:
+    return metadata.body.chunked_payload(params=params)
+
+
+def _chunks_for_replace(
+    metadata: AssetMetadata, params: RegistryParameters | None = None
+) -> list[bytes]:
+    return metadata.body.chunked_payload(params=params)
+
+
+def _box_io_extra_resources(box_size: int, *, other_app_calls: int = 0) -> int:
+    """
+    `extra_resources` calls needed to cover the Box I/O budget of a `box_size` bytes box.
+
+    The head call spends one reference slot on the asset (seven box references left);
+    every other app call in the group (extra payloads, extra resources) adds eight.
+    """
+    head_capacity = (_BOX_REFERENCES_PER_APP_CALL - 1) * _BOX_REFERENCE_BYTES
+    call_capacity = _BOX_REFERENCES_PER_APP_CALL * _BOX_REFERENCE_BYTES
+    needed_calls = max(0, -(-(box_size - head_capacity) // call_capacity))
+    return max(0, needed_calls - other_app_calls)
+
+
+def _hash_budget_txns(total_pages: int) -> int:
+    """Opcode budget inner transactions to recompute the Metadata Hash over `total_pages`."""
+    # Calibrated on-chain: the first at two pages, then one every five pages.
+    return (total_pages + 3) // 5
+
+
+def _tail_budget_txns(trailing_calls: int) -> int:
+    """Budget inner transactions the head call issues for the calls after it."""
+    reserved = trailing_calls * const.GROUP_TAIL_OP_BUDGET_PER_TXN
+    return reserved // const.APP_CALL_OP_BUDGET + int(trailing_calls > 0)
 
 
 def _chunks_for_slice(payload: bytes, max_size: int) -> list[bytes]:
@@ -46,6 +106,15 @@ def _chunks_for_slice(payload: bytes, max_size: int) -> list[bytes]:
     if payload == b"":
         return [b""]
     return [payload[i : i + max_size] for i in range(0, len(payload), max_size)]
+
+
+def _app_args_surcharge_fee(min_fee: int, app_args_total_sizes: Sequence[int]) -> int:
+    """Return the pooled protocol surcharge for app args above 2,048 bytes."""
+    excess_bytes = sum(
+        max(0, size - _APP_ARGS_FREE_SIZE) for size in app_args_total_sizes
+    )
+    numerator = min_fee * excess_bytes * _APP_ARG_BYTE_SURCHARGE_FACTOR
+    return (numerator + _FEE_FACTOR_SCALE - 1) // _FEE_FACTOR_SCALE
 
 
 def _append_extra_payload(
@@ -164,6 +233,21 @@ class AsaMetadataRegistryWrite:
         ).arc89_get_metadata_registry_parameters()
         return p
 
+    def _box_resources(
+        self, asset_id: int, *, hashing: bool, other_calls: int = 0
+    ) -> tuple[int, int]:
+        """(extra_resources calls, budget inner txns) to touch the current box of `asset_id`."""
+        box = _parse_metadata_box(self.client, asset_id)
+        if box is None:
+            return 0, 0
+        params = self._params()
+        extra = _box_io_extra_resources(params.header_size + box.body.size)
+        budget = 0
+        if hashing:
+            budget = _hash_budget_txns(box.body.total_pages(params))
+            budget += _tail_budget_txns(extra + other_calls)
+        return extra, budget
+
     # ------------------------------------------------------------------
     # Group builders
     # ------------------------------------------------------------------
@@ -181,8 +265,12 @@ class AsaMetadataRegistryWrite:
         Returns the generated client's composer, so callers can `.simulate()` or `.send()`.
         """
         opt = options or WriteOptions()
+        params = self._params()
 
-        chunks = _chunks_for_create(metadata)
+        chunks = _chunks_for_create(metadata, params)
+        io_extra = _box_io_extra_resources(
+            params.header_size + metadata.body.size, other_app_calls=len(chunks) - 1
+        )
 
         # Determine MBR delta via on-chain getter (simulate).
         mbr_delta = AsaMetadataRegistryAvmRead(
@@ -210,15 +298,28 @@ class AsaMetadataRegistryWrite:
             1  # main app call (arc89_create_metadata)
             + (len(chunks) - 1)  # extra payload calls
             + 1  # MBR payment transaction
+            + io_extra
             + opt.extra_resources  # optional extra resources
         )
 
-        # Add extra transaction for non-empty metadata opcode budget
-        if not metadata.is_empty:
-            base_txn_count += 1
+        # Opcode budget inner transactions: metadata hashing, native Asset URL check, tail
+        base_txn_count += int(not metadata.is_empty) + int(metadata.is_arc89_native)
+        base_txn_count += _tail_budget_txns(
+            len(chunks)
+            - 1
+            + io_extra
+            + opt.extra_resources
+            + int(not metadata.is_empty)
+        )
 
         # Calculate total fee pool including padding
-        fee_pool = (base_txn_count + opt.fee_padding_txns) * min_fee
+        app_args_sizes = [
+            _ARC89_CREATE_METADATA_FIXED_SIZE + len(chunks[0]),
+            *(_ARC89_EXTRA_PAYLOAD_FIXED_SIZE + len(chunk) for chunk in chunks[1:]),
+        ]
+        fee_pool = (
+            base_txn_count + opt.fee_padding_txns
+        ) * min_fee + _app_args_surcharge_fee(min_fee, app_args_sizes)
 
         composer = self.client.new_group()
         composer.arc89_create_metadata(
@@ -243,7 +344,9 @@ class AsaMetadataRegistryWrite:
             sender=asset_manager.address,
         )
         _append_extra_resources(
-            composer, count=opt.extra_resources, sender=asset_manager.address
+            composer,
+            count=io_extra + opt.extra_resources + int(not metadata.is_empty),
+            sender=asset_manager.address,
         )
         return composer
 
@@ -262,7 +365,6 @@ class AsaMetadataRegistryWrite:
         an extra simulate read.
         """
         opt = options or WriteOptions()
-
         avm = AsaMetadataRegistryAvmRead(self.client)
 
         current_size = assume_current_size
@@ -275,7 +377,7 @@ class AsaMetadataRegistryWrite:
                 asset_manager=asset_manager,
                 metadata=metadata,
                 options=opt,
-                equal_size=metadata.body.size == current_size,
+                current_size=current_size,
             )
         return self._build_replace_larger(
             asset_manager=asset_manager, metadata=metadata, options=opt
@@ -287,15 +389,31 @@ class AsaMetadataRegistryWrite:
         asset_manager: SigningAccount,
         metadata: AssetMetadata,
         options: WriteOptions,
-        equal_size: bool,
+        current_size: int,
     ) -> AsaMetadataRegistryComposer:
-        chunks = _chunks_for_replace(metadata)
+        params = self._params()
+        chunks = _chunks_for_replace(metadata, params)
+        equal_size = metadata.body.size == current_size
+        # The whole existing box is touched (resize), size the I/O budget on it.
+        io_extra = _box_io_extra_resources(
+            params.header_size + current_size, other_app_calls=len(chunks) - 1
+        )
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
         base_txn_count = (
             1  # main app call (arc89_replace_metadata)
             + (len(chunks) - 1)  # extra payload calls
+            + io_extra
             + options.extra_resources  # optional extra resources
+            + int(not metadata.is_empty)  # extra_resources call
+            + int(not metadata.is_empty)  # hash-budget inner transaction
+            + _tail_budget_txns(
+                len(chunks)
+                - 1
+                + io_extra
+                + options.extra_resources
+                + int(not metadata.is_empty)
+            )
         )
 
         # MBR refund inner payment transaction (only when size is smaller, not equal)
@@ -303,7 +421,13 @@ class AsaMetadataRegistryWrite:
             base_txn_count += 1
 
         # Calculate total fee pool including padding
-        fee_pool = (base_txn_count + options.fee_padding_txns) * min_fee
+        app_args_sizes = [
+            _ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE + len(chunks[0]),
+            *(_ARC89_EXTRA_PAYLOAD_FIXED_SIZE + len(chunk) for chunk in chunks[1:]),
+        ]
+        fee_pool = (
+            base_txn_count + options.fee_padding_txns
+        ) * min_fee + _app_args_surcharge_fee(min_fee, app_args_sizes)
 
         composer = self.client.new_group()
         composer.arc89_replace_metadata(
@@ -320,7 +444,9 @@ class AsaMetadataRegistryWrite:
             sender=asset_manager.address,
         )
         _append_extra_resources(
-            composer, count=options.extra_resources, sender=asset_manager.address
+            composer,
+            count=io_extra + options.extra_resources + int(not metadata.is_empty),
+            sender=asset_manager.address,
         )
         return composer
 
@@ -331,7 +457,11 @@ class AsaMetadataRegistryWrite:
         metadata: AssetMetadata,
         options: WriteOptions,
     ) -> AsaMetadataRegistryComposer:
-        chunks = _chunks_for_replace(metadata)
+        params = self._params()
+        chunks = _chunks_for_replace(metadata, params)
+        io_extra = _box_io_extra_resources(
+            params.header_size + metadata.body.size, other_app_calls=len(chunks) - 1
+        )
 
         avm = AsaMetadataRegistryAvmRead(self.client)
         mbr_delta = avm.arc89_get_metadata_mbr_delta(
@@ -353,11 +483,27 @@ class AsaMetadataRegistryWrite:
             1  # main app call (arc89_replace_metadata_larger)
             + (len(chunks) - 1)  # extra payload calls
             + 1  # MBR payment transaction
+            + io_extra
             + options.extra_resources  # optional extra resources
+            + int(not metadata.is_empty)  # extra_resources call
+            + int(not metadata.is_empty)  # hash-budget inner transaction
+            + _tail_budget_txns(
+                len(chunks)
+                - 1
+                + io_extra
+                + options.extra_resources
+                + int(not metadata.is_empty)
+            )
         )
 
         # Calculate total fee pool including padding
-        fee_pool = (txn_count + options.fee_padding_txns) * min_fee
+        app_args_sizes = [
+            _ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE + len(chunks[0]),
+            *(_ARC89_EXTRA_PAYLOAD_FIXED_SIZE + len(chunk) for chunk in chunks[1:]),
+        ]
+        fee_pool = (
+            txn_count + options.fee_padding_txns
+        ) * min_fee + _app_args_surcharge_fee(min_fee, app_args_sizes)
 
         composer = self.client.new_group()
         composer.arc89_replace_metadata_larger(
@@ -374,7 +520,9 @@ class AsaMetadataRegistryWrite:
             sender=asset_manager.address,
         )
         _append_extra_resources(
-            composer, count=options.extra_resources, sender=asset_manager.address
+            composer,
+            count=io_extra + options.extra_resources + int(not metadata.is_empty),
+            sender=asset_manager.address,
         )
         return composer
 
@@ -397,15 +545,26 @@ class AsaMetadataRegistryWrite:
         params = self._params()
 
         chunks = _chunks_for_slice(payload, params.replace_payload_max_size)
+        io_extra, budget = self._box_resources(
+            asset_id, hashing=True, other_calls=len(chunks) - 1 + opt.extra_resources
+        )
+        io_extra = max(0, io_extra - (len(chunks) - 1))
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
         txn_count = (
             len(chunks)  # main app calls (arc89_replace_metadata_slice)
+            + budget * len(chunks)  # hash recomputed by every slice call
+            + io_extra
             + opt.extra_resources  # optional extra resources
         )
 
         # Calculate total fee pool including padding
-        fee_pool = (txn_count + opt.fee_padding_txns) * min_fee
+        app_args_sizes = [
+            _ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE + len(chunk) for chunk in chunks
+        ]
+        fee_pool = (
+            txn_count + opt.fee_padding_txns
+        ) * min_fee + _app_args_surcharge_fee(min_fee, app_args_sizes)
 
         composer = self.client.new_group()
 
@@ -427,7 +586,7 @@ class AsaMetadataRegistryWrite:
             )
 
         _append_extra_resources(
-            composer, count=opt.extra_resources, sender=asset_manager.address
+            composer, count=io_extra + opt.extra_resources, sender=asset_manager.address
         )
         return composer
 
@@ -439,11 +598,13 @@ class AsaMetadataRegistryWrite:
         options: WriteOptions | None = None,
     ) -> AsaMetadataRegistryComposer:
         opt = options or WriteOptions()
+        io_extra, _ = self._box_resources(asset_id, hashing=False)
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
         txn_count = (
             1  # main app call (arc89_delete_metadata)
             + 1  # MBR refund inner payment transaction
+            + io_extra
             + opt.extra_resources  # optional extra resources
         )
 
@@ -458,7 +619,7 @@ class AsaMetadataRegistryWrite:
             ),
         )
         _append_extra_resources(
-            composer, count=opt.extra_resources, sender=asset_manager.address
+            composer, count=io_extra + opt.extra_resources, sender=asset_manager.address
         )
         return composer
 
@@ -570,7 +731,21 @@ class AsaMetadataRegistryWrite:
         payload: bytes,
         options: WriteOptions | None = None,
         send_params: SendParams | None = None,
+        validate: bool = True,
     ) -> None:
+        if validate:
+            # ARC-89: clients MUST validate the complete post-replacement Metadata.
+            box = _parse_metadata_box(self.client, asset_id)
+            if box is None:
+                raise MetadataNotFoundError(f"No metadata box for asset {asset_id}")
+            body = box.body.raw_bytes
+            if offset < 0 or offset + len(payload) > len(body):
+                raise InvalidSliceError("Slice exceeds the Metadata size")
+            new_body = body[:offset] + payload + body[offset + len(payload) :]
+            obj = decode_metadata_json(new_body)
+            if box.header.flags.irreversible.arc3:
+                validate_arc3_schema(obj)
+
         composer = self.build_replace_metadata_slice_group(
             asset_manager=asset_manager,
             asset_id=asset_id,
@@ -631,9 +806,14 @@ class AsaMetadataRegistryWrite:
                 )
 
         opt = options or WriteOptions()
+        io_extra, budget = self._box_resources(
+            asset_id, hashing=True, other_calls=opt.extra_resources
+        )
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
-        fee_pool = (1 + opt.extra_resources + opt.fee_padding_txns) * min_fee
+        fee_pool = (
+            1 + budget + io_extra + opt.extra_resources + opt.fee_padding_txns
+        ) * min_fee
 
         composer = self.client.new_group()
         composer.arc89_set_reversible_flag(
@@ -643,7 +823,7 @@ class AsaMetadataRegistryWrite:
             ),
         )
         _append_extra_resources(
-            composer, count=opt.extra_resources, sender=asset_manager.address
+            composer, count=io_extra + opt.extra_resources, sender=asset_manager.address
         )
 
         if send_params is None:
@@ -669,9 +849,14 @@ class AsaMetadataRegistryWrite:
             )
 
         opt = options or WriteOptions()
+        io_extra, budget = self._box_resources(
+            asset_id, hashing=True, other_calls=opt.extra_resources
+        )
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
-        fee_pool = (1 + opt.extra_resources + opt.fee_padding_txns) * min_fee
+        fee_pool = (
+            1 + budget + io_extra + opt.extra_resources + opt.fee_padding_txns
+        ) * min_fee
 
         composer = self.client.new_group()
         composer.arc89_set_irreversible_flag(
@@ -681,7 +866,7 @@ class AsaMetadataRegistryWrite:
             ),
         )
         _append_extra_resources(
-            composer, count=opt.extra_resources, sender=asset_manager.address
+            composer, count=io_extra + opt.extra_resources, sender=asset_manager.address
         )
 
         if send_params is None:
@@ -700,9 +885,14 @@ class AsaMetadataRegistryWrite:
         send_params: SendParams | None = None,
     ) -> None:
         opt = options or WriteOptions()
+        io_extra, budget = self._box_resources(
+            asset_id, hashing=True, other_calls=opt.extra_resources
+        )
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
-        fee_pool = (1 + opt.extra_resources + opt.fee_padding_txns) * min_fee
+        fee_pool = (
+            1 + budget + io_extra + opt.extra_resources + opt.fee_padding_txns
+        ) * min_fee
 
         composer = self.client.new_group()
         composer.arc89_set_immutable(
@@ -712,7 +902,7 @@ class AsaMetadataRegistryWrite:
             ),
         )
         _append_extra_resources(
-            composer, count=opt.extra_resources, sender=asset_manager.address
+            composer, count=io_extra + opt.extra_resources, sender=asset_manager.address
         )
 
         if send_params is None:
@@ -732,9 +922,12 @@ class AsaMetadataRegistryWrite:
         send_params: SendParams | None = None,
     ) -> None:
         opt = options or WriteOptions()
+        io_extra, budget = self._box_resources(asset_id, hashing=False)
 
         min_fee = self.client.algorand.get_suggested_params().min_fee
-        fee_pool = (1 + opt.extra_resources + opt.fee_padding_txns) * min_fee
+        fee_pool = (
+            1 + budget + io_extra + opt.extra_resources + opt.fee_padding_txns
+        ) * min_fee
 
         composer = self.client.new_group()
         composer.arc89_migrate_metadata(
@@ -744,7 +937,7 @@ class AsaMetadataRegistryWrite:
             ),
         )
         _append_extra_resources(
-            composer, count=opt.extra_resources, sender=asset_manager.address
+            composer, count=io_extra + opt.extra_resources, sender=asset_manager.address
         )
 
         if send_params is None:

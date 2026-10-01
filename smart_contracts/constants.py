@@ -12,7 +12,7 @@ TESTNET_GH_B64: Final[str] = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI="
 # ---------------------------------------------------------------------------
 MAX_BOX_SIZE: Final[int] = 32768
 MAX_STK_SIZE: Final[int] = 4096
-MAX_ARG_SIZE: Final[int] = 2048
+MAX_ARG_SIZE: Final[int] = 4096
 MAX_LOG_SIZE: Final[int] = 1024
 
 FLAT_MBR: Final[int] = 2500  # microALGO
@@ -70,15 +70,16 @@ ARC4_DYNAMIC_LENGTH_SIZE: Final[int] = 2
 #   algorand://<netauth>/app/<app_id>?box=<base64url_box_name>#<fragment>
 #
 # Examples:
-#   - TestNet:  algorand://net:testnet/app/752790676?box=AAAAAAAAAAE%3D#arc89
-#   - LocalNet: algorand://net:localnet/app/1002?box=AAAAAAAAA-w%3D#arc3
-#   - MainNet:  algorand://app/123456789?box=AAAAAAAAAAE%3D#arc89
+#   - TestNet:  algorand://net:testnet/app/753324084?box=AAAAAAAAAAE#arc89
+#   - LocalNet: algorand://net:localnet/app/1002?box=AAAAAAAAA-w#arc3
+#   - MainNet:  algorand://app/123456789?box=AAAAAAAAAAE#arc89
 
 ARC90_URI_SCHEME_NAME: Final[bytes] = b"algorand"
 ARC90_URI_APP_PATH_NAME: Final[bytes] = b"app"
 ARC90_URI_BOX_QUERY_NAME: Final[bytes] = b"box"
 
 ARC90_URI_PATH_SEP: Final[bytes] = b"/"
+ARC90_URI_FRAGMENT_SEP: Final[bytes] = b"#"
 
 ARC90_URI_SCHEME: Final[bytes] = ARC90_URI_SCHEME_NAME + b"://"
 ARC90_URI_APP_PATH: Final[bytes] = ARC90_URI_APP_PATH_NAME + ARC90_URI_PATH_SEP
@@ -91,24 +92,9 @@ ARC90_URI_BOX_QUERY: Final[bytes] = b"?" + ARC90_URI_BOX_QUERY_NAME + b"="
 # Opcode Budgets
 HEADER_HASH_OP_BUDGET: Final[int] = 110
 PAGE_HASH_OP_BUDGET: Final[int] = 230
-
-# Method Signatures Overhead
-ARC89_CREATE_METADATA_FIXED_SIZE: Final[int] = (
-    ARC4_METHOD_SELECTOR_SIZE
-    + UINT64_SIZE
-    + BYTE_SIZE
-    + BYTE_SIZE
-    + UINT16_SIZE
-    + ARC4_DYNAMIC_LENGTH_SIZE
-)
-
-ARC89_EXTRA_PAYLOAD_FIXED_SIZE: Final[int] = (
-    ARC4_METHOD_SELECTOR_SIZE + UINT64_SIZE + ARC4_DYNAMIC_LENGTH_SIZE
-)
-
-ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE: Final[int] = (
-    ARC4_METHOD_SELECTOR_SIZE + UINT64_SIZE + UINT16_SIZE + ARC4_DYNAMIC_LENGTH_SIZE
-)
+ASA_URL_CHECK_OP_BUDGET: Final[int] = 400
+# Reserved by the head call for each remaining Group txn (>= arc89_extra_payload cost)
+GROUP_TAIL_OP_BUDGET_PER_TXN: Final[int] = 150
 
 # (bool,uint64,byte[]), ABI tuple are encoded a head(...) || tail(...)
 ARC89_GET_METADATA_RETURN_FIXED_SIZE: Final[int] = (
@@ -124,15 +110,16 @@ ARC89_GET_METADATA_RETURN_FIXED_SIZE: Final[int] = (
 # arc89_extra_payload(asset_id, payload)
 ARC89_EXTRA_PAYLOAD_ARG_ASSET_ID: Final[int] = 1
 ARC89_EXTRA_PAYLOAD_ARG_PAYLOAD: Final[int] = 2
+ARC89_HEAD_CALL_ARG_ASSET_ID: Final[int] = 1
 
 # Pagination
-FIRST_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC89_CREATE_METADATA_FIXED_SIZE
-EXTRA_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC89_EXTRA_PAYLOAD_FIXED_SIZE
-REPLACE_PAYLOAD_MAX_SIZE: Final[int] = (
-    MAX_ARG_SIZE - ARC89_REPLACE_METADATA_SLICE_FIXED_SIZE
-)
+# Fixed length arguments occupy separate ApplicationArgs entries. They count toward
+# the 16,384-byte aggregate limit but do not reduce the payload entry's 4,096-byte
+# capacity; only the byte[] length prefix does.
+FIRST_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC4_DYNAMIC_LENGTH_SIZE
+EXTRA_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC4_DYNAMIC_LENGTH_SIZE
+REPLACE_PAYLOAD_MAX_SIZE: Final[int] = MAX_ARG_SIZE - ARC4_DYNAMIC_LENGTH_SIZE
 PAGE_SIZE: Final[int] = MAX_LOG_SIZE - ARC89_GET_METADATA_RETURN_FIXED_SIZE
-MAX_PAGES: Final[int] = 31
 
 # Asset Metadata Box
 ASSET_METADATA_BOX_KEY_SIZE: Final[int] = UINT64_SIZE
@@ -142,14 +129,14 @@ METADATA_IDENTIFIERS_SIZE: Final[int] = BYTE_SIZE
 REVERSIBLE_FLAGS_SIZE: Final[int] = BYTE_SIZE
 IRREVERSIBLE_FLAGS_SIZE: Final[int] = BYTE_SIZE
 METADATA_HASH_SIZE: Final[int] = BYTES32_SIZE
-LAST_MODIFIED_ROUND_SIZE: Final[int] = UINT64_SIZE
+REVISION_SIZE: Final[int] = UINT64_SIZE
 DEPRECATED_BY_SIZE: Final[int] = UINT64_SIZE
 HEADER_SIZE: Final[int] = (
     METADATA_IDENTIFIERS_SIZE
     + REVERSIBLE_FLAGS_SIZE
     + IRREVERSIBLE_FLAGS_SIZE
     + METADATA_HASH_SIZE
-    + LAST_MODIFIED_ROUND_SIZE
+    + REVISION_SIZE
     + DEPRECATED_BY_SIZE
 )
 
@@ -157,8 +144,8 @@ IDX_METADATA_IDENTIFIERS: Final[int] = 0
 IDX_REVERSIBLE_FLAGS: Final[int] = IDX_METADATA_IDENTIFIERS + METADATA_IDENTIFIERS_SIZE
 IDX_IRREVERSIBLE_FLAGS: Final[int] = IDX_REVERSIBLE_FLAGS + REVERSIBLE_FLAGS_SIZE
 IDX_METADATA_HASH: Final[int] = IDX_IRREVERSIBLE_FLAGS + IRREVERSIBLE_FLAGS_SIZE
-IDX_LAST_MODIFIED_ROUND: Final[int] = IDX_METADATA_HASH + METADATA_HASH_SIZE
-IDX_DEPRECATED_BY: Final[int] = IDX_LAST_MODIFIED_ROUND + LAST_MODIFIED_ROUND_SIZE
+IDX_REVISION: Final[int] = IDX_METADATA_HASH + METADATA_HASH_SIZE
+IDX_DEPRECATED_BY: Final[int] = IDX_REVISION + REVISION_SIZE
 
 # AVM setbit/getbit opcodes bit offset (index 0 is the leftmost bit of the leftmost byte)
 BIT_RIGHTMOST_IDENTIFIER: Final[int] = 8 * METADATA_IDENTIFIERS_SIZE - 1
@@ -167,8 +154,11 @@ BIT_RIGHTMOST_IRR_FLAG: Final[int] = 8 * IRREVERSIBLE_FLAGS_SIZE - 1
 
 # Asset Metadata Box Body
 IDX_METADATA: Final[int] = IDX_DEPRECATED_BY + DEPRECATED_BY_SIZE
-MAX_METADATA_SIZE: Final[int] = FIRST_PAYLOAD_MAX_SIZE + 14 * EXTRA_PAYLOAD_MAX_SIZE
+MAX_METADATA_SIZE: Final[int] = MAX_BOX_SIZE - HEADER_SIZE
+MAX_PAGES: Final[int] = (MAX_METADATA_SIZE + PAGE_SIZE - 1) // PAGE_SIZE
 SHORT_METADATA_SIZE: Final[int] = MAX_STK_SIZE
+# Sentinel `new_metadata_size` for the deletion MBR Delta quote (never a valid size)
+DELETE_METADATA_SIZE: Final[int] = 0xFFFF
 
 # Domain Separators
 HASH_DOMAIN_HEADER: Final[bytes] = b"arc0089/header"

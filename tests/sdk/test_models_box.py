@@ -14,6 +14,7 @@ from asa_metadata_registry import (
     BoxParseError,
     RegistryParameters,
     bitmasks,
+    compute_arc3_metadata_hash,
     compute_metadata_hash,
     decode_metadata_json,
     get_default_registry_params,
@@ -31,7 +32,7 @@ class TestAssetMetadataBoxParse:
         rev_flags: int = 0,
         irr_flags: int = 0,
         metadata_hash: bytes = b"\x00" * 32,
-        last_modified_round: int = 0,
+        revision: int = 0,
         deprecated_by: int = 0,
         metadata: bytes = b"",
     ) -> bytes:
@@ -41,7 +42,7 @@ class TestAssetMetadataBoxParse:
             + bytes([rev_flags])
             + bytes([irr_flags])
             + metadata_hash
-            + last_modified_round.to_bytes(8, "big", signed=False)
+            + revision.to_bytes(8, "big", signed=False)
             + deprecated_by.to_bytes(8, "big", signed=False)
             + metadata
         )
@@ -56,7 +57,7 @@ class TestAssetMetadataBoxParse:
         assert box.header.flags.reversible_byte == 0
         assert box.header.flags.irreversible_byte == 0
         assert box.header.metadata_hash == b"\x00" * 32
-        assert box.header.last_modified_round == 0
+        assert box.header.revision == 0
         assert box.header.deprecated_by == 0
         assert box.body.raw_bytes == b""
         assert box.body.is_empty is True
@@ -98,12 +99,12 @@ class TestAssetMetadataBoxParse:
     def test_parse_box_with_rounds(self) -> None:
         """Test parsing box with round values."""
         box_value = self._create_minimal_box_value(
-            last_modified_round=12345,
+            revision=12345,
             deprecated_by=67890,
         )
         box = AssetMetadataBox.parse(asset_id=222, value=box_value)
 
-        assert box.header.last_modified_round == 12345
+        assert box.header.revision == 12345
         assert box.header.deprecated_by == 67890
 
     def test_parse_box_with_rounds_and_metadata(self) -> None:
@@ -114,14 +115,14 @@ class TestAssetMetadataBoxParse:
         """
         metadata = b'{"name":"Test Asset"}'
         box_value = self._create_minimal_box_value(
-            last_modified_round=12345,
+            revision=12345,
             deprecated_by=67890,
             metadata=metadata,
         )
         box = AssetMetadataBox.parse(asset_id=222, value=box_value)
 
         # These would fail with the buggy implementation that used value[43:]
-        assert box.header.last_modified_round == 12345
+        assert box.header.revision == 12345
         assert box.header.deprecated_by == 67890
         assert box.body.raw_bytes == metadata
 
@@ -165,7 +166,7 @@ class TestAssetMetadataBoxParse:
             + bytes([0])  # rev_flags
             + bytes([0])  # irr_flags
             + b"\x00" * 31  # WRONG: only 31 bytes for hash
-            + (0).to_bytes(8, "big")  # last_modified_round
+            + (0).to_bytes(8, "big")  # revision
             + (0).to_bytes(8, "big")  # deprecated_by
         )
         with pytest.raises(BoxParseError, match="Box value too small"):
@@ -213,12 +214,12 @@ class TestAssetMetadataBoxParse:
         """Test parsing box with maximum uint64 round values."""
         max_uint64 = 2**64 - 1
         box_value = self._create_minimal_box_value(
-            last_modified_round=max_uint64,
+            revision=max_uint64,
             deprecated_by=max_uint64,
         )
         box = AssetMetadataBox.parse(asset_id=2222, value=box_value)
 
-        assert box.header.last_modified_round == max_uint64
+        assert box.header.revision == max_uint64
         assert box.header.deprecated_by == max_uint64
 
     def test_parse_box_all_flags_set(self) -> None:
@@ -324,7 +325,7 @@ class TestAssetMetadataBoxAdvanced:
         rev_flags: int = 0,
         irr_flags: int = 0,
         metadata_hash: bytes = b"\x00" * 32,
-        last_modified_round: int = 0,
+        revision: int = 0,
         deprecated_by: int = 0,
         metadata: bytes = b"",
     ) -> bytes:
@@ -334,7 +335,7 @@ class TestAssetMetadataBoxAdvanced:
             + bytes([rev_flags])
             + bytes([irr_flags])
             + metadata_hash
-            + last_modified_round.to_bytes(8, "big", signed=False)
+            + revision.to_bytes(8, "big", signed=False)
             + deprecated_by.to_bytes(8, "big", signed=False)
             + metadata
         )
@@ -396,7 +397,6 @@ class TestAssetMetadataBoxAdvanced:
 
         # Compute correct hash
         correct_hash = compute_metadata_hash(
-            asset_id=123,
             metadata_identifiers=bitmasks.MASK_ID_SHORT,
             reversible_flags=0,
             irreversible_flags=0,
@@ -441,6 +441,22 @@ class TestAssetMetadataBoxAdvanced:
 
         # With skip_validation=True and non-zero asa_am, should return True
         assert box.hash_matches(asa_am=asa_am, skip_validation_on_override=True) is True
+
+    def test_hash_matches_verifies_arc3_body_against_asa_am(self) -> None:
+        """The registry copies `am` verbatim: an ARC-3 body must hash to it under ARC-3."""
+        genuine = b'{"name":"Test"}'
+        asa_am = compute_arc3_metadata_hash(genuine)
+        irr = bitmasks.MASK_IRR_ARC3 | bitmasks.MASK_IRR_IMMUTABLE
+
+        def box_with(body: bytes) -> AssetMetadataBox:
+            value = self._create_box_value(
+                irr_flags=irr, metadata_hash=asa_am, metadata=body
+            )
+            return AssetMetadataBox.parse(asset_id=123, value=value)
+
+        assert box_with(genuine).hash_matches(asa_am=asa_am) is True
+        assert box_with(b'{"name":"Fake"}').hash_matches(asa_am=asa_am) is False
+        assert box_with(b"not json").hash_matches(asa_am=asa_am) is False
 
     def test_json_property(self) -> None:
         """Test json property on AssetMetadataBox."""

@@ -168,13 +168,13 @@ class TestAlgodBoxReaderTryGetMetadataBox:
 
         asset_id = 12345
         # Create minimal valid box value (51 bytes header + body)
-        # Header: identifiers(1) + rev_flags(1) + irr_flags(1) + hash(32) + last_modified(8) + deprecated_by(8)
+        # Header: identifiers(1) + rev_flags(1) + irr_flags(1) + hash(32) + revision(8) + deprecated_by(8)
         header = (
             b"\x00" * const.METADATA_IDENTIFIERS_SIZE  # identifiers
             + b"\x00" * const.REVERSIBLE_FLAGS_SIZE  # reversible_flags
             + b"\x00" * const.IRREVERSIBLE_FLAGS_SIZE  # irreversible_flags
             + b"\x00" * const.METADATA_HASH_SIZE  # metadata_hash
-            + b"\x00" * const.LAST_MODIFIED_ROUND_SIZE  # last_modified_round
+            + b"\x00" * const.REVISION_SIZE  # revision
             + b"\x00" * const.DEPRECATED_BY_SIZE  # deprecated_by
         )
         body = b'{"test": "metadata"}'
