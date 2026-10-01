@@ -14,6 +14,7 @@ from .errors import (
 )
 from .hashing import (
     MAX_UINT8,
+    compute_arc3_metadata_hash,
     compute_header_hash,
     compute_metadata_hash,
     compute_page_hash,
@@ -791,15 +792,19 @@ class AssetMetadataBox:
         """
         Compare observed on-chain hash to the locally computed effective hash.
 
-        If `asa_am` is set and non-zero and skip_validation_on_override=True, this returns True
-        unconditionally (because spec says not to validate `am` overrides).
+        With a nonzero `asa_am`, ARC-3 Metadata must also hash to it under ARC-3, since the
+        registry copies `am` without checking it; `skip_validation_on_override=True` skips
+        the `am` checks.
         """
-        if (
-            asa_am is not None
-            and _is_nonzero_32(asa_am)
-            and skip_validation_on_override
-        ):
-            return True
+        if asa_am is not None and _is_nonzero_32(asa_am):
+            if skip_validation_on_override:
+                return True
+            if self.header.is_arc3_compliant:
+                try:
+                    if compute_arc3_metadata_hash(self.body.raw_bytes) != asa_am:
+                        return False
+                except ValueError:
+                    return False
         expected = self.expected_metadata_hash(params=params, asa_am=asa_am)
         return expected == self.header.metadata_hash
 

@@ -522,11 +522,30 @@ class TestReaderArc90Uri:
         reader_with_algod: AsaMetadataRegistryRead,
         arc_89_asa: int,
     ) -> None:
-        """Test resolving URI from ASA's url field."""
+        """Test the canonical look-up by asset id (the Asset URL is not read)."""
         uri = reader_with_algod.resolve_arc90_uri(asset_id=arc_89_asa)
 
         assert uri.asset_id == arc_89_asa
         assert uri.app_id is not None
+
+    def test_held_asset_url_matches_canonical_look_up(
+        self,
+        reader_with_algod: AsaMetadataRegistryRead,
+        arc_89_asa: int,
+    ) -> None:
+        """The URL helper and the canonical look-up name the same box."""
+        assert reader_with_algod.algod is not None
+        asset_url = reader_with_algod.algod.get_asset_url(arc_89_asa)
+        assert asset_url
+        from_url = reader_with_algod.resolve_arc90_uri_from_asset_url(
+            asset_id=arc_89_asa, asset_url=asset_url
+        )
+        canonical = reader_with_algod.resolve_arc90_uri(asset_id=arc_89_asa)
+        assert from_url is not None
+        assert (from_url.app_id, from_url.asset_id) == (
+            canonical.app_id,
+            canonical.asset_id,
+        )
 
     def test_resolve_from_explicit_uri(
         self,

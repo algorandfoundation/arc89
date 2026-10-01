@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ..algod import AlgodBoxReader
-from ..codec import Arc90Uri
+from ..codec import Arc90Uri, complete_partial_asset_url
 from ..deployments import (
     deployment_for_genesis,
     netauth_for_genesis,
@@ -163,11 +163,11 @@ class AsaMetadataRegistryRead:
         app_id: int | None = None,
     ) -> Arc90Uri:
         """
-        Resolve the ARC-90 URI for an asset, from either an explicit URI or the ASA's `url` field.
+        Resolve the ARC-90 URI for an asset, from an explicit URI or by the canonical look-up.
 
         The registry identity always comes from the trusted side (explicit `app_id`, the
-        configured one, or the known deployment of the connected network): a URI naming
-        another registry or network is rejected, never followed.
+        configured one, or the known deployment of the connected network): an explicit URI
+        naming another registry or network is rejected; the ASA's Asset URL is not read.
         """
         trusted = self._trusted_app_id(app_id)
 
@@ -186,21 +186,11 @@ class AsaMetadataRegistryRead:
                 "Either asset_id or metadata_uri must be provided"
             )
 
-        if self.algod is not None:
-            try:
-                from_asset = self.algod.resolve_metadata_uri_from_asset(
-                    asset_id=asset_id
-                )
-            except InvalidArc90UriError:
-                from_asset = None  # Not an ARC-89 Asset URL: use the trusted registry.
-            if from_asset is not None:
-                self._check_trusted(from_asset, trusted)
-                return from_asset
-
         if trusted is None:
-            raise RegistryResolutionError(
-                "Cannot resolve registry app_id from inputs or ASA url"
-            )
+            raise RegistryResolutionError("Cannot resolve registry app_id from inputs")
+        if self.algod is not None:
+            # Canonical look-up: the ASA must exist; its Asset URL is informational.
+            self.algod.get_asset_info(asset_id)
         netauth = self.netauth
         if netauth is None:
             gh = self._genesis_hash()
@@ -208,6 +198,22 @@ class AsaMetadataRegistryRead:
         return Arc90Uri(netauth=netauth, app_id=trusted, box_name=None).with_asset_id(
             asset_id
         )
+
+    def resolve_arc90_uri_from_asset_url(
+        self, *, asset_id: int, asset_url: str, app_id: int | None = None
+    ) -> Arc90Uri | None:
+        """
+        Resolve the ARC-90 URI from an Asset URL the client already holds, without fetching
+        the ASA, or None if it is not an ARC-89 partial URI (use the canonical look-up).
+
+        The Asset URL is informational: a URI naming another registry or network is rejected.
+        """
+        try:
+            uri = Arc90Uri.parse(complete_partial_asset_url(asset_url, asset_id))
+        except InvalidArc90UriError:
+            return None
+        self._check_trusted(uri, self._trusted_app_id(app_id))
+        return uri
 
     # ------------------------------------------------------------------
     # High-level read

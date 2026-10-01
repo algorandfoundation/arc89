@@ -22,6 +22,7 @@ from algosdk.v2client.algod import AlgodClient
 from asa_metadata_registry import (
     Arc90Uri,
     AsaMetadataRegistryRead,
+    AsaNotFoundError,
     AssetMetadataRecord,
     InvalidArc90UriError,
     IrreversibleFlags,
@@ -1429,35 +1430,65 @@ class TestEdgeCases:
         with pytest.raises(RegistryResolutionError, match="trusted registry is 123"):
             reader.resolve_arc90_uri(metadata_uri="algorand://app/789?box=AAAAAAAAAcg")
 
-    def test_asset_url_naming_another_registry_raises(
-        self, mock_algod_reader: AlgodBoxReader
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "algorand://app/4242?box=#arc89",  # another registry
+            "algorand://app/123?box=AAAAAAAAMDk#arc89",  # pre-filled box
+            "algorand://app/123?box=#arc89",  # another network
+            "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi#arc3",
+        ],
+    )
+    def test_asset_url_is_informational(
+        self, mock_algod_reader: AlgodBoxReader, url: str
     ) -> None:
-        """A hostile ASA pointing at its own app is rejected, not followed."""
-        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
-        mock_algod_reader.algod.asset_info = Mock(
-            return_value={"params": {"url": "algorand://app/4242?box=#arc89"}}
-        )
-        with pytest.raises(RegistryResolutionError, match="trusted registry is 123"):
-            reader.resolve_arc90_uri(asset_id=999)
-
-    def test_asset_url_with_prefilled_box_falls_back_to_trusted_registry(
-        self, mock_algod_reader: AlgodBoxReader
-    ) -> None:
-        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
-        mock_algod_reader.algod.asset_info = Mock(
-            return_value={"params": {"url": "algorand://app/123?box=AAAAAAAAMDk#arc89"}}
-        )
-        uri = reader.resolve_arc90_uri(asset_id=999)
-        assert (uri.app_id, uri.asset_id) == (123, 999)
-
-    def test_asset_url_on_another_network_raises(
-        self, mock_algod_reader: AlgodBoxReader
-    ) -> None:
+        """Discovery is the look-up on the trusted registry; the Asset URL is never followed."""
         reader = AsaMetadataRegistryRead(
             app_id=123, algod=mock_algod_reader, netauth="net:testnet"
         )
-        mock_algod_reader.algod.asset_info = Mock(
-            return_value={"params": {"url": "algorand://app/123?box=#arc89"}}
+        mock_algod_reader.algod.asset_info = Mock(return_value={"params": {"url": url}})
+        uri = reader.resolve_arc90_uri(asset_id=999)
+        assert (uri.netauth, uri.app_id, uri.asset_id) == ("net:testnet", 123, 999)
+
+    def test_resolve_from_held_asset_url(
+        self, mock_algod_reader: AlgodBoxReader
+    ) -> None:
+        """A held native Asset URL is completed and trust-checked without fetching the ASA."""
+        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        mock_algod_reader.algod.asset_info = Mock()
+        uri = reader.resolve_arc90_uri_from_asset_url(
+            asset_id=999, asset_url="algorand://app/123?box=#arc89"
         )
-        with pytest.raises(RegistryResolutionError, match="netauth"):
+        assert uri is not None
+        assert (uri.app_id, uri.asset_id) == (123, 999)
+        mock_algod_reader.algod.asset_info.assert_not_called()
+
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi#arc3",
+            "algorand://app/123?box=AAAAAAAAMDk#arc89",  # pre-filled box
+            "",
+        ],
+    )
+    def test_held_asset_url_not_arc89_returns_none(self, url: str) -> None:
+        reader = AsaMetadataRegistryRead(app_id=123)
+        assert (
+            reader.resolve_arc90_uri_from_asset_url(asset_id=999, asset_url=url) is None
+        )
+
+    def test_held_asset_url_naming_another_registry_raises(self) -> None:
+        reader = AsaMetadataRegistryRead(app_id=123)
+        with pytest.raises(RegistryResolutionError, match="trusted registry is 123"):
+            reader.resolve_arc90_uri_from_asset_url(
+                asset_id=999, asset_url="algorand://app/4242?box=#arc89"
+            )
+
+    def test_missing_asa_raises(self, mock_algod_reader: AlgodBoxReader) -> None:
+        """A record of a destroyed or unknown ASA is not discovered."""
+        reader = AsaMetadataRegistryRead(app_id=123, algod=mock_algod_reader)
+        mock_algod_reader.algod.asset_info = Mock(
+            side_effect=Exception("asset does not exist")
+        )
+        with pytest.raises(AsaNotFoundError):
             reader.resolve_arc90_uri(asset_id=999)

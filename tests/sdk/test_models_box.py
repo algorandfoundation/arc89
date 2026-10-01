@@ -14,6 +14,7 @@ from asa_metadata_registry import (
     BoxParseError,
     RegistryParameters,
     bitmasks,
+    compute_arc3_metadata_hash,
     compute_metadata_hash,
     decode_metadata_json,
     get_default_registry_params,
@@ -440,6 +441,22 @@ class TestAssetMetadataBoxAdvanced:
 
         # With skip_validation=True and non-zero asa_am, should return True
         assert box.hash_matches(asa_am=asa_am, skip_validation_on_override=True) is True
+
+    def test_hash_matches_verifies_arc3_body_against_asa_am(self) -> None:
+        """The registry copies `am` verbatim: an ARC-3 body must hash to it under ARC-3."""
+        genuine = b'{"name":"Test"}'
+        asa_am = compute_arc3_metadata_hash(genuine)
+        irr = bitmasks.MASK_IRR_ARC3 | bitmasks.MASK_IRR_IMMUTABLE
+
+        def box_with(body: bytes) -> AssetMetadataBox:
+            value = self._create_box_value(
+                irr_flags=irr, metadata_hash=asa_am, metadata=body
+            )
+            return AssetMetadataBox.parse(asset_id=123, value=value)
+
+        assert box_with(genuine).hash_matches(asa_am=asa_am) is True
+        assert box_with(b'{"name":"Fake"}').hash_matches(asa_am=asa_am) is False
+        assert box_with(b"not json").hash_matches(asa_am=asa_am) is False
 
     def test_json_property(self) -> None:
         """Test json property on AssetMetadataBox."""

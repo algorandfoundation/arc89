@@ -43,8 +43,6 @@ from .hashing import (
 )
 from .migrate import (
     build_arc2_migration_message_txn,
-    build_arc2_revocation_message_txn,
-    discover_backport_uri,
     migrate_legacy_metadata_to_registry,
 )
 from .models import (
@@ -147,7 +145,5 @@ __all__ = [
     "validate_arc3_schema",
     # Migrate
     "build_arc2_migration_message_txn",
-    "build_arc2_revocation_message_txn",
-    "discover_backport_uri",
     "migrate_legacy_metadata_to_registry",
 ]

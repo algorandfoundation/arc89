@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-import base64
 import dataclasses
 import json
 from collections.abc import Mapping
-from typing import Any
 
-import msgpack  # type: ignore[import-untyped]
 from algokit_utils import AssetConfigParams, SigningAccount
 from algosdk.transaction import Transaction
 
@@ -42,79 +39,6 @@ def _encode_arc2_migration_message(*, uri: str) -> bytes:
     ).encode("utf-8")
 
     return const.ARC2_ARC_NUMBER + const.ARC2_DATA_FORMAT_JSON + payload
-
-
-def build_arc2_revocation_message_txn(
-    *,
-    registry: AsaMetadataRegistry,
-    asset_id: int,
-    asset_manager: SigningAccount,
-) -> Transaction:
-    """Build the AssetConfig txn revoking a previously published backport message (empty uri)."""
-    return build_arc2_migration_message_txn(
-        registry=registry,
-        asset_id=asset_id,
-        asset_manager=asset_manager,
-        metadata_uri="",
-    )
-
-
-def _parse_arc2_backport_message(note_b64: str | None) -> str | None:
-    """The `uri` of a valid `arc89` ARC-2 message (empty string for a revocation), else None."""
-    if not note_b64:
-        return None
-    try:
-        note = base64.b64decode(note_b64)
-    except Exception:
-        return None
-    if not note.startswith(const.ARC2_ARC_NUMBER + b":"):
-        return None
-    fmt, payload = (
-        note[len(const.ARC2_ARC_NUMBER) + 1 : len(const.ARC2_ARC_NUMBER) + 2],
-        note[len(const.ARC2_ARC_NUMBER) + 2 :],
-    )
-    try:
-        data: Any
-        if fmt == b"j":
-            data = json.loads(payload.decode("utf-8"))
-        elif fmt == b"m":
-            data = msgpack.unpackb(payload, raw=False)
-        else:
-            return None
-    except Exception:
-        return None
-    uri = data.get("uri") if isinstance(data, dict) else None
-    return uri if isinstance(uri, str) else None
-
-
-def discover_backport_uri(*, indexer: Any, asset_id: int) -> str | None:
-    """
-    The Asset Metadata URI published for a backported ASA, per ARC-89 precedence: the
-    latest confirmed `AssetConfig` transaction carrying a valid `arc89` message wins
-    (highest round, then intra-round order); an empty `uri` revokes; malformed messages
-    are ignored. Returns None when nothing valid is published or the backport is revoked.
-    """
-    best: tuple[int, int] | None = None
-    best_uri: str | None = None
-    next_token: str | None = None
-    while True:
-        resp = indexer.search_asset_transactions(
-            asset_id=asset_id, txn_type="acfg", limit=1000, next_page=next_token
-        )
-        for txn in resp.get("transactions", []):
-            uri = _parse_arc2_backport_message(txn.get("note"))
-            if uri is None:
-                continue
-            key = (
-                int(txn.get("confirmed-round", 0)),
-                int(txn.get("intra-round-offset", 0)),
-            )
-            if best is None or key > best:
-                best, best_uri = key, uri
-        next_token = resp.get("next-token")
-        if not next_token:
-            break
-    return best_uri or None
 
 
 def build_arc2_migration_message_txn(
@@ -210,10 +134,12 @@ def migrate_legacy_metadata_to_registry(
     arc3_compliant: bool,
     flags: MetadataFlags | None = None,
     verify_am: bool = True,
+    publish_arc2_message: bool = False,
 ) -> None:
     """
     Migrate a legacy ASA (e.g., ARC-3 / ARC-19 / ARC-69) metadata by replicating it
-    in the ASA Metadata Registry, then emitting an ARC-2 migration message.
+    in the ASA Metadata Registry, where it takes precedence over the Asset URL. The
+    informational ARC-2 announcement is sent only if `publish_arc2_message` is True.
 
     Pass the original file `bytes` to store them verbatim (a `Mapping` is re-encoded
     compactly). When the ASA has a nonzero `am` and is ARC-3 compliant, the ARC-3 hash
@@ -225,7 +151,7 @@ def migrate_legacy_metadata_to_registry(
     3) If the ASA has a non-zero on-chain am: auto-set immutable when no flags provided,
        or error early if flags are provided without immutable=True.
     4) Validate metadata size <= MAX_METADATA_SIZE (raw bytes after JSON encoding).
-    5) Create metadata on the registry and emit the ARC-2 migration message.
+    5) Create metadata on the registry (and, on request, emit the ARC-2 message).
     """
 
     _ensure_exists_and_not_already_migrated(registry=registry, asset_id=asset_id)
@@ -288,22 +214,21 @@ def migrate_legacy_metadata_to_registry(
                 "migrate; pass the original file bytes, or verify_am=False."
             )
 
-    migration_uri = _derive_migration_uri(
-        registry=registry,
-        asset_id=asset_id,
-        arc3=arc3_compliant,
+    migrate_group = registry.write.build_create_metadata_group(
+        asset_manager=asset_manager, metadata=asset_md
     )
+    if not publish_arc2_message:
+        migrate_group.send()
+        return
 
     txn = build_arc2_migration_message_txn(
         registry=registry,
         asset_id=asset_id,
         asset_manager=asset_manager,
-        metadata_uri=migration_uri,
+        metadata_uri=_derive_migration_uri(
+            registry=registry, asset_id=asset_id, arc3=arc3_compliant
+        ),
     )
-    migrate_group = registry.write.build_create_metadata_group(
-        asset_manager=asset_manager, metadata=asset_md
-    )
-
     if migrate_group.composer().count() < const.MAX_GROUP_SIZE:
         # We migrate and emit the ARC-2 message atomically.
         migrate_group.add_transaction(txn)
